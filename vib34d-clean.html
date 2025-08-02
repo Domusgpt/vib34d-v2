@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>VIB34D CLEAN REFACTORED - NO APP.JS HERE!</title>
+    <style>
+        body { 
+            background: #000; 
+            color: #0ff; 
+            font-family: monospace; 
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { 
+            color: #f0f; 
+            text-shadow: 0 0 20px #f0f;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .status {
+            background: #111;
+            border: 2px solid #0ff;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 800px;
+            border-radius: 10px;
+        }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+        canvas {
+            border: 1px solid #0ff;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 VIB34D CLEAN REFACTORED VERSION 🚀</h1>
+    <h2>THIS IS THE CORRECT FILE - NO APP.JS!</h2>
+    
+    <div class="status">
+        <p>If you see this page, you're loading the CORRECT refactored version!</p>
+        <p>URL should be: http://localhost:8080/vib34d-clean.html</p>
+    </div>
+    
+    <div id="test-results"></div>
+    
+    <!-- Simple canvas test -->
+    <canvas id="test-canvas" width="400" height="400"></canvas>
+    
+    <script>
+        console.log('🎯 VIB34D CLEAN VERSION LOADED!');
+        console.log('✅ NO APP.JS IN THIS VERSION!');
+        console.log('🚀 This is the refactored code!');
+        
+        const results = document.getElementById('test-results');
+        
+        function addStatus(message, isError = false) {
+            const div = document.createElement('div');
+            div.className = isError ? 'error' : 'success';
+            div.textContent = message;
+            results.appendChild(div);
+        }
+        
+        // Test WebGL
+        const canvas = document.getElementById('test-canvas');
+        const gl = canvas.getContext('webgl');
+        
+        if (gl) {
+            addStatus('✅ WebGL initialized successfully!');
+            
+            // Simple WebGL 1.0 compatible shader test
+            const vertexShader = `
+                attribute vec2 position;
+                void main() {
+                    gl_Position = vec4(position, 0.0, 1.0);
+                }
+            `;
+            
+            const fragmentShader = `
+                precision mediump float;
+                uniform float time;
+                void main() {
+                    gl_FragColor = vec4(0.0, abs(sin(time)), 1.0, 1.0);
+                }
+            `;
+            
+            // Compile shaders
+            const vs = gl.createShader(gl.VERTEX_SHADER);
+            gl.shaderSource(vs, vertexShader);
+            gl.compileShader(vs);
+            
+            if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) {
+                addStatus('❌ Vertex shader error: ' + gl.getShaderInfoLog(vs), true);
+            } else {
+                addStatus('✅ Vertex shader compiled!');
+            }
+            
+            const fs = gl.createShader(gl.FRAGMENT_SHADER);
+            gl.shaderSource(fs, fragmentShader);
+            gl.compileShader(fs);
+            
+            if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
+                addStatus('❌ Fragment shader error: ' + gl.getShaderInfoLog(fs), true);
+            } else {
+                addStatus('✅ Fragment shader compiled!');
+            }
+            
+            // Animate a simple pattern
+            const program = gl.createProgram();
+            gl.attachShader(program, vs);
+            gl.attachShader(program, fs);
+            gl.linkProgram(program);
+            
+            if (gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                addStatus('✅ Shader program linked successfully!');
+                
+                gl.useProgram(program);
+                const timeLocation = gl.getUniformLocation(program, 'time');
+                
+                function render() {
+                    gl.uniform1f(timeLocation, Date.now() * 0.001);
+                    gl.clearColor(0, 0, 0, 1);
+                    gl.clear(gl.COLOR_BUFFER_BIT);
+                    requestAnimationFrame(render);
+                }
+                render();
+            }
+        } else {
+            addStatus('❌ WebGL not supported!', true);
+        }
+        
+        // Now try to load the refactored engine
+        addStatus('📦 Attempting to load refactored VIB34D engine...');
+        
+        import('./src/core/Engine.js').then(module => {
+            addStatus('✅ Engine module loaded successfully!');
+            console.log('Engine module:', module);
+        }).catch(error => {
+            addStatus('❌ Failed to load engine: ' + error.message, true);
+        });
+    </script>
+</body>
+</html>

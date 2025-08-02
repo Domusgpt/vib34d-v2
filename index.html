@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>VIB34D Holographic Engine - Refactored</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* VIB34D Refactored CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* 5-Layer Holographic Canvas System */
+        .holographic-layers {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+        }
+        
+        .holographic-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: auto;
+        }
+        
+        #background-canvas { z-index: 1; opacity: 0.6; mix-blend-mode: normal; }
+        #shadow-canvas { z-index: 3; opacity: 0.4; mix-blend-mode: multiply; }
+        #content-canvas { z-index: 5; opacity: 0.9; mix-blend-mode: screen; }
+        #highlight-canvas { z-index: 7; opacity: 0.7; mix-blend-mode: overlay; }
+        #accent-canvas { z-index: 15; opacity: 0.5; mix-blend-mode: color-dodge; }
+        
+        /* Control Panel */
+        .control-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #00ffff;
+            border-radius: 10px;
+            padding: 20px;
+            min-width: 320px;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Hide control panel in preview mode */
+        .preview-mode .control-panel {
+            display: none !important;
+        }
+        
+        /* Hide status in preview mode */
+        .preview-mode .status {
+            display: none !important;
+        }
+        
+        .control-panel h2 {
+            color: #00ffff;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.2rem;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 8px 5px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.7rem;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab-btn.active {
+            color: #00ffff;
+            border-bottom-color: #00ffff;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Controls */
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .control-input {
+            width: 100%;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 5px;
+            padding: 8px;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.8rem;
+        }
+        
+        .control-input:focus {
+            outline: none;
+            border-color: #00ffff;
+            box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+        }
+        
+        .control-display {
+            display: inline-block;
+            float: right;
+            color: #00ffff;
+            font-weight: bold;
+        }
+        
+        /* Buttons */
+        .btn {
+            background: rgba(0, 255, 255, 0.2);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            margin: 2px;
+        }
+        
+        .btn:hover {
+            background: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        
+        .btn.active {
+            background: rgba(0, 255, 255, 0.5);
+        }
+        
+        /* Geometry Presets */
+        .geometry-presets {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        
+        /* Variation Grid */
+        .variation-controls {
+            margin-bottom: 15px;
+        }
+        
+        .variation-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .variation-info {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
+        
+        /* Status */
+        .status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.8rem;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .status.success {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+        }
+        
+        .status.error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff0000;
+            color: #ff0000;
+        }
+        
+        .status.warning {
+            background: rgba(255, 255, 0, 0.2);
+            border: 1px solid #ffff00;
+            color: #ffff00;
+        }
+        
+        .status.info {
+            background: rgba(0, 255, 255, 0.2);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+        }
+        
+        /* Gallery Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+        }
+        
+        .modal.active {
+            display: block;
+        }
+        
+        .modal-content {
+            position: relative;
+            margin: 2% auto;
+            width: 95%;
+            height: 95%;
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid #00ffff;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .control-panel {
+                right: 10px;
+                top: 10px;
+                min-width: 280px;
+            }
+            
+            .geometry-presets {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 5-Layer Holographic Canvas System -->
+    <div class="holographic-layers">
+        <canvas id="background-canvas" class="holographic-canvas"></canvas>
+        <canvas id="shadow-canvas" class="holographic-canvas"></canvas>
+        <canvas id="content-canvas" class="holographic-canvas"></canvas>
+        <canvas id="highlight-canvas" class="holographic-canvas"></canvas>
+        <canvas id="accent-canvas" class="holographic-canvas"></canvas>
+    </div>
+    
+    <!-- Active Holographic System Layers -->
+    <div class="holographic-layers active-holo" style="display: none;">
+        <canvas id="holo-background-canvas" class="holographic-canvas"></canvas>
+        <canvas id="holo-shadow-canvas" class="holographic-canvas"></canvas>
+        <canvas id="holo-content-canvas" class="holographic-canvas"></canvas>
+        <canvas id="holo-highlight-canvas" class="holographic-canvas"></canvas>
+        <canvas id="holo-accent-canvas" class="holographic-canvas"></canvas>
+    </div>
+    
+    <!-- Control Panel -->
+    <div class="control-panel">
+        <h2>VIB34D Holographic Engine</h2>
+        
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="variations">Variations</button>
+            <button class="tab-btn" data-tab="polytopal">4D Math</button>
+            <button class="tab-btn" data-tab="holographic">Holographic</button>
+            <button class="tab-btn" data-tab="holograms">Active Holograms</button>
+            <button class="tab-btn" data-tab="export">Export</button>
+        </div>
+        
+        <!-- Variations Tab -->
+        <div class="tab-content active" id="variations-tab">
+            <div class="variation-controls">
+                <div class="variation-nav">
+                    <button class="btn" onclick="engine.previousVariation()">← Prev</button>
+                    <button class="btn" onclick="engine.randomVariation()">Random</button>
+                    <button class="btn" onclick="engine.nextVariation()">Next →</button>
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">
+                        Variation <span class="control-display" id="currentVariationDisplay">1</span>
+                    </label>
+                    <input type="range" id="variationSlider" class="control-input" min="0" max="99" value="0">
+                </div>
+                
+                <div class="variation-info">
+                    <div id="currentVariation">1 - TETRAHEDRON LATTICE 1</div>
+                </div>
+                
+                <div class="variation-nav">
+                    <button class="btn" onclick="engine.saveAsCustomVariation()">Save Custom</button>
+                    <button class="btn" onclick="engine.openGalleryView()">Gallery</button>
+                </div>
+            </div>
+            
+            <div class="geometry-presets">
+                <button class="btn active" data-geometry="0">Tetrahedron</button>
+                <button class="btn" data-geometry="1">Hypercube</button>
+                <button class="btn" data-geometry="2">Sphere</button>
+                <button class="btn" data-geometry="3">Torus</button>
+                <button class="btn" data-geometry="4">Klein Bottle</button>
+                <button class="btn" data-geometry="5">Fractal</button>
+                <button class="btn" data-geometry="6">Wave</button>
+                <button class="btn" data-geometry="7">Crystal</button>
+            </div>
+        </div>
+        
+        <!-- 4D Math Tab -->
+        <div class="tab-content" id="polytopal-tab">
+            <div class="control-group">
+                <label class="control-label">
+                    4D Rotation XW <span class="control-display" id="rot4dXWDisplay">0.00</span>
+                </label>
+                <input type="range" id="rot4dXW" class="control-input" min="-2" max="2" step="0.01" value="0">
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label">
+                    4D Rotation YW <span class="control-display" id="rot4dYWDisplay">0.00</span>
+                </label>
+                <input type="range" id="rot4dYW" class="control-input" min="-2" max="2" step="0.01" value="0">
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label">
+                    4D Rotation ZW <span class="control-display" id="rot4dZWDisplay">0.00</span>
+                </label>
+                <input type="range" id="rot4dZW" class="control-input" min="-2" max="2" step="0.01" value="0">
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label">
+                    Dimension <span class="control-display" id="dimensionDisplay">3.50</span>
+                </label>
+                <input type="range" id="dimension" class="control-input" min="3" max="4.5" step="0.01" value="3.5">
+            </div>
+            
+            <div style="text-align: center; margin-top: 15px;">
+                <button class="btn" onclick="engine.randomizeAll()">Randomize All</button>
+                <button class="btn" onclick="engine.resetToDefaults()">Reset</button>
+            </div>
+        </div>
+        
+        <!-- Holographic Tab -->
+        <div class="tab-content" id="holographic-tab">
+            <div class="control-group">
+                <label class="control-label">
+                    Grid Density <span class="control-display" id="gridDensityDisplay">15.0</span>
+                </label>
+                <input type="range" id="gridDensity" class="control-input" min="4" max="30" step="0.1" value="15">
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label">
+                    Morph Factor <span class="control-display" id="morphFactorDisplay">1.00</span>
+                </label>
+                <input type="range" id="morphFactor" class="control-input" min="0" max="2" step="0.01" value="1">
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label">
+                    Chaos <span class="control-display" id="chaosDisplay">0.20</span>
+                </label>
+                <input type="range" id="chaos" class="control-input" min="0" max="1" step="0.01" value="0.2">
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label">
+                    Speed <span class="control-display" id="speedDisplay">1.00</span>
+                </label>
+                <input type="range" id="speed" class="control-input" min="0.1" max="3" step="0.01" value="1">
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label">
+                    Hue <span class="control-display" id="hueDisplay">200°</span>
+                </label>
+                <input type="range" id="hue" class="control-input" min="0" max="360" step="1" value="200">
+            </div>
+        </div>
+        
+        <!-- Active Holograms Tab -->
+        <div class="tab-content" id="holograms-tab">
+            <div class="control-group">
+                <h3 style="color: #00ffff; margin-bottom: 15px;">Active Holographic System</h3>
+                <div style="margin-bottom: 15px;">
+                    <button class="btn" id="toggle-holo" onclick="toggleHolographicSystem()">Activate Holograms</button>
+                </div>
+            </div>
+            
+            <div class="variation-controls">
+                <div class="variation-nav">
+                    <button class="btn" onclick="holoSystem.previousVariant()">← Prev</button>
+                    <button class="btn" onclick="holoSystem.randomVariant()">Random</button>
+                    <button class="btn" onclick="holoSystem.nextVariant()">Next →</button>
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">
+                        Hologram Variant <span class="control-display" id="holoVariationDisplay">1</span>
+                    </label>
+                    <input type="range" id="holoVariationSlider" class="control-input" min="0" max="29" value="0" 
+                           onchange="holoSystem.setVariant(parseInt(this.value)); updateHoloDisplay();">
+                </div>
+                
+                <div class="variation-info">
+                    <div id="currentHoloVariation">1 - TETRAHEDRON LATTICE</div>
+                </div>
+            </div>
+            
+            <div class="geometry-presets">
+                <button class="btn holo-geom active" data-holo-geometry="0" onclick="setHoloGeometry(0)">Tetrahedron</button>
+                <button class="btn holo-geom" data-holo-geometry="4" onclick="setHoloGeometry(4)">Hypercube</button>
+                <button class="btn holo-geom" data-holo-geometry="8" onclick="setHoloGeometry(8)">Sphere</button>
+                <button class="btn holo-geom" data-holo-geometry="12" onclick="setHoloGeometry(12)">Torus</button>
+                <button class="btn holo-geom" data-holo-geometry="16" onclick="setHoloGeometry(16)">Klein Bottle</button>
+                <button class="btn holo-geom" data-holo-geometry="20" onclick="setHoloGeometry(20)">Fractal</button>
+                <button class="btn holo-geom" data-holo-geometry="23" onclick="setHoloGeometry(23)">Wave</button>
+                <button class="btn holo-geom" data-holo-geometry="26" onclick="setHoloGeometry(26)">Crystal</button>
+            </div>
+            
+            <!-- HOLOGRAPHIC PARAMETER CONTROLS -->
+            <div style="margin-top: 20px; border-top: 1px solid rgba(0,255,255,0.3); padding-top: 15px;">
+                <h4 style="color: #00ffff; margin-bottom: 10px;">🎛️ Holographic Parameters</h4>
+                
+                <div class="control-group">
+                    <label class="control-label">
+                        Density <span class="control-display" id="holoDensityDisplay">1.00</span>
+                    </label>
+                    <input type="range" id="holoDensity" class="control-input" min="0.5" max="3.0" step="0.1" value="1.0" 
+                           oninput="updateHoloParameter('density', this.value)">
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">
+                        Speed <span class="control-display" id="holoSpeedDisplay">0.50</span>
+                    </label>
+                    <input type="range" id="holoSpeed" class="control-input" min="0.1" max="2.0" step="0.1" value="0.5" 
+                           oninput="updateHoloParameter('speed', this.value)">
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">
+                        Chaos <span class="control-display" id="holoChaosDisplay">0.00</span>
+                    </label>
+                    <input type="range" id="holoChaos" class="control-input" min="0" max="1" step="0.05" value="0" 
+                           oninput="updateHoloParameter('chaos', this.value)">
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">
+                        Morph <span class="control-display" id="holoMorphDisplay">0.00</span>
+                    </label>
+                    <input type="range" id="holoMorph" class="control-input" min="0" max="1" step="0.05" value="0" 
+                           oninput="updateHoloParameter('morph', this.value)">
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">
+                        Hue <span class="control-display" id="holoHueDisplay">0°</span>
+                    </label>
+                    <input type="range" id="holoHue" class="control-input" min="0" max="360" step="5" value="0" 
+                           oninput="updateHoloParameter('hue', this.value)">
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">
+                        Saturation <span class="control-display" id="holoSaturationDisplay">0.80</span>
+                    </label>
+                    <input type="range" id="holoSaturation" class="control-input" min="0" max="1" step="0.05" value="0.8" 
+                           oninput="updateHoloParameter('saturation', this.value)">
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">
+                        Intensity <span class="control-display" id="holoIntensityDisplay">0.50</span>
+                    </label>
+                    <input type="range" id="holoIntensity" class="control-input" min="0.1" max="1" step="0.05" value="0.5" 
+                           oninput="updateHoloParameter('intensity', this.value)">
+                </div>
+                
+                <div style="margin-top: 15px; text-align: center;">
+                    <button class="btn" onclick="saveHologramToPortfolio()" style="background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">
+                        💾 Save to Portfolio
+                    </button>
+                    <button class="btn" onclick="openHologramGallery()" style="background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">
+                        🖼️ View Portfolio
+                    </button>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; font-size: 0.8rem; color: rgba(255,255,255,0.7);">
+                <p>✨ Multi-layer holographic effects</p>
+                <p>🎨 Audio-reactive visualizations</p>
+                <p>🔮 30 base variants + custom portfolio</p>
+                <p>🖱️ Mouse, touch, scroll, audio interactions</p>
+            </div>
+        </div>
+        
+        <!-- Export Tab -->
+        <div class="tab-content" id="export-tab">
+            <div class="control-group">
+                <h3 style="color: #00ffff; margin-bottom: 10px;">Export</h3>
+                <button class="btn" onclick="engine.exportJSON()" style="width: 100%; margin-bottom: 5px;">Export JSON Config</button>
+                <button class="btn" onclick="engine.exportCSS()" style="width: 100%; margin-bottom: 5px;">Export CSS Theme</button>
+                <button class="btn" onclick="engine.exportHTML()" style="width: 100%; margin-bottom: 5px;">Export HTML Page</button>
+                <button class="btn" onclick="engine.exportPNG()" style="width: 100%; margin-bottom: 15px;">Export PNG Image</button>
+            </div>
+            
+            <div class="control-group">
+                <h3 style="color: #00ffff; margin-bottom: 10px;">Import</h3>
+                <button class="btn" onclick="engine.importJSON()" style="width: 100%; margin-bottom: 5px;">Import JSON Config</button>
+                <button class="btn" onclick="engine.importFolder()" style="width: 100%;">Import Folder</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Status Display -->
+    <div id="status" class="status"></div>
+    
+    <!-- Load ES6 Modules -->
+    <script type="module">
+        // Check for preview mode
+        const urlParams = new URLSearchParams(window.location.search);
+        const isPreviewMode = urlParams.get('preview') === 'true' || urlParams.get('hideui') === 'true';
+        
+        if (isPreviewMode) {
+            document.body.classList.add('preview-mode');
+            console.log('🔍 Preview mode activated - UI hidden');
+            
+            // Auto-activate holograms if requested
+            if (urlParams.get('holograms') === 'true') {
+                // Wait for system to load, then activate holograms
+                setTimeout(() => {
+                    if (window.realHoloSystem) {
+                        window.realHoloSystem.setActive(true);
+                        console.log('🌌 Auto-activated holograms in preview mode');
+                        
+                        // Load URL parameters if provided
+                        const density = urlParams.get('density');
+                        const speed = urlParams.get('speed');
+                        const chaos = urlParams.get('chaos');
+                        const morph = urlParams.get('morph');
+                        const hue = urlParams.get('hue');
+                        const saturation = urlParams.get('saturation');
+                        const intensity = urlParams.get('intensity');
+                        const geometry = urlParams.get('geometry');
+                        
+                        if (geometry !== null) {
+                            window.realHoloSystem.setVariant(parseInt(geometry));
+                        }
+                        
+                        // Apply parameters
+                        if (density !== null) updateHoloParameter('density', parseFloat(density));
+                        if (speed !== null) updateHoloParameter('speed', parseFloat(speed));
+                        if (chaos !== null) updateHoloParameter('chaos', parseFloat(chaos));
+                        if (morph !== null) updateHoloParameter('morph', parseFloat(morph));
+                        if (hue !== null) updateHoloParameter('hue', parseFloat(hue));
+                        if (saturation !== null) updateHoloParameter('saturation', parseFloat(saturation));
+                        if (intensity !== null) updateHoloParameter('intensity', parseFloat(intensity));
+                    }
+                }, 2000); // Wait 2 seconds for system to fully load
+            }
+        }
+        
+        // Add cache busting to prevent old file conflicts
+        const cacheBuster = '?v=' + Date.now();
+        
+        // Load main VIB34D Engine
+        import('./src/core/Engine.js' + cacheBuster).then(module => {
+            const { VIB34DIntegratedEngine } = module;
+            
+            // Initialize VIB34D Engine
+            window.engine = new VIB34DIntegratedEngine();
+            
+            console.log('🌌 VIB34D Holographic Engine - Refactored Version Loaded');
+            console.log('✅ 5-Layer Holographic Rendering Active');
+            console.log('🔮 100 Geometric Variations Available');
+            console.log('🧮 4D Polytopal Mathematics Ready');
+            console.log('🎮 Interactive Controls Enabled');
+        }).catch(error => {
+            console.error('❌ Failed to load VIB34D Engine:', error);
+            document.body.innerHTML += '<div style="color: red; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: black; padding: 20px; border: 1px solid red;">VIB34D Loading Error: ' + error.message + '</div>';
+        });
+        
+        // Load REAL Holographic System for Active Holograms tab ONLY
+        import('./src/holograms/RealHolographicSystem.js' + cacheBuster).then(module => {
+            const { RealHolographicSystem } = module;
+            
+            // Initialize REAL Holographic System for the Active Holograms tab
+            // This uses the holo-* canvas elements, NOT the regular ones
+            window.realHoloSystem = new RealHolographicSystem();
+            
+            console.log('✨ REAL Active Holographic System Loaded for Active Holograms tab');
+            console.log('🔮 30 VIB3 Elaborate Holographic Variants with Complex Shaders');
+            console.log('🎨 Klein Bottles, Fractals, Tetrahedrons, Hypercubes');
+            console.log('🌀 RGB Glitch, Moiré Patterns, 4D Mathematics');
+            console.log('🖱️ FULL INTERACTIONS: Mouse, Click, Touch, Scroll, Audio');
+            console.log('🎵 Audio Reactive + Mouse Reactive + Touch Morphing + Scroll Parallax');
+            console.log('📺 Uses holo-* canvas layers separate from VIB34D system');
+        }).catch(error => {
+            console.error('❌ Failed to load REAL Holographic System:', error);
+        });
+        
+        // Global functions for REAL Active Holographic System
+        window.toggleHolographicSystem = function() {
+            const button = document.getElementById('toggle-holo');
+            const isActive = button.textContent === 'Deactivate Holograms';
+            
+            if (isActive) {
+                // Deactivate REAL holographic system
+                realHoloSystem.setActive(false);
+                button.textContent = 'Activate Holograms';
+                button.classList.remove('active');
+                console.log('🔴 REAL Active Holograms DEACTIVATED - VIB34D system restored');
+            } else {
+                // Activate REAL holographic system with ALL interactions
+                realHoloSystem.setActive(true);
+                button.textContent = 'Deactivate Holograms';
+                button.classList.add('active');
+                console.log('🟢 REAL Active Holograms ACTIVATED with FULL interactions (mouse, click, touch, scroll, audio)');
+            }
+            
+            updateHoloDisplay();
+        };
+        
+        window.updateHoloDisplay = function() {
+            if (!window.realHoloSystem) return;
+            
+            const variantInfo = realHoloSystem.getCurrentVariantInfo();
+            if (!variantInfo) return;
+            
+            const currentVariant = variantInfo.variant;
+            const variantName = variantInfo.name;
+            
+            document.getElementById('holoVariationDisplay').textContent = currentVariant + 1;
+            document.getElementById('currentHoloVariation').textContent = `${currentVariant + 1} - ${variantName}`;
+            document.getElementById('holoVariationSlider').value = currentVariant;
+            
+            // Update geometry buttons
+            document.querySelectorAll('.holo-geom').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const activeGeometry = Math.floor(currentVariant / 4) * 4;
+            const activeBtn = document.querySelector(`[data-holo-geometry="${activeGeometry}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+            
+            // Sync parameter sliders to match current variant
+            setTimeout(() => {
+                syncHolographicSliders();
+            }, 100); // Small delay to ensure variant parameters are updated
+        };
+        
+        window.setHoloGeometry = function(startVariant) {
+            if (window.realHoloSystem) {
+                realHoloSystem.updateVariant(startVariant);
+                updateHoloDisplay();
+            }
+        };
+        
+        // Create holoSystem interface that points to realHoloSystem
+        window.holoSystem = {
+            setVariant: function(variant) {
+                if (window.realHoloSystem) {
+                    realHoloSystem.setVariant(variant);
+                    updateHoloDisplay();
+                }
+            },
+            nextVariant: function() {
+                if (window.realHoloSystem) {
+                    realHoloSystem.nextVariant();
+                    updateHoloDisplay();
+                }
+            },
+            previousVariant: function() {
+                if (window.realHoloSystem) {
+                    realHoloSystem.previousVariant();
+                    updateHoloDisplay();
+                }
+            },
+            randomVariant: function() {
+                if (window.realHoloSystem) {
+                    realHoloSystem.randomVariant();
+                    updateHoloDisplay();
+                }
+            },
+            get currentVariant() {
+                return window.realHoloSystem ? realHoloSystem.currentVariant : 0;
+            }
+        };
+        
+        // HOLOGRAPHIC PARAMETER CONTROLS
+        window.updateHoloParameter = function(paramName, value) {
+            if (!window.realHoloSystem || !realHoloSystem.isActive) return;
+            
+            const numValue = parseFloat(value);
+            
+            // Update display
+            const displayId = `holo${paramName.charAt(0).toUpperCase() + paramName.slice(1)}Display`;
+            const displayElement = document.getElementById(displayId);
+            if (displayElement) {
+                if (paramName === 'hue') {
+                    displayElement.textContent = Math.round(numValue) + '°';
+                } else {
+                    displayElement.textContent = numValue.toFixed(2);
+                }
+            }
+            
+            // Update all holographic visualizers with new parameter
+            realHoloSystem.visualizers.forEach(visualizer => {
+                if (visualizer.variantParams) {
+                    visualizer.variantParams[paramName] = numValue;
+                    // Regenerate role parameters with updated variant params
+                    visualizer.roleParams = visualizer.generateRoleParams(visualizer.role);
+                }
+            });
+            
+            console.log(`🎛️ Updated holographic ${paramName}: ${numValue}`);
+        };
+        
+        window.getCurrentHolographicParameters = function() {
+            if (!window.realHoloSystem || realHoloSystem.visualizers.length === 0) return null;
+            
+            const contentVisualizer = realHoloSystem.visualizers.find(v => v.role === 'content');
+            if (!contentVisualizer || !contentVisualizer.variantParams) return null;
+            
+            return {
+                geometryType: contentVisualizer.variantParams.geometryType || 0,
+                density: contentVisualizer.variantParams.density || 1.0,
+                speed: contentVisualizer.variantParams.speed || 0.5,
+                chaos: contentVisualizer.variantParams.chaos || 0.0,
+                morph: contentVisualizer.variantParams.morph || 0.0,
+                hue: contentVisualizer.variantParams.hue || 0,
+                saturation: contentVisualizer.variantParams.saturation || 0.8,
+                intensity: contentVisualizer.variantParams.intensity || 0.5
+            };
+        };
+        
+        window.saveHologramToPortfolio = function() {
+            const params = getCurrentHolographicParameters();
+            if (!params) {
+                alert('❌ No holographic parameters to save. Activate holograms first!');
+                return;
+            }
+            
+            // Get current variant info for naming
+            const variantInfo = realHoloSystem.getCurrentVariantInfo();
+            const geometryNames = ['TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'];
+            const baseName = geometryNames[params.geometryType] || 'UNKNOWN';
+            
+            // Generate unique name
+            const timestamp = new Date().toLocaleTimeString().replace(/:/g, '');
+            const customName = `${baseName} CUSTOM ${timestamp}`;
+            
+            // Create custom variation object
+            const customVariation = {
+                name: customName,
+                params: params,
+                created: new Date().toISOString(),
+                isCustom: true
+            };
+            
+            // Load existing custom variations
+            let savedVariations = [];
+            try {
+                const stored = localStorage.getItem('customHolographicVariations');
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    savedVariations = data.variations || [];
+                }
+            } catch (e) {
+                console.error('Failed to load existing variations:', e);
+            }
+            
+            // Add new variation
+            savedVariations.push(customVariation);
+            
+            // Save back to localStorage
+            try {
+                localStorage.setItem('customHolographicVariations', JSON.stringify({
+                    variations: savedVariations,
+                    timestamp: Date.now()
+                }));
+                
+                console.log('💾 Saved hologram to portfolio:', customName);
+                alert(`✅ Saved "${customName}" to portfolio!\n\nTotal saved: ${savedVariations.length} variations`);
+            } catch (e) {
+                console.error('Failed to save variation:', e);
+                alert('❌ Failed to save to portfolio. Storage may be full.');
+            }
+        };
+        
+        window.openHologramGallery = function() {
+            // Create a hologram gallery URL (we'll create this file)
+            window.open('./hologram-gallery.html', '_blank');
+        };
+        
+        // Update slider values when variant changes
+        window.syncHolographicSliders = function() {
+            const params = getCurrentHolographicParameters();
+            if (!params) return;
+            
+            // Update all sliders to match current parameters
+            const sliders = {
+                'holoDensity': params.density,
+                'holoSpeed': params.speed,
+                'holoChaos': params.chaos,
+                'holoMorph': params.morph,
+                'holoHue': params.hue,
+                'holoSaturation': params.saturation,
+                'holoIntensity': params.intensity
+            };
+            
+            Object.entries(sliders).forEach(([sliderId, value]) => {
+                const slider = document.getElementById(sliderId);
+                if (slider) {
+                    slider.value = value;
+                    // Trigger display update
+                    const paramName = sliderId.replace('holo', '').toLowerCase();
+                    updateHoloParameter(paramName, value);
+                }
+            });
+        };
+    </script>
+</body>
+</html>

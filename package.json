@@ -1,0 +1,44 @@
+{
+  "name": "vib34d-holographic-engine",
+  "version": "1.0.0",
+  "description": "VIB34D Holographic Engine - Unified System with 4D Mathematics and Real-Time Interactive Holograms",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8144",
+    "dev": "python3 -m http.server 8144",
+    "test": "python3 -m http.server 8145",
+    "deploy": "gh-pages -d .",
+    "build": "echo 'No build step required - pure HTML/JS/CSS project'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/domusgpt/vib34d-holographic-engine.git"
+  },
+  "keywords": [
+    "holographic",
+    "webgl",
+    "4d-mathematics",
+    "interactive",
+    "visualization",
+    "polytopal",
+    "geometry",
+    "audio-reactive",
+    "portfolio",
+    "gallery"
+  ],
+  "author": "Paul Phillips (domusgpt) <phillips.paul.email@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://domusgpt.github.io/vib34d-holographic-engine",
+  "devDependencies": {
+    "gh-pages": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 Firefox versions",
+    "last 2 Safari versions",
+    "last 2 Edge versions"
+  ]
+}

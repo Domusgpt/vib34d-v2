@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D Debug Test</title>
+    <style>
+        body { 
+            background: #000; 
+            color: #0ff; 
+            font-family: monospace;
+            margin: 20px;
+        }
+        #test-canvas { 
+            border: 1px solid #0ff; 
+            width: 400px; 
+            height: 400px;
+        }
+        .debug-info {
+            background: #111;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>VIB34D Debug Test</h1>
+    
+    <div class="debug-info">
+        <h3>Loading Status:</h3>
+        <div id="load-status">Initializing...</div>
+    </div>
+    
+    <div class="debug-info">
+        <h3>WebGL Test:</h3>
+        <canvas id="test-canvas" width="400" height="400"></canvas>
+        <div id="webgl-status">Testing WebGL...</div>
+    </div>
+    
+    <div class="debug-info">
+        <h3>Module Loading:</h3>
+        <div id="module-status">Loading modules...</div>
+    </div>
+
+    <script type="module">
+        let statusElement = document.getElementById('load-status');
+        let webglElement = document.getElementById('webgl-status');
+        let moduleElement = document.getElementById('module-status');
+        
+        function updateStatus(element, message, success = true) {
+            element.textContent = message;
+            element.style.color = success ? '#0f0' : '#f00';
+        }
+        
+        // Test WebGL support
+        function testWebGL() {
+            const canvas = document.getElementById('test-canvas');
+            const gl = canvas.getContext('webgl');
+            
+            if (!gl) {
+                updateStatus(webglElement, 'WebGL not supported!', false);
+                return false;
+            }
+            
+            // Test simple shader compilation
+            const vertexShader = `
+                attribute vec2 a_position;
+                void main() {
+                    gl_Position = vec4(a_position, 0.0, 1.0);
+                }
+            `;
+            
+            const fragmentShader = `
+                precision mediump float;
+                void main() {
+                    gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
+                }
+            `;
+            
+            try {
+                const vs = gl.createShader(gl.VERTEX_SHADER);
+                gl.shaderSource(vs, vertexShader);
+                gl.compileShader(vs);
+                
+                if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) {
+                    throw new Error('Vertex shader failed: ' + gl.getShaderInfoLog(vs));
+                }
+                
+                const fs = gl.createShader(gl.FRAGMENT_SHADER);
+                gl.shaderSource(fs, fragmentShader);
+                gl.compileShader(fs);
+                
+                if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
+                    throw new Error('Fragment shader failed: ' + gl.getShaderInfoLog(fs));
+                }
+                
+                updateStatus(webglElement, 'WebGL working correctly!', true);
+                return true;
+            } catch (error) {
+                updateStatus(webglElement, 'WebGL test failed: ' + error.message, false);
+                return false;
+            }
+        }
+        
+        // Test module loading
+        async function testModules() {
+            try {
+                updateStatus(moduleElement, 'Testing Engine module...', true);
+                
+                const { VIB34DIntegratedEngine } = await import('./src/core/Engine.js');
+                updateStatus(moduleElement, 'Engine module loaded successfully!', true);
+                
+                // Try to create engine instance
+                updateStatus(statusElement, 'Creating VIB34D Engine...', true);
+                const engine = new VIB34DIntegratedEngine();
+                updateStatus(statusElement, 'VIB34D Engine created successfully!', true);
+                
+            } catch (error) {
+                updateStatus(moduleElement, 'Module loading failed: ' + error.message, false);
+                updateStatus(statusElement, 'Failed to initialize: ' + error.message, false);
+                console.error('Full error:', error);
+            }
+        }
+        
+        // Run tests
+        updateStatus(statusElement, 'Starting debug tests...', true);
+        
+        if (testWebGL()) {
+            testModules();
+        } else {
+            updateStatus(statusElement, 'WebGL test failed, cannot continue', false);
+        }
+    </script>
+</body>
+</html>

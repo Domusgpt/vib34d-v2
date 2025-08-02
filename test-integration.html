@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D Integration Test</title>
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #00ffff;
+            border-radius: 5px;
+        }
+        .test-result {
+            margin: 5px 0;
+            padding: 5px;
+        }
+        .pass { background: rgba(0, 255, 0, 0.2); }
+        .fail { background: rgba(255, 0, 0, 0.2); }
+        .info { background: rgba(0, 255, 255, 0.2); }
+        .link {
+            color: #00ffff;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px 10px;
+            padding: 5px 10px;
+            border: 1px solid #00ffff;
+            border-radius: 3px;
+        }
+        .link:hover { background: rgba(0, 255, 255, 0.1); }
+    </style>
+</head>
+<body>
+    <h1>🔬 VIB34D Integration Test Suite</h1>
+    
+    <div class="test-section">
+        <h2>📁 File Structure Tests</h2>
+        <div id="fileTests"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🎮 Component Integration Tests</h2>
+        <div id="componentTests"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔗 Quick Links for Manual Testing</h2>
+        <a href="/index.html" class="link" target="_blank">🏠 Main VIB34D System</a>
+        <a href="/index.html?tab=holograms" class="link" target="_blank">✨ Active Holograms Tab</a>
+        <a href="/hologram-gallery.html" class="link" target="_blank">🖼️ Hologram Portfolio Gallery</a>
+        <div style="margin-top: 10px;">
+            <small>Open these links to test manually:</small><br>
+            <small>1. Main system should load with VIB34D on first 4 tabs</small><br>
+            <small>2. Active Holograms tab should have parameter sliders and save button</small><br>
+            <small>3. Gallery should show saved holographic variations</small>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🧪 Test Workflow</h2>
+        <div id="workflowGuide">
+            <div class="info">
+                <h3>Complete Testing Workflow:</h3>
+                <ol>
+                    <li><strong>Load Main System:</strong> Click "Main VIB34D System" above</li>
+                    <li><strong>Test VIB34D Tabs:</strong> Switch between Variations, 4D Math, Holographic tabs</li>
+                    <li><strong>Activate Holograms:</strong> Go to "Active Holograms" tab, click "Activate Holograms"</li>
+                    <li><strong>Test Parameter Sliders:</strong> Move density, speed, chaos, hue sliders - should see real-time changes</li>
+                    <li><strong>Save to Portfolio:</strong> Click "Save to Portfolio" button</li>
+                    <li><strong>View Gallery:</strong> Click "View Portfolio" or use gallery link above</li>
+                    <li><strong>Test Gallery:</strong> Should see saved variations with live previews</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        console.log('🔬 VIB34D Integration Test Suite Starting...');
+        
+        // Test file availability
+        async function testFileStructure() {
+            const files = [
+                '/index.html',
+                '/hologram-gallery.html',
+                '/src/core/Engine.js',
+                '/src/holograms/RealHolographicSystem.js',
+                '/src/holograms/HolographicVisualizer.js'
+            ];
+            
+            const results = [];
+            for (const file of files) {
+                try {
+                    const response = await fetch(file, { method: 'HEAD' });
+                    results.push({
+                        file,
+                        status: response.ok ? 'PASS' : 'FAIL',
+                        message: response.ok ? `✅ Available (${response.status})` : `❌ Missing (${response.status})`
+                    });
+                } catch (error) {
+                    results.push({
+                        file,
+                        status: 'FAIL',
+                        message: `❌ Error: ${error.message}`
+                    });
+                }
+            }
+            
+            const container = document.getElementById('fileTests');
+            container.innerHTML = results.map(r => 
+                `<div class="test-result ${r.status.toLowerCase()}">${r.file}: ${r.message}</div>`
+            ).join('');
+        }
+        
+        // Test component loading
+        async function testComponents() {
+            const tests = [
+                {
+                    name: 'VIB34D Engine Module',
+                    test: () => fetch('/src/core/Engine.js').then(r => r.ok)
+                },
+                {
+                    name: 'Real Holographic System Module', 
+                    test: () => fetch('/src/holograms/RealHolographicSystem.js').then(r => r.ok)
+                },
+                {
+                    name: 'Holographic Visualizer Module',
+                    test: () => fetch('/src/holograms/HolographicVisualizer.js').then(r => r.ok)
+                },
+                {
+                    name: 'Main System HTML',
+                    test: () => fetch('/index.html').then(r => r.text()).then(html => html.includes('VIB34D'))
+                },
+                {
+                    name: 'Gallery System HTML',
+                    test: () => fetch('/hologram-gallery.html').then(r => r.text()).then(html => html.includes('Portfolio'))
+                }
+            ];
+            
+            const results = [];
+            for (const test of tests) {
+                try {
+                    const result = await test.test();
+                    results.push({
+                        name: test.name,
+                        status: result ? 'PASS' : 'FAIL',
+                        message: result ? '✅ Component available' : '❌ Component failed'
+                    });
+                } catch (error) {
+                    results.push({
+                        name: test.name,
+                        status: 'FAIL',
+                        message: `❌ Error: ${error.message}`
+                    });
+                }
+            }
+            
+            const container = document.getElementById('componentTests');
+            container.innerHTML = results.map(r => 
+                `<div class="test-result ${r.status.toLowerCase()}">${r.name}: ${r.message}</div>`
+            ).join('');
+        }
+        
+        // Run tests
+        async function runTests() {
+            console.log('🏃‍♂️ Running file structure tests...');
+            await testFileStructure();
+            
+            console.log('🏃‍♂️ Running component tests...');
+            await testComponents();
+            
+            console.log('✅ Test suite completed!');
+        }
+        
+        // Start tests when page loads
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+</html>
