@@ -430,9 +430,9 @@
         <div class="tab-content active" id="variations-tab">
             <div class="variation-controls">
                 <div class="variation-nav">
-                    <button class="btn" onclick="engine.previousVariation()">← Prev</button>
-                    <button class="btn" onclick="engine.randomVariation()">Random</button>
-                    <button class="btn" onclick="engine.nextVariation()">Next →</button>
+                    <button class="btn" onclick="engine.previousVariation()">← Prev Preset</button>
+                    <button class="btn" onclick="randomizeParameters('VIB34D')">🎲 Randomize</button>
+                    <button class="btn" onclick="engine.nextVariation()">Next Preset →</button>
                 </div>
                 
                 <div class="control-group">
@@ -447,7 +447,7 @@
                 </div>
                 
                 <div class="variation-nav">
-                    <button class="btn" onclick="engine.saveAsCustomVariation()">Save Custom</button>
+                    <button class="btn" onclick="saveVIB34DToPortfolio()" style="background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">💾 Save Current</button>
                     <button class="btn" onclick="engine.openGalleryView()">Gallery</button>
                 </div>
             </div>
@@ -495,7 +495,7 @@
             </div>
             
             <div style="text-align: center; margin-top: 15px;">
-                <button class="btn" onclick="engine.randomizeAll()">Randomize All</button>
+                <button class="btn" onclick="randomizeParameters('VIB34D')">🎲 Randomize Parameters</button>
                 <button class="btn" onclick="engine.resetToDefaults()">Reset</button>
             </div>
             
@@ -567,9 +567,9 @@
             
             <div class="variation-controls">
                 <div class="variation-nav">
-                    <button class="btn" onclick="holoSystem.previousVariant()">← Prev</button>
-                    <button class="btn" onclick="holoSystem.randomVariant()">Random</button>
-                    <button class="btn" onclick="holoSystem.nextVariant()">Next →</button>
+                    <button class="btn" onclick="holoSystem.previousVariant()">← Prev Preset</button>
+                    <button class="btn" onclick="randomizeParameters('Holographic')">🎲 Randomize</button>
+                    <button class="btn" onclick="holoSystem.nextVariant()">Next Preset →</button>
                 </div>
                 
                 <div class="control-group">
@@ -773,95 +773,121 @@
             audioEnabled: false
         };
         
-        // RANDOMIZATION SYSTEM - ACTUALLY WORKING VERSION
+        // RANDOMIZATION SYSTEM - RANDOMIZE ACTUAL PARAMETERS NOT PRESETS!
         window.randomizeParameters = function(systemType = null) {
             const targetSystem = systemType || unifiedParameters.systemType;
             
-            console.log(`🎲 Randomizing ALL parameters for ${targetSystem} system`);
+            console.log(`🎲 RANDOMIZING ACTUAL PARAMETERS for ${targetSystem} system`);
             
             if (targetSystem === 'VIB34D' && window.engine) {
-                // VIB34D FULL RANDOMIZATION
-                window.engine.parameterManager.randomizeAll();
+                // RANDOMIZE ALL VIB34D PARAMETERS - NOT PRESET VARIATIONS!
+                const randomParams = {
+                    // 4D Mathematics - completely random
+                    rot4dXW: (Math.random() - 0.5) * 4,      // -2 to +2  
+                    rot4dYW: (Math.random() - 0.5) * 4,      // -2 to +2
+                    rot4dZW: (Math.random() - 0.5) * 4,      // -2 to +2
+                    dimension: 3.0 + Math.random() * 1.5,    // 3.0 to 4.5
+                    
+                    // Visual Parameters - completely random
+                    gridDensity: 4 + Math.random() * 26,     // 4 to 30
+                    morphFactor: Math.random() * 2,          // 0 to 2
+                    chaos: Math.random(),                    // 0 to 1
+                    speed: 0.1 + Math.random() * 2.9,        // 0.1 to 3
+                    hue: Math.floor(Math.random() * 360),    // 0 to 360
+                    
+                    // Random geometry type
+                    geometry: Math.floor(Math.random() * 8)  // 0 to 7
+                };
+                
+                // Apply randomized parameters
+                window.engine.parameterManager.setParameters(randomParams);
                 window.engine.updateDisplayValues();
                 window.engine.updateVisualizers();
                 
-                // Also randomize variation
-                const randomVariation = Math.floor(Math.random() * 100);
-                window.engine.setVariation(randomVariation);
-                
-                showParameterNotification('🎲 VIB34D Randomized!', `All parameters + variation ${randomVariation + 1}`);
-                
-            } else if (targetSystem === 'Holographic' && window.realHoloSystem) {
-                // HOLOGRAPHIC FULL RANDOMIZATION
-                window.realHoloSystem.randomVariant();
-                
-                // Randomize holographic parameters
-                const holoParams = {
-                    density: 0.5 + Math.random() * 2.5,
-                    speed: 0.1 + Math.random() * 1.9,
-                    chaos: Math.random(),
-                    morph: Math.random(),
-                    hue: Math.floor(Math.random() * 360),
-                    saturation: 0.3 + Math.random() * 0.7,
-                    intensity: 0.2 + Math.random() * 0.8
-                };
-                
-                // Apply to holographic visualizers
-                window.realHoloSystem.visualizers.forEach(viz => {
-                    viz.updateHoloParams(holoParams);
+                // Update geometry button to show active geometry
+                document.querySelectorAll('[data-geometry]').forEach(btn => {
+                    btn.classList.toggle('active', parseInt(btn.dataset.geometry) === randomParams.geometry);
                 });
                 
-                // Update UI sliders for holographic params
-                updateHoloSliders(holoParams);
+                showParameterNotification('🎲 VIB34D Parameters Randomized!', 'Create unique combination - Save if you like it!');
                 
-                showParameterNotification('🎲 Holograms Randomized!', 'All parameters + random variant');
+            } else if (targetSystem === 'Holographic' && window.realHoloSystem) {
+                // RANDOMIZE HOLOGRAPHIC PARAMETERS - NOT PRESET VARIANTS!
+                const randomHoloParams = {
+                    density: 0.5 + Math.random() * 2.5,      // 0.5 to 3.0
+                    speed: 0.1 + Math.random() * 1.9,        // 0.1 to 2.0
+                    chaos: Math.random(),                    // 0.0 to 1.0
+                    morph: Math.random(),                    // 0.0 to 1.0
+                    hue: Math.floor(Math.random() * 360),    // 0 to 360
+                    saturation: 0.3 + Math.random() * 0.7,   // 0.3 to 1.0
+                    intensity: 0.2 + Math.random() * 0.8    // 0.2 to 1.0
+                };
+                
+                // Apply to ALL holographic visualizers
+                window.realHoloSystem.visualizers.forEach(viz => {
+                    viz.updateHoloParams(randomHoloParams);
+                });
+                
+                // Update UI sliders to match randomized values
+                updateHoloSliders(randomHoloParams);
+                
+                // Also randomize the base geometry but keep it as parameter randomization
+                const randomGeometry = Math.floor(Math.random() * 8);
+                window.realHoloSystem.visualizers.forEach(viz => {
+                    viz.geometryType = randomGeometry;
+                });
+                
+                // Update geometry buttons
+                setHoloGeometry(randomGeometry * 4); // Map to variant indices
+                
+                showParameterNotification('🎲 Holographic Parameters Randomized!', 'Unique combination created - Save if you like it!');
             }
             
-            // Update unified parameters
             unifiedParameters.systemType = targetSystem;
         };
         
-        // QUICK RANDOMIZE - ACTUALLY WORKING VERSION
+        // QUICK RANDOMIZE - VISUAL PARAMETERS ONLY (NOT PRESETS!)
         window.quickRandomize = function() {
-            console.log('⚡ Quick randomizing current system');
+            console.log('⚡ Quick randomizing VISUAL parameters only');
             
             if (unifiedParameters.systemType === 'VIB34D' && window.engine) {
-                // Quick randomize just visual parameters for VIB34D
-                const params = window.engine.parameterManager.getAllParameters();
+                // Quick randomize ONLY visual parameters - keep 4D math and geometry same
+                const currentParams = window.engine.parameterManager.getAllParameters();
                 
-                // Randomize visual-only parameters
-                const quickParams = {
-                    gridDensity: 4 + Math.random() * 26,
-                    morphFactor: Math.random() * 2,
-                    chaos: Math.random(),
-                    speed: 0.1 + Math.random() * 2.9,
-                    hue: Math.floor(Math.random() * 360)
+                const visualOnlyParams = {
+                    // Keep current 4D math and geometry - only randomize visual aspects
+                    gridDensity: 4 + Math.random() * 26,     // Visual density
+                    morphFactor: Math.random() * 2,          // Visual morphing
+                    chaos: Math.random(),                    // Visual chaos/noise
+                    speed: 0.1 + Math.random() * 2.9,        // Animation speed
+                    hue: Math.floor(Math.random() * 360)     // Color hue
                 };
                 
-                window.engine.parameterManager.setParameters(quickParams);
+                window.engine.parameterManager.setParameters(visualOnlyParams);
                 window.engine.updateDisplayValues();
                 window.engine.updateVisualizers();
                 
-                showParameterNotification('⚡ VIB34D Quick!', 'Visual parameters randomized');
+                showParameterNotification('⚡ Visual Randomized!', 'Colors & effects changed - 4D math kept same');
                 
-            } else if (window.realHoloSystem && window.realHoloSystem.isActive) {
-                // Quick randomize holographic visual parameters
-                const quickParams = {
-                    density: 0.5 + Math.random() * 2.5,
-                    speed: 0.1 + Math.random() * 1.9,
-                    chaos: Math.random(),
-                    hue: Math.floor(Math.random() * 360),
-                    saturation: 0.5 + Math.random() * 0.5,
-                    intensity: 0.3 + Math.random() * 0.7
+            } else if (window.realHoloSystem && (window.realHoloSystem.isActive || unifiedParameters.systemType === 'Holographic')) {
+                // Quick randomize holographic VISUAL parameters only
+                const visualParams = {
+                    density: 0.5 + Math.random() * 2.5,      // Visual density
+                    speed: 0.1 + Math.random() * 1.9,        // Animation speed
+                    chaos: Math.random(),                    // Visual chaos
+                    hue: Math.floor(Math.random() * 360),    // Color hue
+                    saturation: 0.5 + Math.random() * 0.5,   // Color saturation
+                    intensity: 0.3 + Math.random() * 0.7     // Visual intensity
+                    // Note: NOT changing morph or geometry - keep structure same
                 };
                 
                 // Apply to holographic visualizers
                 window.realHoloSystem.visualizers.forEach(viz => {
-                    viz.updateHoloParams(quickParams);
+                    viz.updateHoloParams(visualParams);
                 });
                 
-                updateHoloSliders(quickParams);
-                showParameterNotification('⚡ Holo Quick!', 'Visual parameters randomized');
+                updateHoloSliders(visualParams);
+                showParameterNotification('⚡ Visual Randomized!', 'Colors & effects changed - geometry kept same');
             }
         };
         
@@ -1113,7 +1139,12 @@
         
         window.saveVIB34DToPortfolio = function() {
             if (window.engine) {
-                window.engine.saveAsCustomVariation();
+                const saved = window.engine.saveAsCustomVariation();
+                if (saved !== -1) {
+                    showParameterNotification('💾 Saved!', `Current parameters saved as custom variation ${saved + 1}`);
+                } else {
+                    showParameterNotification('⚠ Full!', 'All custom slots are full - delete some old ones first');
+                }
             }
         };
         
