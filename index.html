@@ -63,6 +63,43 @@
             overflow-y: auto;
             z-index: 1000;
             backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        
+        /* Collapsible Panel States */
+        .control-panel.collapsed {
+            transform: translateX(calc(100% - 50px));
+            opacity: 0.8;
+        }
+        
+        .control-panel.collapsed:hover {
+            transform: translateX(calc(100% - 80px));
+            opacity: 0.9;
+        }
+        
+        /* Collapse Toggle Button */
+        .collapse-toggle {
+            position: absolute;
+            left: -40px;
+            top: 10px;
+            width: 35px;
+            height: 35px;
+            background: rgba(0, 255, 255, 0.2);
+            border: 1px solid #00ffff;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #00ffff;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .collapse-toggle:hover {
+            background: rgba(0, 255, 255, 0.4);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
         }
         
         /* Hide control panel in preview mode */
@@ -300,16 +337,17 @@
     </div>
     
     <!-- Control Panel -->
-    <div class="control-panel">
-        <h2>VIB34D Holographic Engine</h2>
+    <div class="control-panel" id="controlPanel">
+        <div class="collapse-toggle" id="collapseToggle" onclick="toggleControlPanel()">‹</div>
+        <h2>VIB34D Holographic Engine</h2>\n\n        <!-- Enhanced Control Header -->\n        <div class=\"control-header\" style=\"background: linear-gradient(145deg, rgba(0, 255, 255, 0.05), rgba(0, 255, 255, 0.02)); border: 1px solid rgba(0, 255, 255, 0.2); border-radius: 8px; padding: 12px; margin: 10px 0 15px 0; display: flex; justify-content: space-between; align-items: center; gap: 10px;\">\n            <div class=\"system-status\" style=\"display: flex; flex-direction: column; gap: 4px;\">\n                <span id=\"currentSystemIndicator\" style=\"font-size: 0.8rem; font-weight: bold; color: #00ffff;\">🔷 VIB34D System</span>\n                <span id=\"parameterSyncStatus\" style=\"font-size: 0.6rem; color: rgba(0, 255, 0, 0.8); text-transform: uppercase; letter-spacing: 1px;\">Synced</span>\n            </div>\n            <div class=\"quick-actions\" style=\"display: flex; gap: 6px;\">\n                <button class=\"quick-btn\" onclick=\"quickRandomize()\" title=\"Quick randomize visual parameters\" style=\"background: rgba(0, 255, 255, 0.15); border: 1px solid rgba(0, 255, 255, 0.3); color: #00ffff; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-family: 'Orbitron', monospace; font-size: 0.6rem; font-weight: bold; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px;\">⚡ Quick</button>\n                <button class=\"quick-btn\" onclick=\"randomizeParameters()\" title=\"Full randomization\" style=\"background: rgba(0, 255, 255, 0.15); border: 1px solid rgba(0, 255, 255, 0.3); color: #00ffff; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-family: 'Orbitron', monospace; font-size: 0.6rem; font-weight: bold; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px;\">🎲 Random</button>\n                <button class=\"quick-btn\" onclick=\"switchToSystem(unifiedParameters.systemType === 'VIB34D' ? 'Holographic' : 'VIB34D')\" title=\"Switch between systems\" style=\"background: rgba(0, 255, 255, 0.15); border: 1px solid rgba(0, 255, 255, 0.3); color: #00ffff; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-family: 'Orbitron', monospace; font-size: 0.6rem; font-weight: bold; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px;\">🔄 Switch</button>\n            </div>\n        </div>
         
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab-btn active" data-tab="variations">Variations</button>
-            <button class="tab-btn" data-tab="polytopal">4D Math</button>
-            <button class="tab-btn" data-tab="holographic">Holographic</button>
-            <button class="tab-btn" data-tab="holograms">Active Holograms</button>
-            <button class="tab-btn" data-tab="export">Export</button>
+            <button class="tab-btn active" data-tab="variations" title="VIB34D Polytopal Variations">🔷 VIB34D</button>
+            <button class="tab-btn" data-tab="polytopal" title="4D Mathematics Control">🧮 4D Math</button>
+            <button class="tab-btn" data-tab="holographic" title="Holographic Parameters">🌀 Holo Params</button>
+            <button class="tab-btn" data-tab="holograms" title="Active Holographic System">✨ Live Holo</button>
+            <button class="tab-btn" data-tab="export" title="Export & Import System">📤 Export</button>
         </div>
         
         <!-- Variations Tab -->
@@ -384,6 +422,15 @@
                 <button class="btn" onclick="engine.randomizeAll()">Randomize All</button>
                 <button class="btn" onclick="engine.resetToDefaults()">Reset</button>
             </div>
+            
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(0,255,255,0.3);">
+                <h4 style="color: #00ffff; margin-bottom: 10px; font-size: 0.9rem;">⚙️ System Controls</h4>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <button class="btn" id="vib34dAudioToggle" onclick="toggleVIB34DAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio Off</button>
+                    <button class="btn" onclick="saveVIB34DToPortfolio()" style="flex: 1; font-size: 0.7rem; background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">💾 Save</button>
+                </div>
+                <button class="btn" onclick="openUnifiedGallery()" style="width: 100%; font-size: 0.7rem; background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">🖼️ View Portfolio</button>
+            </div>
         </div>
         
         <!-- Holographic Tab -->
@@ -421,6 +468,15 @@
                     Hue <span class="control-display" id="hueDisplay">200°</span>
                 </label>
                 <input type="range" id="hue" class="control-input" min="0" max="360" step="1" value="200">
+            </div>
+            
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(0,255,255,0.3);">
+                <h4 style="color: #00ffff; margin-bottom: 10px; font-size: 0.9rem;">⚙️ System Controls</h4>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <button class="btn" id="vib34dAudioToggle2" onclick="toggleVIB34DAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio Off</button>
+                    <button class="btn" onclick="saveVIB34DToPortfolio()" style="flex: 1; font-size: 0.7rem; background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">💾 Save</button>
+                </div>
+                <button class="btn" onclick="openUnifiedGallery()" style="width: 100%; font-size: 0.7rem; background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">🖼️ View Portfolio</button>
             </div>
         </div>
         
@@ -524,13 +580,12 @@
                            oninput="updateHoloParameter('intensity', this.value)">
                 </div>
                 
-                <div style="margin-top: 15px; text-align: center;">
-                    <button class="btn" onclick="saveHologramToPortfolio()" style="background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">
-                        💾 Save to Portfolio
-                    </button>
-                    <button class="btn" onclick="openHologramGallery()" style="background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">
-                        🖼️ View Portfolio
-                    </button>
+                <div style="margin-top: 15px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <button class="btn" id="holoAudioToggle" onclick="toggleHolographicAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio On</button>
+                        <button class="btn" onclick="saveHologramToPortfolio()" style="flex: 1; font-size: 0.7rem; background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">💾 Save</button>
+                    </div>
+                    <button class="btn" onclick="openUnifiedGallery()" style="width: 100%; font-size: 0.7rem; background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">🖼️ View Portfolio</button>
                 </div>
             </div>
             
@@ -645,6 +700,32 @@
             console.log('📺 Uses holo-* canvas layers separate from VIB34D system');
         }).catch(error => {
             console.error('❌ Failed to load REAL Holographic System:', error);
+        });
+        
+        // Collapsible Control Panel
+        window.toggleControlPanel = function() {
+            const panel = document.getElementById('controlPanel');
+            const toggle = document.getElementById('collapseToggle');
+            
+            panel.classList.toggle('collapsed');
+            
+            if (panel.classList.contains('collapsed')) {
+                toggle.textContent = '›';
+                toggle.title = 'Expand Control Panel';
+                console.log('🔽 Control panel collapsed');
+            } else {
+                toggle.textContent = '‹';
+                toggle.title = 'Collapse Control Panel';
+                console.log('🔼 Control panel expanded');
+            }
+        };
+        
+        // Keyboard shortcut for panel collapse
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab' && e.ctrlKey) {
+                e.preventDefault();
+                toggleControlPanel();
+            }
         });
         
         // Global functions for REAL Active Holographic System
@@ -798,44 +879,33 @@
             
             // Generate unique name
             const timestamp = new Date().toLocaleTimeString().replace(/:/g, '');
-            const customName = `${baseName} CUSTOM ${timestamp}`;
+            const customName = `HOLO ${baseName} ${timestamp}`;
             
-            // Create custom variation object
-            const customVariation = {
-                name: customName,
-                params: params,
-                created: new Date().toISOString(),
-                isCustom: true
+            // Convert to unified format
+            const unifiedParams = {
+                systemType: 'Holographic',
+                geometryType: params.geometryType,
+                density: params.density,
+                speed: params.speed,
+                chaos: params.chaos,
+                morph: params.morph,
+                hue: params.hue,
+                saturation: params.saturation,
+                intensity: params.intensity,
+                audioEnabled: realHoloSystem.audioEnabled || false
             };
             
-            // Load existing custom variations
-            let savedVariations = [];
-            try {
-                const stored = localStorage.getItem('customHolographicVariations');
-                if (stored) {
-                    const data = JSON.parse(stored);
-                    savedVariations = data.variations || [];
-                }
-            } catch (e) {
-                console.error('Failed to load existing variations:', e);
-            }
+            // Create unified variation object
+            const unifiedVariation = {
+                name: customName,
+                type: 'Holographic',
+                params: unifiedParams,
+                created: new Date().toISOString(),
+                isCustom: true,
+                shareUrl: generateShareURL(unifiedParams)
+            };
             
-            // Add new variation
-            savedVariations.push(customVariation);
-            
-            // Save back to localStorage
-            try {
-                localStorage.setItem('customHolographicVariations', JSON.stringify({
-                    variations: savedVariations,
-                    timestamp: Date.now()
-                }));
-                
-                console.log('💾 Saved hologram to portfolio:', customName);
-                alert(`✅ Saved "${customName}" to portfolio!\n\nTotal saved: ${savedVariations.length} variations`);
-            } catch (e) {
-                console.error('Failed to save variation:', e);
-                alert('❌ Failed to save to portfolio. Storage may be full.');
-            }
+            saveToUnifiedPortfolio(unifiedVariation);
         };
         
         window.openHologramGallery = function() {
@@ -843,32 +913,320 @@
             window.open('./hologram-gallery.html', '_blank');
         };
         
-        // Update slider values when variant changes
-        window.syncHolographicSliders = function() {
-            const params = getCurrentHolographicParameters();
-            if (!params) return;
+        // VIB34D Audio Toggle
+        window.toggleVIB34DAudio = function() {
+            if (!window.engine) return;
             
-            // Update all sliders to match current parameters
-            const sliders = {
-                'holoDensity': params.density,
-                'holoSpeed': params.speed,
-                'holoChaos': params.chaos,
-                'holoMorph': params.morph,
-                'holoHue': params.hue,
-                'holoSaturation': params.saturation,
-                'holoIntensity': params.intensity
+            const button1 = document.getElementById('vib34dAudioToggle');
+            const button2 = document.getElementById('vib34dAudioToggle2');
+            
+            if (engine.audioEnabled) {
+                // Disable audio
+                engine.audioEnabled = false;
+                if (button1) {
+                    button1.textContent = '🎵 Audio Off';
+                    button1.style.background = 'rgba(255,0,77,0.3)';
+                    button1.style.borderColor = '#ff004d';
+                    button1.style.color = '#ff004d';
+                }
+                if (button2) {
+                    button2.textContent = '🎵 Audio Off';
+                    button2.style.background = 'rgba(255,0,77,0.3)';
+                    button2.style.borderColor = '#ff004d';
+                    button2.style.color = '#ff004d';
+                }
+                console.log('🔇 VIB34D audio disabled');
+            } else {
+                // Enable audio
+                engine.initAudio().then(() => {
+                    if (button1) {
+                        button1.textContent = '🎵 Audio On';
+                        button1.style.background = 'rgba(0,255,77,0.3)';
+                        button1.style.borderColor = '#00ff4d';
+                        button1.style.color = '#00ff4d';
+                    }
+                    if (button2) {
+                        button2.textContent = '🎵 Audio On';
+                        button2.style.background = 'rgba(0,255,77,0.3)';
+                        button2.style.borderColor = '#00ff4d';
+                        button2.style.color = '#00ff4d';
+                    }
+                    console.log('🔊 VIB34D audio enabled');
+                }).catch(e => {
+                    console.error('VIB34D audio failed:', e);
+                });
+            }
+        };
+        
+        // Holographic Audio Toggle
+        window.toggleHolographicAudio = function() {
+            if (!window.realHoloSystem) return;
+            
+            const button = document.getElementById('holoAudioToggle');
+            
+            if (realHoloSystem.audioEnabled) {
+                // Disable audio
+                realHoloSystem.audioEnabled = false;
+                if (button) {
+                    button.textContent = '🎵 Audio Off';
+                    button.style.background = 'rgba(255,0,77,0.3)';
+                    button.style.borderColor = '#ff004d';
+                    button.style.color = '#ff004d';
+                }
+                console.log('🔇 Holographic audio disabled');
+            } else {
+                // Enable audio
+                realHoloSystem.initAudio().then(() => {
+                    if (button) {
+                        button.textContent = '🎵 Audio On';
+                        button.style.background = 'rgba(0,255,77,0.3)';
+                        button.style.borderColor = '#00ff4d';
+                        button.style.color = '#00ff4d';
+                    }
+                    console.log('🔊 Holographic audio enabled');
+                }).catch(e => {
+                    console.error('Holographic audio failed:', e);
+                });
+            }
+        };
+        
+        // Save VIB34D state to unified portfolio
+        window.saveVIB34DToPortfolio = function() {
+            if (!window.engine) {
+                alert('❌ VIB34D system not loaded yet.');
+                return;
+            }
+            
+            // Get current VIB34D state
+            const currentVariation = engine.currentVariant || 0;
+            const variationName = engine.variantNames ? engine.variantNames[currentVariation] : `Variation ${currentVariation + 1}`;
+            
+            // Collect all current parameters
+            const params = {
+                systemType: 'VIB34D',
+                variation: currentVariation,
+                geometryType: Math.floor(currentVariation / 12.5), // Approximate geometry type
+                // Get parameter values from UI
+                rot4dXW: parseFloat(document.getElementById('rot4dXW')?.value || 0),
+                rot4dYW: parseFloat(document.getElementById('rot4dYW')?.value || 0),
+                rot4dZW: parseFloat(document.getElementById('rot4dZW')?.value || 0),
+                dimension: parseFloat(document.getElementById('dimension')?.value || 3.5),
+                gridDensity: parseFloat(document.getElementById('gridDensity')?.value || 15),
+                morphFactor: parseFloat(document.getElementById('morphFactor')?.value || 1),
+                chaos: parseFloat(document.getElementById('chaos')?.value || 0.2),
+                speed: parseFloat(document.getElementById('speed')?.value || 1),
+                hue: parseFloat(document.getElementById('hue')?.value || 200),
+                audioEnabled: engine.audioEnabled || false
             };
             
-            Object.entries(sliders).forEach(([sliderId, value]) => {
-                const slider = document.getElementById(sliderId);
-                if (slider) {
-                    slider.value = value;
-                    // Trigger display update
-                    const paramName = sliderId.replace('holo', '').toLowerCase();
-                    updateHoloParameter(paramName, value);
-                }
-            });
+            // Generate unique name
+            const timestamp = new Date().toLocaleTimeString().replace(/:/g, '');
+            const customName = `VIB34D ${variationName} ${timestamp}`;
+            
+            // Create unified variation object
+            const unifiedVariation = {
+                name: customName,
+                type: 'VIB34D',
+                params: params,
+                created: new Date().toISOString(),
+                isCustom: true,
+                shareUrl: generateShareURL(params)
+            };
+            
+            saveToUnifiedPortfolio(unifiedVariation);
         };
+        
+        // Generate shareable URL for any variation
+        window.generateShareURL = function(params) {
+            const baseUrl = window.location.origin + window.location.pathname;
+            const urlParams = new URLSearchParams();
+            
+            if (params.systemType === 'VIB34D') {
+                urlParams.set('system', 'vib34d');
+                urlParams.set('variation', params.variation);
+                if (params.rot4dXW !== 0) urlParams.set('rotXW', params.rot4dXW);
+                if (params.rot4dYW !== 0) urlParams.set('rotYW', params.rot4dYW);
+                if (params.rot4dZW !== 0) urlParams.set('rotZW', params.rot4dZW);
+                if (params.dimension !== 3.5) urlParams.set('dimension', params.dimension);
+                if (params.gridDensity !== 15) urlParams.set('density', params.gridDensity);
+                if (params.morphFactor !== 1) urlParams.set('morph', params.morphFactor);
+                if (params.chaos !== 0.2) urlParams.set('chaos', params.chaos);
+                if (params.speed !== 1) urlParams.set('speed', params.speed);
+                if (params.hue !== 200) urlParams.set('hue', params.hue);
+                if (params.audioEnabled) urlParams.set('audio', 'true');
+            } else if (params.systemType === 'Holographic') {
+                urlParams.set('system', 'holograms');
+                urlParams.set('holograms', 'true');
+                if (params.geometryType !== undefined) urlParams.set('geometry', params.geometryType);
+                if (params.density !== 1.0) urlParams.set('density', params.density);
+                if (params.speed !== 0.5) urlParams.set('speed', params.speed);
+                if (params.chaos !== 0.0) urlParams.set('chaos', params.chaos);
+                if (params.morph !== 0.0) urlParams.set('morph', params.morph);
+                if (params.hue !== 0) urlParams.set('hue', params.hue);
+                if (params.saturation !== 0.8) urlParams.set('saturation', params.saturation);
+                if (params.intensity !== 0.5) urlParams.set('intensity', params.intensity);
+                if (params.audioEnabled) urlParams.set('audio', 'true');
+            }
+            
+            return baseUrl + '?' + urlParams.toString();
+        };
+        
+        // Save to unified portfolio system
+        window.saveToUnifiedPortfolio = function(variation) {
+            // Load existing portfolio
+            let portfolio = [];
+            try {
+                const stored = localStorage.getItem('unifiedHolographicPortfolio');
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    portfolio = data.variations || [];
+                }
+            } catch (e) {
+                console.error('Failed to load portfolio:', e);
+            }
+            
+            // Add new variation
+            portfolio.push(variation);
+            
+            // Save back to localStorage
+            try {
+                localStorage.setItem('unifiedHolographicPortfolio', JSON.stringify({
+                    variations: portfolio,
+                    timestamp: Date.now()
+                }));
+                
+                console.log('💾 Saved to unified portfolio:', variation.name);
+                alert(`✅ Saved "${variation.name}" to portfolio!\\n\\nTotal saved: ${portfolio.length} variations\\n\\nShare URL: ${variation.shareUrl}`);
+            } catch (e) {
+                console.error('Failed to save variation:', e);
+                alert('❌ Failed to save to portfolio. Storage may be full.');
+            }
+        };
+        
+        // Open unified gallery
+        window.openUnifiedGallery = function() {
+            window.open('./unified-gallery.html', '_blank');
+        };
+        
+        // ================================
+        // UNIFIED PARAMETER SYSTEM
+        // ================================
+        
+        // Global parameter state shared across all systems
+        window.unifiedParameters = {
+            // Visual parameters (shared)
+            density: 1.5,
+            speed: 0.8,
+            chaos: 0.3,
+            morph: 0.5,
+            hue: 200,
+            saturation: 0.8,
+            intensity: 0.6,
+            
+            // System-specific
+            systemType: 'VIB34D', // 'VIB34D' or 'Holographic'
+            variation: 0,
+            geometryType: 0,
+            
+            // 4D Math (VIB34D only)
+            rot4dXW: 0,
+            rot4dYW: 0,
+            rot4dZW: 0,
+            dimension: 3.5,
+            
+            // Audio
+            audioEnabled: false
+        };
+        
+        // RANDOMIZATION SYSTEM
+        window.randomizeParameters = function(systemType = null) {
+            const targetSystem = systemType || unifiedParameters.systemType;
+            
+            console.log(`🎲 Randomizing parameters for ${targetSystem} system`);
+            
+            // Randomize shared visual parameters
+            const newParams = {
+                density: 0.5 + Math.random() * 2.5,      // 0.5 - 3.0
+                speed: 0.1 + Math.random() * 1.9,        // 0.1 - 2.0
+                chaos: Math.random(),                     // 0.0 - 1.0
+                morph: Math.random(),                     // 0.0 - 1.0
+                hue: Math.floor(Math.random() * 360),     // 0 - 360
+                saturation: 0.3 + Math.random() * 0.7,   // 0.3 - 1.0
+                intensity: 0.2 + Math.random() * 0.8     // 0.2 - 1.0
+            };
+            
+            // System-specific randomization
+            if (targetSystem === 'VIB34D') {
+                newParams.variation = Math.floor(Math.random() * 100);
+                newParams.rot4dXW = (Math.random() - 0.5) * 4;  // -2 to +2
+                newParams.rot4dYW = (Math.random() - 0.5) * 4;
+                newParams.rot4dZW = (Math.random() - 0.5) * 4;
+                newParams.dimension = 3.0 + Math.random() * 1.5; // 3.0 - 4.5
+            } else if (targetSystem === 'Holographic') {
+                newParams.geometryType = Math.floor(Math.random() * 8); // 0-7 geometry types
+            }
+            
+            // Apply parameters
+            applyUnifiedParameters(newParams, targetSystem);
+            
+            // Show notification
+            showParameterNotification('🎲 Parameters Randomized!', 'Generated new random variation');
+        };
+        
+        // QUICK RANDOMIZE - just visual parameters
+        window.quickRandomize = function() {
+            const visualParams = {
+                density: 0.5 + Math.random() * 2.5,
+                speed: 0.1 + Math.random() * 1.9,
+                chaos: Math.random(),
+                hue: Math.floor(Math.random() * 360),
+                saturation: 0.5 + Math.random() * 0.5,
+                intensity: 0.3 + Math.random() * 0.7
+            };
+            
+            applyUnifiedParameters(visualParams);
+            showParameterNotification('⚡ Quick Randomized!', 'Visual parameters shuffled');
+        };
+        
+        // PARAMETER APPLICATION SYSTEM
+        window.applyUnifiedParameters = function(newParams, targetSystem = null) {
+            const system = targetSystem || unifiedParameters.systemType;
+            
+            // Update global state
+            Object.assign(unifiedParameters, newParams);
+            
+            // Apply to UI sliders
+            updateAllSliders(newParams, system);
+            
+            // Apply to active system
+            if (system === 'VIB34D' && window.engine) {
+                applyToVIB34D(newParams);
+            } else if (system === 'Holographic' && window.holographicSystem) {
+                applyToHolographic(newParams);
+            }
+            
+            console.log('🔄 Applied unified parameters:', newParams);
+        };
+        
+        // Update all UI sliders
+        function updateAllSliders(params, system) {
+            // Shared parameters
+            const sharedSliders = ['density', 'speed', 'chaos', 'morph', 'hue', 'saturation', 'intensity'];
+            
+            sharedSliders.forEach(param => {
+                if (params[param] !== undefined) {
+                    // Update VIB34D sliders
+                    const vib34dSlider = document.getElementById(param === 'density' ? 'gridDensity' : param);
+                    if (vib34dSlider) {
+                        vib34dSlider.value = params[param];
+                        // Update display
+                        const event = new Event('input');
+                        vib34dSlider.dispatchEvent(event);
+                    }
+                    
+                    // Update Holographic sliders
+                    const holoSlider = document.getElementById('holo' + param.charAt(0).toUpperCase() + param.slice(1));
+                    if (holoSlider) {\n                        holoSlider.value = params[param];\n                        // Update display\n                        const event = new Event('input');\n                        holoSlider.dispatchEvent(event);\n                    }\n                }\n            });\n            \n            // System-specific sliders\n            if (system === 'VIB34D') {\n                ['rot4dXW', 'rot4dYW', 'rot4dZW', 'dimension'].forEach(param => {\n                    if (params[param] !== undefined) {\n                        const slider = document.getElementById(param);\n                        if (slider) {\n                            slider.value = params[param];\n                            const event = new Event('input');\n                            slider.dispatchEvent(event);\n                        }\n                    }\n                });\n                \n                // Update variation\n                if (params.variation !== undefined && window.engine) {\n                    window.engine.switchVariant(params.variation);\n                }\n            }\n        }\n        \n        // Apply parameters to VIB34D system\n        function applyToVIB34D(params) {\n            if (!window.engine) return;\n            \n            if (params.variation !== undefined) {\n                engine.switchVariant(params.variation);\n            }\n            \n            // Apply visual parameters through the engine's parameter system\n            Object.entries(params).forEach(([key, value]) => {\n                if (typeof engine.updateParameter === 'function') {\n                    engine.updateParameter(key, value);\n                }\n            });\n        }\n        \n        // Apply parameters to Holographic system\n        function applyToHolographic(params) {\n            if (!window.holographicSystem) return;\n            \n            if (params.geometryType !== undefined) {\n                holographicSystem.updateVariant(params.geometryType * 4); // Each geometry has 4 variants\n            }\n            \n            // Apply visual parameters\n            Object.entries(params).forEach(([key, value]) => {\n                if (typeof holographicSystem.updateParameter === 'function') {\n                    holographicSystem.updateParameter(key, value);\n                }\n            });\n        }\n        \n        // Parameter notification system\n        function showParameterNotification(title, message) {\n            // Create notification element\n            const notification = document.createElement('div');\n            notification.style.cssText = `\n                position: fixed;\n                top: 80px;\n                right: 20px;\n                background: linear-gradient(145deg, rgba(0, 255, 255, 0.9), rgba(0, 200, 255, 0.8));\n                color: #000;\n                padding: 12px 20px;\n                border-radius: 8px;\n                font-family: 'Orbitron', monospace;\n                font-size: 0.8rem;\n                font-weight: bold;\n                z-index: 10000;\n                box-shadow: 0 4px 20px rgba(0, 255, 255, 0.3);\n                transform: translateX(100%);\n                transition: transform 0.3s ease;\n                max-width: 250px;\n            `;\n            \n            notification.innerHTML = `\n                <div style=\"margin-bottom: 4px;\">${title}</div>\n                <div style=\"font-size: 0.7rem; opacity: 0.8;\">${message}</div>\n            `;\n            \n            document.body.appendChild(notification);\n            \n            // Animate in\n            setTimeout(() => {\n                notification.style.transform = 'translateX(0)';\n            }, 100);\n            \n            // Animate out and remove\n            setTimeout(() => {\n                notification.style.transform = 'translateX(100%)';\n                setTimeout(() => {\n                    if (notification.parentNode) {\n                        notification.parentNode.removeChild(notification);\n                    }\n                }, 300);\n            }, 3000);\n        }\n        \n        // SYSTEM SWITCHING\n        window.switchToSystem = function(systemType) {\n            if (unifiedParameters.systemType === systemType) return;\n            \n            console.log(`🔄 Switching to ${systemType} system`);\n            \n            unifiedParameters.systemType = systemType;\n            \n            // Update active tab\n            if (systemType === 'VIB34D') {\n                switchTab('variations');\n            } else if (systemType === 'Holographic') {\n                switchTab('holograms');\n                // Auto-activate if not already active\n                if (window.activateHolograms && !window.holographicSystem) {\n                    setTimeout(() => {\n                        window.activateHolograms();\n                    }, 100);\n                }\n            }\n            \n            // Apply current parameters to new system\n            applyUnifiedParameters(unifiedParameters, systemType);\n            \n            showParameterNotification(`🔄 Switched to ${systemType}`, 'Parameters synchronized');\n        };\n        \n        // ================================\n        // ENHANCED URL GENERATION\n        // ================================\n        \n        // Fixed generateShareURL with proper parameter encoding\n        window.generateShareURL = function(params) {\n            const baseUrl = window.location.origin + window.location.pathname;\n            const urlParams = new URLSearchParams();\n            \n            // Always set system type\n            urlParams.set('system', params.systemType.toLowerCase());\n            \n            // Shared visual parameters (only if different from defaults)\n            const defaults = {\n                density: 1.5, speed: 0.8, chaos: 0.3, morph: 0.5,\n                hue: 200, saturation: 0.8, intensity: 0.6\n            };\n            \n            Object.entries(defaults).forEach(([key, defaultValue]) => {\n                if (params[key] !== undefined && Math.abs(params[key] - defaultValue) > 0.01) {\n                    urlParams.set(key, params[key].toFixed(3));\n                }\n            });\n            \n            // System-specific parameters\n            if (params.systemType === 'VIB34D') {\n                if (params.variation !== undefined) urlParams.set('variation', params.variation);\n                if (params.rot4dXW !== undefined && Math.abs(params.rot4dXW) > 0.01) urlParams.set('rotXW', params.rot4dXW.toFixed(3));\n                if (params.rot4dYW !== undefined && Math.abs(params.rot4dYW) > 0.01) urlParams.set('rotYW', params.rot4dYW.toFixed(3));\n                if (params.rot4dZW !== undefined && Math.abs(params.rot4dZW) > 0.01) urlParams.set('rotZW', params.rot4dZW.toFixed(3));\n                if (params.dimension !== undefined && Math.abs(params.dimension - 3.5) > 0.01) urlParams.set('dimension', params.dimension.toFixed(3));\n            } else if (params.systemType === 'Holographic') {\n                urlParams.set('holograms', 'true');\n                if (params.geometryType !== undefined) urlParams.set('geometry', params.geometryType);\n            }\n            \n            // Audio setting\n            if (params.audioEnabled) urlParams.set('audio', 'true');\n            \n            return baseUrl + '?' + urlParams.toString();\n        };\n        \n        // ================================\n        // ENHANCED URL PARAMETER LOADING\n        // ================================\n        \n        // Load and apply parameters from URL\n        window.loadParametersFromURL = function(urlParams) {\n            console.log('🔗 Loading parameters from URL...');\n            \n            const params = {};\n            \n            // Determine system type\n            const systemType = urlParams.get('system');\n            if (systemType === 'vib34d') {\n                params.systemType = 'VIB34D';\n            } else if (systemType === 'holograms' || urlParams.get('holograms') === 'true') {\n                params.systemType = 'Holographic';\n            } else {\n                params.systemType = 'VIB34D'; // default\n            }\n            \n            // Load shared visual parameters\n            const visualParams = ['density', 'speed', 'chaos', 'morph', 'hue', 'saturation', 'intensity'];\n            visualParams.forEach(param => {\n                const value = urlParams.get(param);\n                if (value !== null) {\n                    params[param] = parseFloat(value);\n                }\n            });\n            \n            // Load system-specific parameters\n            if (params.systemType === 'VIB34D') {\n                const vib34dParams = ['variation', 'rotXW', 'rotYW', 'rotZW', 'dimension'];\n                vib34dParams.forEach(param => {\n                    const value = urlParams.get(param);\n                    if (value !== null) {\n                        if (param === 'variation') {\n                            params.variation = parseInt(value);\n                        } else if (param.startsWith('rot')) {\n                            params['rot4d' + param.slice(3)] = parseFloat(value);\n                        } else {\n                            params[param] = parseFloat(value);\n                        }\n                    }\n                });\n            } else if (params.systemType === 'Holographic') {\n                const geometry = urlParams.get('geometry');\n                if (geometry !== null) {\n                    params.geometryType = parseInt(geometry);\n                }\n            }\n            \n            // Audio setting\n            if (urlParams.get('audio') === 'true') {\n                params.audioEnabled = true;\n            }\n            \n            // Apply parameters if any were found\n            if (Object.keys(params).length > 1) { // More than just systemType\n                console.log('📥 Applying URL parameters:', params);\n                \n                // Wait for systems to initialize, then apply\n                setTimeout(() => {\n                    applyUnifiedParameters(params, params.systemType);\n                    \n                    // Switch to appropriate system\n                    if (params.systemType === 'Holographic') {\n                        switchToSystem('Holographic');\n                        \n                        // Auto-activate holograms if not already active\n                        if (window.activateHolograms && !window.holographicSystem) {\n                            setTimeout(() => {\n                                window.activateHolograms();\n                            }, 500);\n                        }\n                    }\n                }, 1000);\n            } else {\n                console.log('🔗 No parameters found in URL');\n            }\n        };\n        \n        // ================================\n        // LEGACY COMPATIBILITY FUNCTIONS\n        // ================================\n        \n        // Update slider values when variant changes (enhanced)\n        window.syncHolographicSliders = function() {\n            const params = getCurrentHolographicParameters();\n            if (!params) return;\n            \n            // Apply to unified parameter system\n            applyUnifiedParameters(params, 'Holographic');\n        };
     </script>
 </body>
 </html>
