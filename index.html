@@ -757,7 +757,7 @@
                     <button class="btn" id="vib34dAudioToggle2" onclick="toggleVIB34DAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio Off</button>
                     <button class="btn" onclick="saveVIB34DToPortfolio()" style="flex: 1; font-size: 0.7rem; background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">💾 Save</button>
                 </div>
-                <button class="btn" onclick="openUnifiedGallery()" style="width: 100%; font-size: 0.7rem; background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">🖼️ View Portfolio</button>
+                <button class="btn" onclick="openUnifiedGallery()" style="width: 100%; font-size: 0.7rem; background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">🖼️ Gallery</button>
             </div>
         </div>
         
@@ -866,7 +866,7 @@
                         <button class="btn" id="holoAudioToggle" onclick="toggleHolographicAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio On</button>
                         <button class="btn" onclick="saveHologramToPortfolio()" style="flex: 1; font-size: 0.7rem; background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">💾 Save</button>
                     </div>
-                    <button class="btn" onclick="openUnifiedGallery()" style="width: 100%; font-size: 0.7rem; background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">🖼️ View Portfolio</button>
+                    <button class="btn" onclick="openUnifiedGallery()" style="width: 100%; font-size: 0.7rem; background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">🖼️ Gallery</button>
                 </div>
             </div>
             
@@ -1863,17 +1863,17 @@
                             ${variation.name} <span style="color: rgba(255,255,255,0.4); font-size: 0.7em;">#${variation.globalId}</span>
                         </h3>
                         <div style="font-size: 0.6rem; color: rgba(255,255,255,0.5); margin-bottom: 10px;">
-                            ${createParameterSummary(variation.parameters, variation.system)}
+                            ${createParameterSummary(parameters, variation.system)}
                         </div>
                     </div>
                     
                     <!-- Card Controls -->
                     <div style="display: flex; gap: 8px;">
-                        <button onclick="event.stopPropagation(); loadVariationFromGallery(${variation.globalId}, '${variation.system}', ${JSON.stringify(variation.parameters).replace(/"/g, '&quot;')})" 
+                        <button onclick="event.stopPropagation(); loadVariationFromGallery(${variation.globalId}, '${variation.system}', ${JSON.stringify(parameters).replace(/"/g, '&quot;')})" 
                                 style="background: rgba(0,255,255,0.2); border: 1px solid #00ffff; color: #00ffff; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-family: 'Orbitron', monospace; font-size: 0.6rem; transition: all 0.3s ease;">
                             Load
                         </button>
-                        <button onclick="event.stopPropagation(); openVariationFullscreen(${variation.globalId}, '${variation.system}', ${JSON.stringify(variation.parameters).replace(/"/g, '&quot;')})" 
+                        <button onclick="event.stopPropagation(); openVariationFullscreen(${variation.globalId}, '${variation.system}', ${JSON.stringify(parameters).replace(/"/g, '&quot;')})" 
                                 style="background: rgba(0,255,255,0.2); border: 1px solid #00ffff; color: #00ffff; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-family: 'Orbitron', monospace; font-size: 0.6rem; transition: all 0.3s ease;">
                             Fullscreen
                         </button>
