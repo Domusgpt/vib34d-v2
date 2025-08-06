@@ -1827,9 +1827,29 @@
         }
         
         function createAdvancedVariationCard(variation) {
+            // BULLETPROOF error handling - validate variation object
+            if (!variation) {
+                console.error('❌ createAdvancedVariationCard: variation is null/undefined');
+                return '<div style="color: #ff0000; padding: 10px;">Error: Invalid variation</div>';
+            }
+            
             const customBadge = variation.isCustom ? '<div style="position: absolute; top: 10px; right: 10px; background: rgba(255,100,255,0.3); color: #ff64ff; padding: 3px 8px; border-radius: 5px; font-size: 0.6rem; border: 1px solid #ff64ff;">CUSTOM</div>' : '';
             const systemColor = variation.system === 'VIB34D' ? '#00ffff' : '#ff64ff';
-            const parameters = variation.parameters || {};
+            
+            // ULTRA-SAFE parameter handling
+            let parameters = {};
+            try {
+                parameters = variation.parameters || {};
+                // Ensure it's an object
+                if (typeof parameters !== 'object' || parameters === null) {
+                    console.warn('⚠️ Parameters not an object, using defaults:', parameters);
+                    parameters = {};
+                }
+            } catch (error) {
+                console.error('❌ Error accessing variation.parameters:', error);
+                parameters = {};
+            }
+            
             const previewHue = parameters.hue || 0;
             const previewSaturation = (parameters.saturation || 0.8) * 100;
             
