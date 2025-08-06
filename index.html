@@ -626,7 +626,7 @@
                         <button class="btn" onclick="engine.nextVariation()" style="flex: 1; font-size: 0.7rem;">Next →</button>
                     </div>
                     <div style="display: flex; gap: 5px;">
-                        <button class="btn" onclick="saveVIB34DToPortfolio()" style="flex: 1; font-size: 0.7rem; background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">💾 Save</button>
+                        <button class="btn" onclick="saveVIB34DToGallery()" style="flex: 1; font-size: 0.7rem; background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">💾 Save</button>
                         <button class="btn" onclick="openUnifiedGallery()" style="flex: 1; font-size: 0.7rem;">🖼️ Gallery</button>
                     </div>
                 </div>
@@ -708,7 +708,7 @@
                     </div>
                     <div style="display: flex; gap: 5px;">
                         <button class="btn" id="vib34dAudioToggle" onclick="toggleVIB34DAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio</button>
-                        <button class="btn" onclick="saveVIB34DToPortfolio()" style="flex: 1; font-size: 0.7rem; background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">💾 Save</button>
+                        <button class="btn" onclick="saveVIB34DToGallery()" style="flex: 1; font-size: 0.7rem; background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">💾 Save</button>
                     </div>
                 </div>
             </div>
@@ -755,7 +755,7 @@
                 <h4 style="color: #00ffff; margin-bottom: 10px; font-size: 0.9rem;">⚙️ System Controls</h4>
                 <div style="display: flex; gap: 10px; margin-bottom: 10px;">
                     <button class="btn" id="vib34dAudioToggle2" onclick="toggleVIB34DAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio Off</button>
-                    <button class="btn" onclick="saveVIB34DToPortfolio()" style="flex: 1; font-size: 0.7rem; background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">💾 Save</button>
+                    <button class="btn" onclick="saveVIB34DToGallery()" style="flex: 1; font-size: 0.7rem; background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">💾 Save</button>
                 </div>
                 <button class="btn" onclick="openUnifiedGallery()" style="width: 100%; font-size: 0.7rem; background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">🖼️ Gallery</button>
             </div>
@@ -864,7 +864,7 @@
                 <div style="margin-top: 15px;">
                     <div style="display: flex; gap: 10px; margin-bottom: 10px;">
                         <button class="btn" id="holoAudioToggle" onclick="toggleHolographicAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio On</button>
-                        <button class="btn" onclick="saveHologramToPortfolio()" style="flex: 1; font-size: 0.7rem; background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">💾 Save</button>
+                        <button class="btn" onclick="saveHologramToGallery()" style="flex: 1; font-size: 0.7rem; background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">💾 Save</button>
                     </div>
                     <button class="btn" onclick="openUnifiedGallery()" style="width: 100%; font-size: 0.7rem; background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">🖼️ Gallery</button>
                 </div>
@@ -873,7 +873,7 @@
             <div style="margin-top: 20px; font-size: 0.8rem; color: rgba(255,255,255,0.7);">
                 <p>✨ Multi-layer holographic effects</p>
                 <p>🎨 Audio-reactive visualizations</p>
-                <p>🔮 30 base variants + custom portfolio</p>
+                <p>🔮 30 base variants + custom gallery</p>
                 <p>🖱️ Mouse, touch, scroll, audio interactions</p>
             </div>
         </div>
@@ -1591,8 +1591,8 @@
             }
         };
         
-        window.saveVIB34DToPortfolio = function() {
-            console.log('💾 Attempting to save VIB34D to portfolio...');
+        window.saveVIB34DToGallery = function() {
+            console.log('💾 Attempting to save VIB34D to gallery...');
             
             if (window.engine) {
                 console.log('🎛️ Engine found, calling saveAsCustomVariation...');
@@ -1614,7 +1614,7 @@
             }
         };
         
-        window.saveHologramToPortfolio = function() {
+        window.saveHologramToGallery = function() {
             if (window.realHoloSystem && window.realHoloSystem.visualizers.length > 0) {
                 // Save current holographic parameters (not just variant number)
                 const currentParams = window.realHoloSystem.visualizers[0].variantParams;
@@ -1626,10 +1626,10 @@
                     parameters: { ...currentParams }
                 };
                 
-                const saved = localStorage.getItem('vib34d-holo-portfolio');
-                let portfolio = saved ? JSON.parse(saved) : [];
-                portfolio.push(holoData);
-                localStorage.setItem('vib34d-holo-portfolio', JSON.stringify(portfolio));
+                const saved = localStorage.getItem('vib34d-holo-gallery');
+                let gallery = saved ? JSON.parse(saved) : [];
+                gallery.push(holoData);
+                localStorage.setItem('vib34d-holo-gallery', JSON.stringify(gallery));
                 
                 showParameterNotification('💾 Hologram Saved!', `Custom parameters saved as "${holoData.name}"`);
             }
@@ -1646,7 +1646,7 @@
             try {
                 // Create unified collections with global numbering - ADVANCED VERSION
                 const vib34dSaves = JSON.parse(localStorage.getItem('vib34d-custom-variations') || '[]').filter(v => v !== null);
-                const holoSaves = JSON.parse(localStorage.getItem('vib34d-holo-portfolio') || '[]');
+                const holoSaves = JSON.parse(localStorage.getItem('vib34d-holo-gallery') || '[]');
                 
                 console.log('📊 Gallery data:', { vib34dSaves: vib34dSaves.length, holoSaves: holoSaves.length });
             
@@ -1772,7 +1772,7 @@
                     <!-- Header -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding: 20px; background: rgba(0,0,0,0.8); border: 1px solid #00ffff; border-radius: 10px;">
                         <div>
-                            <h1 style="color: #00ffff; font-size: 1.8rem; margin-bottom: 10px;">🌌 VIB34D Advanced Portfolio Gallery</h1>
+                            <h1 style="color: #00ffff; font-size: 1.8rem; margin-bottom: 10px;">🌌 VIB34D Advanced Gallery System</h1>
                             <div style="display: flex; gap: 20px; font-size: 0.7rem; color: rgba(255,255,255,0.7);">
                                 <span>Collections: ${collections.length}</span>
                                 <span>Total Variations: ${collections.reduce((sum, c) => sum + c.variations.length, 0)}</span>
@@ -2016,7 +2016,7 @@
         };
         
         window.loadHolographicParameters = function(index) {
-            const saves = JSON.parse(localStorage.getItem('vib34d-holo-portfolio') || '[]');
+            const saves = JSON.parse(localStorage.getItem('vib34d-holo-gallery') || '[]');
             const save = saves[index];
             if (save && save.parameters && window.realHoloSystem) {
                 // Apply loaded parameters to all visualizers
