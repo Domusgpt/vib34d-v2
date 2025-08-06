@@ -49,33 +49,174 @@
         #highlight-canvas { z-index: 7; opacity: 0.7; mix-blend-mode: overlay; }
         #accent-canvas { z-index: 15; opacity: 0.5; mix-blend-mode: color-dodge; }
         
-        /* Control Panel */
+        /* COMPACT FLOATING TAB PANEL DESIGN */
         .control-panel {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: rgba(0, 0, 0, 0.9);
+            width: 280px;
+            background: rgba(0, 0, 0, 0.95);
             border: 1px solid #00ffff;
-            border-radius: 10px;
-            padding: 20px;
-            min-width: 320px;
-            max-width: 380px;
-            max-height: 90vh;
-            overflow-y: auto;
+            border-radius: 12px;
             z-index: 1000;
-            backdrop-filter: blur(10px);
-            transition: transform 0.3s ease, opacity 0.3s ease;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
+            transition: all 0.3s ease;
+            transform: translateX(0);
+            font-size: 12px;
         }
         
-        /* Collapsible Panel States - FIXED POSITIONING */
+        /* Collapsible States - Improved */
         .control-panel.collapsed {
-            transform: translateX(280px); /* Move right by most of panel width */
-            opacity: 0.8;
+            transform: translateX(240px);
+            opacity: 0.7;
         }
         
         .control-panel.collapsed:hover {
-            transform: translateX(250px); /* Show slightly more on hover */
+            transform: translateX(220px);
             opacity: 0.9;
+        }
+        
+        /* Tab System */
+        .tab-header {
+            display: flex;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+            margin: 0;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            background: rgba(0, 255, 255, 0.1);
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 8px 6px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            border-radius: 0;
+            transition: all 0.2s ease;
+        }
+        
+        .tab-btn:first-child {
+            border-top-left-radius: 12px;
+        }
+        
+        .tab-btn:last-child {
+            border-top-right-radius: 12px;
+        }
+        
+        .tab-btn.active {
+            background: rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+            border-bottom: 2px solid #00ffff;
+        }
+        
+        .tab-btn:hover:not(.active) {
+            background: rgba(0, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        /* Tab Content Areas */
+        .tab-content {
+            display: none;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Collapsible Sections */
+        .param-section {
+            margin-bottom: 12px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .section-header {
+            background: rgba(0, 255, 255, 0.1);
+            padding: 8px 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            font-weight: bold;
+            color: #00ffff;
+        }
+        
+        .section-header:hover {
+            background: rgba(0, 255, 255, 0.15);
+        }
+        
+        .section-content {
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .section-content.collapsed {
+            display: none;
+        }
+        
+        /* Compact Parameter Controls */
+        .param-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+        
+        .param-label {
+            width: 60px;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .param-slider {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            outline: none;
+        }
+        
+        .param-value {
+            width: 40px;
+            font-size: 10px;
+            color: #00ffff;
+            text-align: right;
+        }
+        
+        /* Quick Action Toolbar */
+        .quick-actions {
+            display: flex;
+            padding: 8px;
+            gap: 4px;
+            border-top: 1px solid rgba(0, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .quick-btn {
+            flex: 1;
+            background: rgba(0, 255, 255, 0.2);
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            color: #00ffff;
+            padding: 6px 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-size: 9px;
+            transition: all 0.2s ease;
+        }
+        
+        .quick-btn:hover {
+            background: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
         }
         
         /* Collapse Toggle Button - FIXED POSITIONING */
@@ -429,110 +570,147 @@
     <!-- Control Panel -->
     <div class="control-panel collapsed" id="controlPanel">
         <div class="collapse-toggle" id="collapseToggle" onclick="toggleControlPanel()">‹</div>
-        <h2>VIB34D Holographic Engine</h2>
-        
-        <!-- Enhanced Control Header -->
-        <div class="control-header">
-            <div class="system-status">
-                <span id="currentSystemIndicator">🔷 VIB34D System</span>
+        <div class="panel-header">
+            <h2>VIB34D Engine</h2>
+            <div class="header-info">
+                <span id="currentSystemIndicator">🔷 VIB34D</span>
                 <span id="parameterSyncStatus">Synced</span>
             </div>
-            <div class="quick-actions">
-                <button class="quick-btn" onclick="quickRandomize()" title="Quick randomize visual parameters">⚡ Quick</button>
-                <button class="quick-btn" onclick="randomizeParameters()" title="Full randomization">🎲 Random</button>
-                <button class="quick-btn" onclick="switchToSystem(unifiedParameters.systemType === 'VIB34D' ? 'Holographic' : 'VIB34D')" title="Switch between systems">🔄 Switch</button>
-            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <button class="quick-btn" onclick="quickRandomize()" title="Quick randomize">⚡</button>
+            <button class="quick-btn" onclick="randomizeParameters()" title="Randomize all">🎲</button>
+            <button class="quick-btn" onclick="switchToSystem(unifiedParameters.systemType === 'VIB34D' ? 'Holographic' : 'VIB34D')" title="Switch system">🔄</button>
         </div>
         
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab-btn active" data-tab="variations" title="VIB34D Polytopal Variations">🔷 VIB34D</button>
-            <button class="tab-btn" data-tab="polytopal" title="4D Mathematics Control">🧮 4D Math</button>
-            <button class="tab-btn" data-tab="holographic" title="Holographic Parameters">🌀 Holo Params</button>
-            <button class="tab-btn" data-tab="holograms" title="Active Holographic System">✨ Live Holo</button>
-            <button class="tab-btn" data-tab="export" title="Export & Import System">📤 Export</button>
+            <button class="tab-btn active" data-tab="variations" title="VIB34D Variations">🔷 VIB</button>
+            <button class="tab-btn" data-tab="polytopal" title="4D Mathematics">🧮 4D</button>
+            <button class="tab-btn" data-tab="holographic" title="Holographic Params">🌀 Holo</button>
+            <button class="tab-btn" data-tab="holograms" title="Live Holographic">✨ Live</button>
+            <button class="tab-btn" data-tab="export" title="Export & Import">📤 I/O</button>
         </div>
         
         <!-- Variations Tab -->
         <div class="tab-content active" id="variations-tab">
-            <div class="variation-controls">
-                <div class="variation-nav">
-                    <button class="btn" onclick="engine.previousVariation()">← Prev Preset</button>
-                    <button class="btn" onclick="randomizeParameters('VIB34D')">🎲 Randomize</button>
-                    <button class="btn" onclick="engine.nextVariation()">Next Preset →</button>
+            <div class="collapsible-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <span>📊 Current Variation</span>
+                    <span class="toggle-arrow">▼</span>
                 </div>
-                
-                <div class="control-group">
-                    <label class="control-label">
-                        Variation <span class="control-display" id="currentVariationDisplay">1</span>
-                    </label>
-                    <input type="range" id="variationSlider" class="control-input" min="0" max="99" value="0">
-                </div>
-                
-                <div class="variation-info">
-                    <div id="currentVariation">1 - TETRAHEDRON LATTICE 1</div>
-                </div>
-                
-                <div class="variation-nav">
-                    <button class="btn" onclick="saveVIB34DToPortfolio()" style="background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">💾 Save Current</button>
-                    <button class="btn" onclick="openUnifiedGallery()">🖼️ Portfolio</button>
+                <div class="section-content">
+                    <div class="control-group">
+                        <label class="control-label">
+                            Variation <span class="control-display" id="currentVariationDisplay">1</span>
+                        </label>
+                        <input type="range" id="variationSlider" class="control-input" min="0" max="99" value="0">
+                    </div>
+                    <div class="variation-info">
+                        <div id="currentVariation">1 - TETRAHEDRON LATTICE 1</div>
+                    </div>
                 </div>
             </div>
             
-            <div class="geometry-presets">
-                <button class="btn active" data-geometry="0">Tetrahedron</button>
-                <button class="btn" data-geometry="1">Hypercube</button>
-                <button class="btn" data-geometry="2">Sphere</button>
-                <button class="btn" data-geometry="3">Torus</button>
-                <button class="btn" data-geometry="4">Klein Bottle</button>
-                <button class="btn" data-geometry="5">Fractal</button>
-                <button class="btn" data-geometry="6">Wave</button>
-                <button class="btn" data-geometry="7">Crystal</button>
+            <div class="collapsible-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <span>🎮 Navigation</span>
+                    <span class="toggle-arrow">▼</span>
+                </div>
+                <div class="section-content">
+                    <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                        <button class="btn" onclick="engine.previousVariation()" style="flex: 1; font-size: 0.7rem;">← Prev</button>
+                        <button class="btn" onclick="randomizeParameters('VIB34D')" style="flex: 1; font-size: 0.7rem;">🎲</button>
+                        <button class="btn" onclick="engine.nextVariation()" style="flex: 1; font-size: 0.7rem;">Next →</button>
+                    </div>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn" onclick="saveVIB34DToPortfolio()" style="flex: 1; font-size: 0.7rem; background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">💾 Save</button>
+                        <button class="btn" onclick="openUnifiedGallery()" style="flex: 1; font-size: 0.7rem;">🖼️ Gallery</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="collapsible-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <span>🔷 Geometries</span>
+                    <span class="toggle-arrow">▼</span>
+                </div>
+                <div class="section-content">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px;">
+                        <button class="btn active" data-geometry="0" style="font-size: 0.6rem; padding: 4px;">Tetra</button>
+                        <button class="btn" data-geometry="1" style="font-size: 0.6rem; padding: 4px;">Hyper</button>
+                        <button class="btn" data-geometry="2" style="font-size: 0.6rem; padding: 4px;">Sphere</button>
+                        <button class="btn" data-geometry="3" style="font-size: 0.6rem; padding: 4px;">Torus</button>
+                        <button class="btn" data-geometry="4" style="font-size: 0.6rem; padding: 4px;">Klein</button>
+                        <button class="btn" data-geometry="5" style="font-size: 0.6rem; padding: 4px;">Fractal</button>
+                        <button class="btn" data-geometry="6" style="font-size: 0.6rem; padding: 4px;">Wave</button>
+                        <button class="btn" data-geometry="7" style="font-size: 0.6rem; padding: 4px;">Crystal</button>
+                    </div>
+                </div>
             </div>
         </div>
         
         <!-- 4D Math Tab -->
         <div class="tab-content" id="polytopal-tab">
-            <div class="control-group">
-                <label class="control-label">
-                    4D Rotation XW <span class="control-display" id="rot4dXWDisplay">0.00</span>
-                </label>
-                <input type="range" id="rot4dXW" class="control-input" min="-2" max="2" step="0.01" value="0">
-            </div>
-            
-            <div class="control-group">
-                <label class="control-label">
-                    4D Rotation YW <span class="control-display" id="rot4dYWDisplay">0.00</span>
-                </label>
-                <input type="range" id="rot4dYW" class="control-input" min="-2" max="2" step="0.01" value="0">
-            </div>
-            
-            <div class="control-group">
-                <label class="control-label">
-                    4D Rotation ZW <span class="control-display" id="rot4dZWDisplay">0.00</span>
-                </label>
-                <input type="range" id="rot4dZW" class="control-input" min="-2" max="2" step="0.01" value="0">
-            </div>
-            
-            <div class="control-group">
-                <label class="control-label">
-                    Dimension <span class="control-display" id="dimensionDisplay">3.50</span>
-                </label>
-                <input type="range" id="dimension" class="control-input" min="3" max="4.5" step="0.01" value="3.5">
-            </div>
-            
-            <div style="text-align: center; margin-top: 15px;">
-                <button class="btn" onclick="randomizeParameters('VIB34D')">🎲 Randomize Parameters</button>
-                <button class="btn" onclick="engine.resetToDefaults()">Reset</button>
-            </div>
-            
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(0,255,255,0.3);">
-                <h4 style="color: #00ffff; margin-bottom: 10px; font-size: 0.9rem;">⚙️ System Controls</h4>
-                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <button class="btn" id="vib34dAudioToggle" onclick="toggleVIB34DAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio Off</button>
-                    <button class="btn" onclick="saveVIB34DToPortfolio()" style="flex: 1; font-size: 0.7rem; background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">💾 Save</button>
+            <div class="collapsible-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <span>🧮 4D Rotations</span>
+                    <span class="toggle-arrow">▼</span>
                 </div>
-                <button class="btn" onclick="openUnifiedGallery()" style="width: 100%; font-size: 0.7rem; background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">🖼️ View Portfolio</button>
+                <div class="section-content">
+                    <div class="control-group">
+                        <label class="control-label">
+                            XW <span class="control-display" id="rot4dXWDisplay">0.00</span>
+                        </label>
+                        <input type="range" id="rot4dXW" class="control-input" min="-2" max="2" step="0.01" value="0">
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            YW <span class="control-display" id="rot4dYWDisplay">0.00</span>
+                        </label>
+                        <input type="range" id="rot4dYW" class="control-input" min="-2" max="2" step="0.01" value="0">
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            ZW <span class="control-display" id="rot4dZWDisplay">0.00</span>
+                        </label>
+                        <input type="range" id="rot4dZW" class="control-input" min="-2" max="2" step="0.01" value="0">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="collapsible-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <span>📐 Dimension</span>
+                    <span class="toggle-arrow">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="control-group">
+                        <label class="control-label">
+                            Dimension <span class="control-display" id="dimensionDisplay">3.50</span>
+                        </label>
+                        <input type="range" id="dimension" class="control-input" min="3" max="4.5" step="0.01" value="3.5">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="collapsible-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <span>⚙️ Controls</span>
+                    <span class="toggle-arrow">▼</span>
+                </div>
+                <div class="section-content">
+                    <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                        <button class="btn" onclick="randomizeParameters('VIB34D')" style="flex: 1; font-size: 0.7rem;">🎲 Random</button>
+                        <button class="btn" onclick="engine.resetToDefaults()" style="flex: 1; font-size: 0.7rem;">Reset</button>
+                    </div>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn" id="vib34dAudioToggle" onclick="toggleVIB34DAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio</button>
+                        <button class="btn" onclick="saveVIB34DToPortfolio()" style="flex: 1; font-size: 0.7rem; background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">💾 Save</button>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -1885,6 +2063,56 @@
                 debugHoloSystem();
             }
         });
+        
+        // Tab switching functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            setupTabSwitching();
+            setupCollapsibleSections();
+        });
+        
+        function setupTabSwitching() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.getAttribute('data-tab');
+                    
+                    // Remove active class from all tabs
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Add active class to clicked tab
+                    button.classList.add('active');
+                    document.getElementById(`${targetTab}-tab`).classList.add('active');
+                });
+            });
+        }
+        
+        function setupCollapsibleSections() {
+            // Auto-collapse all sections by default except first ones
+            const sections = document.querySelectorAll('.section-content');
+            sections.forEach((section, index) => {
+                if (index % 3 !== 0) { // Keep first section of each tab open
+                    section.style.display = 'none';
+                    const arrow = section.previousElementSibling.querySelector('.toggle-arrow');
+                    if (arrow) arrow.textContent = '▶';
+                }
+            });
+        }
+        
+        window.toggleSection = function(header) {
+            const content = header.nextElementSibling;
+            const arrow = header.querySelector('.toggle-arrow');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                arrow.textContent = '▼';
+            } else {
+                content.style.display = 'none';
+                arrow.textContent = '▶';
+            }
+        };
         
     </script>
     
