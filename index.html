@@ -368,7 +368,8 @@
         
         /* Start collapsed by default for mobile/previews */
         body.mobile-mode .control-panel,
-        body.start-collapsed .control-panel {
+        body.start-collapsed .control-panel,
+        .control-panel.start-collapsed {
             transform: translateX(calc(100% - 50px));
             opacity: 0.8;
         }
@@ -379,9 +380,6 @@
                 right: 10px;
                 top: 10px;
                 min-width: 280px;
-                /* Start collapsed on mobile */
-                transform: translateX(calc(100% - 50px));
-                opacity: 0.8;
             }
             
             .geometry-presets {
@@ -706,13 +704,20 @@
     
     <!-- Load ES6 Modules -->
     <script type="module">
-        // Check for preview mode
+        // Check for preview mode and mobile device
         const urlParams = new URLSearchParams(window.location.search);
         const isPreviewMode = urlParams.get('preview') === 'true' || urlParams.get('hideui') === 'true';
+        const isMobileDevice = /iPhone|iPad|iPod|Android|BlackBerry|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent) || window.innerWidth <= 768;
         
         if (isPreviewMode) {
             document.body.classList.add('preview-mode');
             console.log('🔍 Preview mode activated - UI hidden');
+        }
+        
+        // Start collapsed on mobile devices and preview mode
+        if (isMobileDevice || isPreviewMode || urlParams.get('startCollapsed') === 'true') {
+            document.body.classList.add('start-collapsed');
+            console.log('📱 Starting with collapsed control panel');
         }
         
         // Load parameters from URL if available
@@ -1243,72 +1248,306 @@
         };
         
         window.showUnifiedGallery = function() {
-            // Get saved items from both systems
+            // Create unified collections with global numbering - ADVANCED VERSION
             const vib34dSaves = JSON.parse(localStorage.getItem('vib34d-custom-variations') || '[]').filter(v => v !== null);
             const holoSaves = JSON.parse(localStorage.getItem('vib34d-holo-portfolio') || '[]');
             
-            let galleryHTML = `
-                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; overflow-y: auto; padding: 20px;">
-                    <div style="max-width: 1200px; margin: 0 auto;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                            <h1 style="color: #00ffff; font-family: 'Orbitron', monospace; font-size: 2rem;">🖼️ VIB34D Portfolio Gallery</h1>
-                            <button onclick="this.closest('div').remove()" style="background: rgba(255,0,0,0.3); border: 1px solid #ff0000; color: #ff0000; padding: 10px 20px; border-radius: 5px; cursor: pointer;">✕ Close</button>
-                        </div>
-                        
-                        <div style="margin-bottom: 30px;">
-                            <h2 style="color: #00ffff; font-family: 'Orbitron', monospace; margin-bottom: 15px;">🔷 VIB34D Custom Variations (${vib34dSaves.length})</h2>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+            const collections = [];
+            let globalId = 1; // Start at 1 for user-friendly numbering
+            
+            // VIB34D Default Presets (30 variations) - Global IDs 1-30
+            const vib34dDefaults = {
+                name: 'VIB34D Default Presets',
+                filename: 'vib34d-defaults.json',
+                type: 'vib34d-defaults',
+                variations: []
+            };
+            
+            for (let i = 0; i < 30; i++) {
+                const geometryType = Math.floor(i / 4);
+                const level = (i % 4) + 1;
+                const geometryNames = ['TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'];
+                
+                vib34dDefaults.variations.push({
+                    globalId: globalId++,
+                    name: `${geometryNames[geometryType]} LATTICE ${level}`,
+                    parameters: {
+                        geometry: geometryType,
+                        gridDensity: 8 + geometryType * 2 + level * 1.5,
+                        morphFactor: 0.2 + level * 0.2,
+                        chaos: level * 0.2,
+                        speed: 0.8 + level * 0.2,
+                        hue: (i * 12.27) % 360,
+                        rot4dXW: (level - 1.5) * 0.3,
+                        rot4dYW: (geometryType % 2) * 0.2,
+                        rot4dZW: ((geometryType + level) % 3) * 0.15,
+                        dimension: 3.2 + level * 0.2
+                    },
+                    isCustom: false,
+                    system: 'VIB34D'
+                });
+            }
+            collections.push(vib34dDefaults);
+            
+            // Holographic Default Presets (30 variations) - Global IDs 31-60
+            const holoDefaults = {
+                name: 'Holographic Default Presets',
+                filename: 'holographic-defaults.json', 
+                type: 'holographic-defaults',
+                variations: []
+            };
+            
+            for (let i = 0; i < 30; i++) {
+                const geometryType = Math.floor(i / 4);
+                const level = (i % 4) + 1;
+                const geometryNames = ['TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'];
+                
+                holoDefaults.variations.push({
+                    globalId: globalId++,
+                    name: `${geometryNames[geometryType]} FIELD ${level}`,
+                    parameters: {
+                        geometryType: geometryType,
+                        density: 0.8 + level * 0.3,
+                        speed: 0.3 + level * 0.1,
+                        chaos: level * 0.15,
+                        morph: level * 0.2,
+                        hue: (i * 12.27) % 360,
+                        saturation: 0.8 + (level * 0.05),
+                        intensity: 0.5 + (level * 0.1)
+                    },
+                    isCustom: false,
+                    system: 'Holographic'
+                });
+            }
+            collections.push(holoDefaults);
+            
+            // VIB34D Custom Variations - Global IDs 61+
+            if (vib34dSaves.length > 0) {
+                const vib34dCustoms = {
+                    name: 'VIB34D Custom Variations',
+                    filename: 'vib34d-custom.json',
+                    type: 'vib34d-custom',
+                    variations: vib34dSaves.map(save => ({
+                        globalId: globalId++,
+                        name: save.name || 'Custom VIB34D',
+                        parameters: save.parameters,
+                        timestamp: save.timestamp,
+                        isCustom: true,
+                        system: 'VIB34D'
+                    }))
+                };
+                collections.push(vib34dCustoms);
+            }
+            
+            // Holographic Custom Variations - Continue Global IDs
+            if (holoSaves.length > 0) {
+                const holoCustoms = {
+                    name: 'Holographic Custom Variations',
+                    filename: 'holographic-custom.json',
+                    type: 'holographic-custom', 
+                    variations: holoSaves.map(save => ({
+                        globalId: globalId++,
+                        name: save.name || 'Custom Hologram',
+                        parameters: save.parameters,
+                        timestamp: save.timestamp,
+                        isCustom: true,
+                        system: 'Holographic'
+                    }))
+                };
+                collections.push(holoCustoms);
+            }
+            
+            // Create advanced gallery modal
+            const galleryModal = document.createElement('div');
+            galleryModal.style.cssText = `
+                position: fixed; 
+                top: 0; left: 0; 
+                width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.95); 
+                z-index: 10000; 
+                overflow-y: auto; 
+                font-family: 'Orbitron', monospace;
             `;
             
-            // Add VIB34D saves
-            vib34dSaves.forEach((save, index) => {
-                if (save && save.parameters) {
-                    galleryHTML += `
-                        <div style="background: rgba(0,255,255,0.1); border: 1px solid rgba(0,255,255,0.3); border-radius: 8px; padding: 15px; cursor: pointer;" 
-                             onclick="loadVIB34DParameters(${index})">
-                            <h3 style="color: #00ffff; font-size: 0.9rem; margin-bottom: 8px;">${save.name || 'Custom Variation'}</h3>
-                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.7); margin-bottom: 8px;">${new Date(save.timestamp).toLocaleString()}</div>
-                            <div style="font-size: 0.6rem; color: rgba(255,255,255,0.5);">
-                                Geo: ${save.parameters.geometry || 0} | Hue: ${save.parameters.hue || 0}° | Chaos: ${(save.parameters.chaos || 0).toFixed(2)}
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-            
-            galleryHTML += `
-                            </div>
-                        </div>
-                        
+            galleryModal.innerHTML = `
+                <div style="max-width: 1400px; margin: 0 auto; padding: 20px;">
+                    <!-- Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding: 20px; background: rgba(0,0,0,0.8); border: 1px solid #00ffff; border-radius: 10px;">
                         <div>
-                            <h2 style="color: #00ffff; font-family: 'Orbitron', monospace; margin-bottom: 15px;">✨ Holographic Custom Creations (${holoSaves.length})</h2>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
-            `;
-            
-            // Add Holographic saves
-            holoSaves.forEach((save, index) => {
-                if (save && save.parameters) {
-                    galleryHTML += `
-                        <div style="background: rgba(255,100,255,0.1); border: 1px solid rgba(255,100,255,0.3); border-radius: 8px; padding: 15px; cursor: pointer;" 
-                             onclick="loadHolographicParameters(${index})">
-                            <h3 style="color: #ff64ff; font-size: 0.9rem; margin-bottom: 8px;">${save.name || 'Custom Hologram'}</h3>
-                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.7); margin-bottom: 8px;">${new Date(save.timestamp).toLocaleString()}</div>
-                            <div style="font-size: 0.6rem; color: rgba(255,255,255,0.5);">
-                                Geo: ${save.parameters.geometryType || 0} | Hue: ${save.parameters.hue || 0}° | Density: ${(save.parameters.density || 0).toFixed(2)}
+                            <h1 style="color: #00ffff; font-size: 1.8rem; margin-bottom: 10px;">🌌 VIB34D Advanced Portfolio Gallery</h1>
+                            <div style="display: flex; gap: 20px; font-size: 0.7rem; color: rgba(255,255,255,0.7);">
+                                <span>Collections: ${collections.length}</span>
+                                <span>Total Variations: ${collections.reduce((sum, c) => sum + c.variations.length, 0)}</span>
+                                <span>Global Sequential Numbering</span>
                             </div>
                         </div>
-                    `;
-                }
-            });
-            
-            galleryHTML += `
-                            </div>
-                        </div>
+                        <button onclick="this.closest('div').remove()" style="background: rgba(255,0,0,0.3); border: 1px solid #ff0000; color: #ff0000; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-family: 'Orbitron', monospace;">✕ Close</button>
+                    </div>
+                    
+                    <!-- Collections Container -->
+                    <div id="advancedCollectionsContainer">
+                        ${collections.map(collection => createCollectionSection(collection, collections)).join('')}
                     </div>
                 </div>
             `;
             
-            document.body.insertAdjacentHTML('beforeend', galleryHTML);
+            document.body.appendChild(galleryModal);
+        };
+        
+        function createCollectionSection(collection, allCollections) {
+            return `
+                <div style="margin-bottom: 40px; background: rgba(0,0,0,0.6); border: 1px solid rgba(0,255,255,0.3); border-radius: 15px; padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid rgba(0,255,255,0.2);">
+                        <div style="color: #00ffff; font-size: 1.2rem;">${collection.name}</div>
+                        <div style="font-size: 0.7rem; color: rgba(255,255,255,0.6);">${collection.variations.length} variations</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                        ${collection.variations.map(variation => createAdvancedVariationCard(variation)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function createAdvancedVariationCard(variation) {
+            const customBadge = variation.isCustom ? '<div style="position: absolute; top: 10px; right: 10px; background: rgba(255,100,255,0.3); color: #ff64ff; padding: 3px 8px; border-radius: 5px; font-size: 0.6rem; border: 1px solid #ff64ff;">CUSTOM</div>' : '';
+            const systemColor = variation.system === 'VIB34D' ? '#00ffff' : '#ff64ff';
+            const previewHue = variation.parameters.hue || 0;
+            const previewSaturation = (variation.parameters.saturation || 0.8) * 100;
+            
+            return `
+                <div style="background: rgba(0,0,0,0.8); border: 1px solid rgba(0,255,255,0.3); border-radius: 12px; padding: 15px; transition: all 0.3s ease; cursor: pointer; position: relative;"
+                     onmouseenter="this.style.borderColor='#00ffff'; this.style.boxShadow='0 0 20px rgba(0,255,255,0.3)'; this.style.transform='translateY(-3px)'"
+                     onmouseleave="this.style.borderColor='rgba(0,255,255,0.3)'; this.style.boxShadow='none'; this.style.transform='translateY(0px)'"
+                     onclick="loadVariationFromGallery(${variation.globalId}, '${variation.system}', ${JSON.stringify(variation.parameters).replace(/"/g, '&quot;')})">
+                    ${customBadge}
+                    
+                    <!-- Preview Area -->
+                    <div style="width: 100%; height: 160px; border-radius: 8px; overflow: hidden; margin-bottom: 10px; background: #111; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(0,255,255,0.2);">
+                        <div style="font-size: 2.5rem; font-weight: bold; color: hsl(${previewHue}, ${previewSaturation}%, 50%); text-shadow: 0 0 20px currentColor; margin-bottom: 10px;">
+                            #${variation.globalId}
+                        </div>
+                        <div style="font-size: 0.8rem; color: ${systemColor}; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">
+                            ${getGeometryName(variation.parameters)}
+                        </div>
+                        <div style="width: 60px; height: 4px; background: hsl(${previewHue}, ${previewSaturation}%, 50%); border-radius: 2px; box-shadow: 0 0 10px currentColor;"></div>
+                        <div style="position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); padding: 3px 6px; border-radius: 3px; font-size: 0.6rem; color: ${systemColor};">
+                            ${variation.system}
+                        </div>
+                        <div style="position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.7); color: #0ff; padding: 3px 6px; border-radius: 3px; font-size: 0.6rem;">
+                            CLICK → LOAD
+                        </div>
+                    </div>
+                    
+                    <!-- Card Info -->
+                    <div>
+                        <h3 style="color: #00ffff; font-size: 0.9rem; margin-bottom: 5px;">
+                            ${variation.name} <span style="color: rgba(255,255,255,0.4); font-size: 0.7em;">#${variation.globalId}</span>
+                        </h3>
+                        <div style="font-size: 0.6rem; color: rgba(255,255,255,0.5); margin-bottom: 10px;">
+                            ${createParameterSummary(variation.parameters, variation.system)}
+                        </div>
+                    </div>
+                    
+                    <!-- Card Controls -->
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="event.stopPropagation(); loadVariationFromGallery(${variation.globalId}, '${variation.system}', ${JSON.stringify(variation.parameters).replace(/"/g, '&quot;')})" 
+                                style="background: rgba(0,255,255,0.2); border: 1px solid #00ffff; color: #00ffff; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-family: 'Orbitron', monospace; font-size: 0.6rem; transition: all 0.3s ease;">
+                            Load
+                        </button>
+                        <button onclick="event.stopPropagation(); openVariationFullscreen(${variation.globalId}, '${variation.system}', ${JSON.stringify(variation.parameters).replace(/"/g, '&quot;')})" 
+                                style="background: rgba(0,255,255,0.2); border: 1px solid #00ffff; color: #00ffff; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-family: 'Orbitron', monospace; font-size: 0.6rem; transition: all 0.3s ease;">
+                            Fullscreen
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function getGeometryName(params) {
+            const names = ['TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'];
+            const geometryType = params.geometryType !== undefined ? params.geometryType : params.geometry;
+            return names[geometryType] || 'UNKNOWN';
+        }
+        
+        function createParameterSummary(params, system) {
+            const geom = getGeometryName(params);
+            if (system === 'VIB34D') {
+                return `Geometry: ${geom} | Density: ${(params.gridDensity || 0).toFixed(1)} | Speed: ${(params.speed || 0).toFixed(1)}`;
+            } else {
+                return `Geometry: ${geom} | Density: ${(params.density || 0).toFixed(1)} | Speed: ${(params.speed || 0).toFixed(1)}`;
+            }
+        }
+        
+        // Advanced variation loading with proper system switching
+        window.loadVariationFromGallery = function(globalId, system, parameters) {
+            console.log(`🔗 Loading ${system} variation #${globalId} from advanced gallery`);
+            
+            if (system === 'VIB34D' && window.engine) {
+                window.engine.parameterManager.setParameters(parameters);
+                window.engine.updateDisplayValues();
+                window.engine.updateVisualizers();
+                switchToSystem('VIB34D');
+                
+                // Update geometry button
+                document.querySelectorAll('[data-geometry]').forEach(btn => {
+                    btn.classList.toggle('active', parseInt(btn.dataset.geometry) === parameters.geometry);
+                });
+                
+                showParameterNotification('💾 Loaded!', `VIB34D variation #${globalId} loaded`);
+                
+            } else if (system === 'Holographic' && window.realHoloSystem) {
+                // Apply loaded parameters to all visualizers
+                window.realHoloSystem.visualizers.forEach(viz => {
+                    viz.variantParams = { ...parameters };
+                    viz.roleParams = viz.generateRoleParams(viz.role);
+                });
+                
+                updateHoloSliders(parameters);
+                switchToSystem('Holographic');
+                
+                // Update geometry buttons
+                document.querySelectorAll('.holo-geom').forEach(btn => btn.classList.remove('active'));
+                const activeGeomBtn = document.querySelector(`[data-holo-geometry="${parameters.geometryType * 4}"]`);
+                if (activeGeomBtn) activeGeomBtn.classList.add('active');
+                
+                showParameterNotification('💾 Loaded!', `Holographic variation #${globalId} loaded`);
+            }
+            
+            // Close gallery modal
+            const modal = document.querySelector('[style*="z-index: 10000"]');
+            if (modal) modal.remove();
+        };
+        
+        window.openVariationFullscreen = function(globalId, system, parameters) {
+            let fullscreenUrl = '';
+            if (system === 'VIB34D') {
+                const urlParams = new URLSearchParams({
+                    geometry: parameters.geometry || 0,
+                    gridDensity: parameters.gridDensity || 10,
+                    morphFactor: parameters.morphFactor || 0.5,
+                    chaos: parameters.chaos || 0,
+                    speed: parameters.speed || 1,
+                    hue: parameters.hue || 0,
+                    autoplay: 'true'
+                });
+                fullscreenUrl = `index.html?${urlParams.toString()}`;
+            } else {
+                const urlParams = new URLSearchParams({
+                    geometryType: parameters.geometryType || 0,
+                    density: parameters.density || 1,
+                    speed: parameters.speed || 0.5,
+                    chaos: parameters.chaos || 0,
+                    morph: parameters.morph || 0,
+                    hue: parameters.hue || 0,
+                    saturation: parameters.saturation || 0.8,
+                    intensity: parameters.intensity || 0.5,
+                    system: 'holographic',
+                    autoplay: 'true'
+                });
+                fullscreenUrl = `index.html?${urlParams.toString()}`;
+            }
+            
+            window.open(fullscreenUrl, '_blank');
         };
         
         window.loadVIB34DParameters = function(index) {
