@@ -1352,25 +1352,25 @@
             // Define which parameters are relevant for each system
             const systemParameters = {
                 'VIB34D': {
-                    // Core VIB34D parameters
+                    // Core VIB34D parameters - ALL parameters available for VIB34D
                     show: [
-                        'rot4dXW', 'rot4dYW', 'rot4dZW', 'dimension',
+                        'variationSlider', 'rot4dXW', 'rot4dYW', 'rot4dZW', 'dimension',
                         'gridDensity', 'morphFactor', 'chaos', 'speed', 'hue'
                     ],
-                    // Tab visibility
+                    // Tab visibility - VIB34D specific tabs
                     tabs: ['variations', 'polytopal', 'holographic', 'export'],
-                    // Geometry presets
+                    hideTabs: ['holograms'], // Hide Live Holographic tab for VIB34D
                     geometrySection: true
                 },
                 'Holographic': {
-                    // Holographic system parameters (can include some 4D math since both systems use it)
+                    // Holographic system parameters - subset of parameters relevant to holographic system
                     show: [
                         'gridDensity', 'morphFactor', 'chaos', 'speed', 'hue',
                         'rot4dXW', 'rot4dYW', 'rot4dZW', 'dimension' // 4D math applies to both
                     ],
-                    // Tab visibility  
-                    tabs: ['holograms', 'polytopal', 'export'],
-                    // Geometry presets
+                    // Tab visibility - Holographic specific tabs
+                    tabs: ['holograms', 'holographic', 'polytopal', 'export'],
+                    hideTabs: ['variations'], // Hide VIB34D variations tab for Holographic
                     geometrySection: true
                 }
             };
@@ -1393,8 +1393,8 @@
             const tabButtons = document.querySelectorAll('.tab-btn');
             tabButtons.forEach(btn => {
                 const tabName = btn.getAttribute('data-tab');
-                const shouldShow = config.tabs.includes(tabName);
-                btn.style.display = shouldShow ? 'flex' : 'none';
+                const shouldHide = config.hideTabs && config.hideTabs.includes(tabName);
+                btn.style.display = shouldHide ? 'none' : 'flex';
             });
             
             // Show/hide geometry section
@@ -1784,7 +1784,14 @@
                     
                     <!-- Collections Container -->
                     <div id="advancedCollectionsContainer">
-                        ${collections.map(collection => createCollectionSection(collection, collections)).join('')}
+                        ${collections.map(collection => {
+                            try {
+                                return createCollectionSection(collection, collections);
+                            } catch (error) {
+                                console.error('Error creating collection section:', error, collection);
+                                return `<div style="color: #ff0000; padding: 20px; border: 1px solid #ff0000;">Error loading collection: ${collection.name}</div>`;
+                            }
+                        }).join('')}
                     </div>
                 </div>
             `;
@@ -1806,7 +1813,14 @@
                         <div style="font-size: 0.7rem; color: rgba(255,255,255,0.6);">${collection.variations.length} variations</div>
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
-                        ${collection.variations.map(variation => createAdvancedVariationCard(variation)).join('')}
+                        ${collection.variations.map(variation => {
+                            try {
+                                return createAdvancedVariationCard(variation);
+                            } catch (error) {
+                                console.error('Error creating variation card:', error, variation);
+                                return `<div style="color: #ff0000; padding: 10px; border: 1px solid #ff0000; border-radius: 5px;">Error loading variation #${variation.globalId || '?'}</div>`;
+                            }
+                        }).join('')}
                     </div>
                 </div>
             `;
@@ -1832,7 +1846,7 @@
                             #${variation.globalId}
                         </div>
                         <div style="font-size: 0.8rem; color: ${systemColor}; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">
-                            ${getGeometryName(variation.parameters)}
+                            ${getGeometryName(parameters)}
                         </div>
                         <div style="width: 60px; height: 4px; background: hsl(${previewHue}, ${previewSaturation}%, 50%); border-radius: 2px; box-shadow: 0 0 10px currentColor;"></div>
                         <div style="position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); padding: 3px 6px; border-radius: 3px; font-size: 0.6rem; color: ${systemColor};">
@@ -1870,8 +1884,22 @@
         
         function getGeometryName(params) {
             const names = ['TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'];
-            const geometryType = params.geometryType !== undefined ? params.geometryType : params.geometry;
-            return names[geometryType] || 'UNKNOWN';
+            
+            // Robust parameter handling
+            if (!params) return 'CUSTOM';
+            
+            // Check for both possible property names
+            let geometryType = params.geometryType;
+            if (geometryType === undefined) {
+                geometryType = params.geometry;
+            }
+            
+            // Ensure valid index
+            if (geometryType === undefined || geometryType < 0 || geometryType >= names.length) {
+                return 'CUSTOM';
+            }
+            
+            return names[geometryType];
         }
         
         function createParameterSummary(params, system) {
