@@ -747,6 +747,50 @@
         // Add cache busting to prevent old file conflicts
         const cacheBuster = '?v=' + Date.now();
         
+        // PARAMETER MAPPING: Gallery ↔ VIB34D Engine
+        function mapGalleryParametersToVIB34D(galleryParams, systemType) {
+            console.log('🔄 Mapping gallery parameters:', { galleryParams, systemType });
+            
+            // Default VIB34D parameters
+            const vib34dParams = {
+                variation: 0,
+                rot4dXW: 0.0,
+                rot4dYW: 0.0,
+                rot4dZW: 0.0,
+                dimension: 3.5,
+                gridDensity: 15,
+                morphFactor: 1.0,
+                chaos: 0.2,
+                speed: 1.0,
+                hue: 200,
+                geometry: 0
+            };
+            
+            if (systemType === 'VIB34D') {
+                // Direct mapping for VIB34D parameters
+                Object.assign(vib34dParams, galleryParams);
+            } else if (systemType === 'Holographic') {
+                // Map Holographic parameters to VIB34D format
+                if (galleryParams.geometryType !== undefined) vib34dParams.geometry = galleryParams.geometryType;
+                if (galleryParams.density !== undefined) vib34dParams.gridDensity = galleryParams.density * 10; // Scale up
+                if (galleryParams.speed !== undefined) vib34dParams.speed = galleryParams.speed * 2; // Scale up
+                if (galleryParams.chaos !== undefined) vib34dParams.chaos = galleryParams.chaos;
+                if (galleryParams.morph !== undefined) vib34dParams.morphFactor = galleryParams.morph;
+                if (galleryParams.hue !== undefined) vib34dParams.hue = galleryParams.hue;
+                
+                // Map intensity and saturation to chaos and morphFactor
+                if (galleryParams.intensity !== undefined) {
+                    vib34dParams.chaos = Math.max(vib34dParams.chaos, galleryParams.intensity * 0.5);
+                }
+                if (galleryParams.saturation !== undefined) {
+                    vib34dParams.morphFactor = Math.max(vib34dParams.morphFactor, galleryParams.saturation);
+                }
+            }
+            
+            console.log('✅ Mapped to VIB34D parameters:', vib34dParams);
+            return vib34dParams;
+        }
+        
         // Load main VIB34D Engine
         import('./src/core/Engine.js' + cacheBuster).then(module => {
             const { VIB34DIntegratedEngine } = module;
@@ -759,6 +803,67 @@
                 console.log('🖼️ Using inline gallery instead of module gallery');
                 openUnifiedGallery();
             };
+            
+            // CHECK: Load parameters from gallery if requested
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('load') === 'true') {
+                console.log('🔗 Loading parameters from gallery...');
+                
+                const savedParams = localStorage.getItem('vib34d-load-params');
+                if (savedParams) {
+                    try {
+                        const loadData = JSON.parse(savedParams);
+                        console.log(`📥 Loading ${loadData.system} variation #${loadData.globalId}:`, loadData.parameters);
+                        
+                        // Map parameters from gallery format to VIB34D format
+                        const mappedParams = mapGalleryParametersToVIB34D(loadData.parameters, loadData.system);
+                        
+                        // Apply mapped parameters to engine
+                        window.engine.parameterManager.setParameters(mappedParams);
+                        
+                        // Set variation if specified
+                        if (mappedParams.variation !== undefined) {
+                            window.engine.setVariation(mappedParams.variation);
+                        }
+                        
+                        window.engine.updateDisplayValues();
+                        window.engine.updateVisualizers();
+                        
+                        // Clear the load data
+                        localStorage.removeItem('vib34d-load-params');
+                        
+                        // Update URL to remove load parameter
+                        const cleanUrl = window.location.pathname;
+                        history.replaceState(null, '', cleanUrl);
+                        
+                        // Show success message to user
+                        setTimeout(() => {
+                            if (window.engine && window.engine.statusManager) {
+                                window.engine.statusManager.success(
+                                    `Loaded ${loadData.system} variation #${loadData.globalId} from gallery`, 
+                                    4000
+                                );
+                            }
+                        }, 1000); // Wait for UI to be ready
+                        
+                        console.log('✅ Parameters loaded successfully from gallery');
+                    } catch (error) {
+                        console.error('❌ Failed to load parameters from gallery:', error);
+                        
+                        // Show error message to user
+                        setTimeout(() => {
+                            if (window.engine && window.engine.statusManager) {
+                                window.engine.statusManager.error(
+                                    'Failed to load parameters from gallery: ' + error.message
+                                );
+                            }
+                        }, 1000);
+                    }
+                } else {
+                    console.warn('⚠️ No saved parameters found for gallery load');
+                }
+                }
+            }
             
             console.log('🌌 VIB34D Holographic Engine - Refactored Version Loaded');
             console.log('✅ 5-Layer Holographic Rendering Active');

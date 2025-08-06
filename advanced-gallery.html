@@ -300,6 +300,7 @@
                     globalId: globalId++,
                     name: `${geometryNames[geometryType]} LATTICE ${level}`,
                     parameters: {
+                        variation: i,                   // Add variation index
                         geometry: geometryType,
                         gridDensity: 8 + geometryType * 2 + level * 1.5,
                         morphFactor: 0.2 + level * 0.2,
