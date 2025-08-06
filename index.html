@@ -812,33 +812,40 @@
                 showParameterNotification('🎲 VIB34D Parameters Randomized!', 'Create unique combination - Save if you like it!');
                 
             } else if (targetSystem === 'Holographic' && window.realHoloSystem) {
-                // RANDOMIZE HOLOGRAPHIC PARAMETERS - NOT PRESET VARIANTS!
+                // RANDOMIZE HOLOGRAPHIC PARAMETERS - DIRECT PARAMETER CONTROL
                 const randomHoloParams = {
-                    density: 0.5 + Math.random() * 2.5,      // 0.5 to 3.0
-                    speed: 0.1 + Math.random() * 1.9,        // 0.1 to 2.0
-                    chaos: Math.random(),                    // 0.0 to 1.0
-                    morph: Math.random(),                    // 0.0 to 1.0
-                    hue: Math.floor(Math.random() * 360),    // 0 to 360
-                    saturation: 0.3 + Math.random() * 0.7,   // 0.3 to 1.0
-                    intensity: 0.2 + Math.random() * 0.8    // 0.2 to 1.0
+                    geometryType: Math.floor(Math.random() * 8),  // 0-7 geometry types
+                    density: 0.5 + Math.random() * 2.5,          // 0.5 to 3.0
+                    speed: 0.1 + Math.random() * 1.9,            // 0.1 to 2.0
+                    chaos: Math.random(),                        // 0.0 to 1.0
+                    morph: Math.random(),                        // 0.0 to 1.0
+                    hue: Math.floor(Math.random() * 360),        // 0 to 360
+                    saturation: 0.3 + Math.random() * 0.7,       // 0.3 to 1.0
+                    intensity: 0.2 + Math.random() * 0.8,        // 0.2 to 1.0
+                    name: 'CUSTOM RANDOMIZED'
                 };
                 
-                // Apply to ALL holographic visualizers
+                // Apply randomized parameters directly to ALL visualizers
                 window.realHoloSystem.visualizers.forEach(viz => {
-                    viz.updateHoloParams(randomHoloParams);
+                    // Override the variant params with our randomized values
+                    viz.variantParams = randomHoloParams;
+                    // Regenerate role params based on new variant params
+                    viz.roleParams = viz.generateRoleParams(viz.role);
                 });
                 
                 // Update UI sliders to match randomized values
                 updateHoloSliders(randomHoloParams);
                 
-                // Also randomize the base geometry but keep it as parameter randomization
-                const randomGeometry = Math.floor(Math.random() * 8);
-                window.realHoloSystem.visualizers.forEach(viz => {
-                    viz.geometryType = randomGeometry;
-                });
+                // Update geometry buttons to show active geometry
+                document.querySelectorAll('.holo-geom').forEach(btn => btn.classList.remove('active'));
+                const activeGeomBtn = document.querySelector(`[data-holo-geometry="${randomHoloParams.geometryType * 4}"]`);
+                if (activeGeomBtn) activeGeomBtn.classList.add('active');
                 
-                // Update geometry buttons
-                setHoloGeometry(randomGeometry * 4); // Map to variant indices
+                // Update variant display with custom name
+                const nameDisplay = document.getElementById('currentHoloVariation');
+                if (nameDisplay) {
+                    nameDisplay.textContent = `Custom - ${randomHoloParams.name}`;
+                }
                 
                 showParameterNotification('🎲 Holographic Parameters Randomized!', 'Unique combination created - Save if you like it!');
             }
@@ -871,19 +878,27 @@
                 
             } else if (window.realHoloSystem && (window.realHoloSystem.isActive || unifiedParameters.systemType === 'Holographic')) {
                 // Quick randomize holographic VISUAL parameters only
+                const currentParams = window.realHoloSystem.visualizers[0]?.variantParams || {};
+                
                 const visualParams = {
-                    density: 0.5 + Math.random() * 2.5,      // Visual density
-                    speed: 0.1 + Math.random() * 1.9,        // Animation speed
-                    chaos: Math.random(),                    // Visual chaos
-                    hue: Math.floor(Math.random() * 360),    // Color hue
-                    saturation: 0.5 + Math.random() * 0.5,   // Color saturation
-                    intensity: 0.3 + Math.random() * 0.7     // Visual intensity
-                    // Note: NOT changing morph or geometry - keep structure same
+                    // Keep geometry and morph - only randomize visual aspects
+                    geometryType: currentParams.geometryType || 0,
+                    morph: currentParams.morph || 0,
+                    
+                    // Randomize visual parameters
+                    density: 0.5 + Math.random() * 2.5,      
+                    speed: 0.1 + Math.random() * 1.9,        
+                    chaos: Math.random(),                    
+                    hue: Math.floor(Math.random() * 360),    
+                    saturation: 0.5 + Math.random() * 0.5,   
+                    intensity: 0.3 + Math.random() * 0.7,
+                    name: currentParams.name || 'CUSTOM VISUAL'    
                 };
                 
-                // Apply to holographic visualizers
+                // Apply to holographic visualizers by updating their variant params
                 window.realHoloSystem.visualizers.forEach(viz => {
-                    viz.updateHoloParams(visualParams);
+                    viz.variantParams = { ...viz.variantParams, ...visualParams };
+                    viz.roleParams = viz.generateRoleParams(viz.role);
                 });
                 
                 updateHoloSliders(visualParams);
@@ -1094,12 +1109,16 @@
         };
         
         window.updateHoloParameter = function(param, value) {
-            if (window.realHoloSystem && window.realHoloSystem.isActive) {
-                const paramObj = {};
-                paramObj[param] = parseFloat(value);
+            if (window.realHoloSystem) {
+                const numValue = parseFloat(value);
                 
+                // Update all visualizers' variant parameters directly
                 window.realHoloSystem.visualizers.forEach(viz => {
-                    viz.updateHoloParams(paramObj);
+                    if (viz.variantParams) {
+                        viz.variantParams[param] = numValue;
+                        // Regenerate role params if needed
+                        viz.roleParams = viz.generateRoleParams(viz.role);
+                    }
                 });
                 
                 // Update display
@@ -1108,6 +1127,8 @@
                 if (displayElement) {
                     displayElement.textContent = param === 'hue' ? value + '°' : parseFloat(value).toFixed(2);
                 }
+                
+                console.log(`Updated holographic ${param} to ${numValue}`);
             }
         };
         
@@ -1149,19 +1170,24 @@
         };
         
         window.saveHologramToPortfolio = function() {
-            // Save current holographic state
-            const holoData = {
-                variant: window.realHoloSystem.currentVariant,
-                timestamp: new Date().toISOString(),
-                name: `HOLO ${window.realHoloSystem.getVariantName()}`
-            };
-            
-            const saved = localStorage.getItem('vib34d-holo-portfolio');
-            let portfolio = saved ? JSON.parse(saved) : [];
-            portfolio.push(holoData);
-            localStorage.setItem('vib34d-holo-portfolio', JSON.stringify(portfolio));
-            
-            showParameterNotification('💾 Saved!', 'Hologram added to portfolio');
+            if (window.realHoloSystem && window.realHoloSystem.visualizers.length > 0) {
+                // Save current holographic parameters (not just variant number)
+                const currentParams = window.realHoloSystem.visualizers[0].variantParams;
+                
+                const holoData = {
+                    type: 'holographic-custom',
+                    timestamp: new Date().toISOString(),
+                    name: `HOLO CUSTOM ${new Date().toLocaleTimeString()}`,
+                    parameters: { ...currentParams }
+                };
+                
+                const saved = localStorage.getItem('vib34d-holo-portfolio');
+                let portfolio = saved ? JSON.parse(saved) : [];
+                portfolio.push(holoData);
+                localStorage.setItem('vib34d-holo-portfolio', JSON.stringify(portfolio));
+                
+                showParameterNotification('💾 Hologram Saved!', `Custom parameters saved as "${holoData.name}"`);
+            }
         };
         
         window.openUnifiedGallery = function() { 
@@ -1189,10 +1215,8 @@
                 }
             },
             randomVariant: function() { 
-                if (window.realHoloSystem) {
-                    window.realHoloSystem.randomVariant();
-                    updateHoloDisplay();
-                }
+                // Use our new parameter randomization instead of preset variants
+                randomizeParameters('Holographic');
             }
         };
         
@@ -1223,28 +1247,61 @@
         window.setHoloGeometry = function(geometryIndex) {
             // Update geometry buttons
             document.querySelectorAll('.holo-geom').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-holo-geometry="${geometryIndex}"]`).classList.add('active');
+            const activeBtn = document.querySelector(`[data-holo-geometry="${geometryIndex}"]`);
+            if (activeBtn) activeBtn.classList.add('active');
             
-            // Set holographic variant based on geometry
+            // Set holographic geometry directly in parameters (not preset variants)
             if (window.realHoloSystem) {
-                window.realHoloSystem.setVariant(geometryIndex);
-                updateHoloDisplay();
+                const baseGeometry = Math.floor(geometryIndex / 4); // 0,1,2,3,4... -> geometry type
+                
+                // Update all visualizers with new geometry but keep other params
+                window.realHoloSystem.visualizers.forEach(viz => {
+                    if (viz.variantParams) {
+                        viz.variantParams.geometryType = baseGeometry;
+                        viz.roleParams = viz.generateRoleParams(viz.role);
+                    }
+                });
+                
+                // Update variant display
+                const nameDisplay = document.getElementById('currentHoloVariation');
+                if (nameDisplay) {
+                    const geometryNames = ['TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'];
+                    nameDisplay.textContent = `Custom - ${geometryNames[baseGeometry]} GEOMETRY`;
+                }
+                
+                console.log(`Set holographic geometry to type ${baseGeometry}`);
             }
         };
         
         window.updateHoloSliders = function(params) {
-            // Update all holographic parameter sliders
+            // Update all holographic parameter sliders and displays
+            const paramMap = {
+                density: 'holoDensity',
+                speed: 'holoSpeed', 
+                chaos: 'holoChaos',
+                morph: 'holoMorph',
+                hue: 'holoHue',
+                saturation: 'holoSaturation',
+                intensity: 'holoIntensity'
+            };
+            
             Object.keys(params).forEach(param => {
-                const slider = document.getElementById('holo' + param.charAt(0).toUpperCase() + param.slice(1));
-                if (slider) {
-                    slider.value = params[param];
-                }
-                
-                const display = document.getElementById('holo' + param.charAt(0).toUpperCase() + param.slice(1) + 'Display');
-                if (display) {
-                    display.textContent = param === 'hue' ? params[param] + '°' : parseFloat(params[param]).toFixed(2);
+                const sliderId = paramMap[param];
+                if (sliderId) {
+                    const slider = document.getElementById(sliderId);
+                    const display = document.getElementById(sliderId + 'Display');
+                    
+                    if (slider) {
+                        slider.value = params[param];
+                    }
+                    
+                    if (display) {
+                        display.textContent = param === 'hue' ? params[param] + '°' : parseFloat(params[param]).toFixed(2);
+                    }
                 }
             });
+            
+            console.log('Updated holographic sliders:', params);
         };
         
     </script>
