@@ -720,7 +720,7 @@
                 <label class="control-label">
                     Grid Density <span class="control-display" id="gridDensityDisplay">15.0</span>
                 </label>
-                <input type="range" id="gridDensity" class="control-input" min="4" max="30" step="0.1" value="15">
+                <input type="range" id="gridDensity" class="control-input" min="4" max="100" step="0.1" value="15">
             </div>
             
             <div class="control-group">
@@ -1345,11 +1345,87 @@
             }, 3000);
         }
         
+        // SMART PARAMETER VISIBILITY SYSTEM
+        function updateParameterVisibility(systemType) {
+            console.log(`🎯 Updating parameter visibility for ${systemType} system`);
+            
+            // Define which parameters are relevant for each system
+            const systemParameters = {
+                'VIB34D': {
+                    // Core VIB34D parameters
+                    show: [
+                        'rot4dXW', 'rot4dYW', 'rot4dZW', 'dimension',
+                        'gridDensity', 'morphFactor', 'chaos', 'speed', 'hue'
+                    ],
+                    // Tab visibility
+                    tabs: ['variations', 'polytopal', 'holographic', 'export'],
+                    // Geometry presets
+                    geometrySection: true
+                },
+                'Holographic': {
+                    // Holographic system parameters (can include some 4D math since both systems use it)
+                    show: [
+                        'gridDensity', 'morphFactor', 'chaos', 'speed', 'hue',
+                        'rot4dXW', 'rot4dYW', 'rot4dZW', 'dimension' // 4D math applies to both
+                    ],
+                    // Tab visibility  
+                    tabs: ['holograms', 'polytopal', 'export'],
+                    // Geometry presets
+                    geometrySection: true
+                }
+            };
+            
+            const config = systemParameters[systemType];
+            if (!config) return;
+            
+            // Show/hide parameter control groups
+            const allControlGroups = document.querySelectorAll('.control-group');
+            allControlGroups.forEach(group => {
+                const controlInput = group.querySelector('.control-input');
+                if (controlInput) {
+                    const parameterId = controlInput.id;
+                    const shouldShow = config.show.includes(parameterId);
+                    group.style.display = shouldShow ? 'block' : 'none';
+                }
+            });
+            
+            // Show/hide tabs based on system
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => {
+                const tabName = btn.getAttribute('data-tab');
+                const shouldShow = config.tabs.includes(tabName);
+                btn.style.display = shouldShow ? 'flex' : 'none';
+            });
+            
+            // Show/hide geometry section
+            const geometryButtons = document.querySelector('.geometry-presets');
+            if (geometryButtons) {
+                geometryButtons.style.display = config.geometrySection ? 'block' : 'none';
+            }
+            
+            // Update tab text for current system
+            const vib34dTab = document.querySelector('[data-tab="variations"]');
+            const holoTab = document.querySelector('[data-tab="holograms"]');
+            
+            if (systemType === 'VIB34D') {
+                if (vib34dTab) vib34dTab.innerHTML = '🔷 VIB <span style="font-size:0.6em;">[ACTIVE]</span>';
+                if (holoTab) holoTab.innerHTML = '✨ Holo';
+            } else {
+                if (vib34dTab) vib34dTab.innerHTML = '🔷 VIB';
+                if (holoTab) holoTab.innerHTML = '✨ Holo <span style="font-size:0.6em;">[ACTIVE]</span>';
+            }
+            
+            console.log(`✅ Parameter visibility updated for ${systemType}`);
+        }
+        
         // SYSTEM SWITCHING - ACTUALLY WORKING VERSION
         window.switchToSystem = function(systemType) {
             if (unifiedParameters.systemType === systemType) return;
             
             console.log(`🔄 Switching to ${systemType} system`);
+            
+            // SMART MENU: Update parameter visibility based on system type
+            updateParameterVisibility(systemType);
             
             if (systemType === 'Holographic') {
                 // Activate holographic system
@@ -1747,7 +1823,7 @@
                 <div style="background: rgba(0,0,0,0.8); border: 1px solid rgba(0,255,255,0.3); border-radius: 12px; padding: 15px; transition: all 0.3s ease; cursor: pointer; position: relative;"
                      onmouseenter="this.style.borderColor='#00ffff'; this.style.boxShadow='0 0 20px rgba(0,255,255,0.3)'; this.style.transform='translateY(-3px)'"
                      onmouseleave="this.style.borderColor='rgba(0,255,255,0.3)'; this.style.boxShadow='none'; this.style.transform='translateY(0px)'"
-                     onclick="loadVariationFromGallery(${variation.globalId}, '${variation.system}', ${JSON.stringify(variation.parameters).replace(/"/g, '&quot;')})">
+                     onclick="loadVariationFromGallery(${variation.globalId}, '${variation.system}', ${JSON.stringify(parameters || {}).replace(/"/g, '&quot;')})">
                     ${customBadge}
                     
                     <!-- Preview Area -->
@@ -2092,6 +2168,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             setupTabSwitching();
             setupCollapsibleSections();
+            // Initialize smart menu for current system
+            updateParameterVisibility(unifiedParameters.systemType || 'VIB34D');
         });
         
         function setupTabSwitching() {

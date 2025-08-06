@@ -34,7 +34,7 @@ export class ParameterManager {
             rot4dYW: { min: -2, max: 2, step: 0.01, type: 'float' },
             rot4dZW: { min: -2, max: 2, step: 0.01, type: 'float' },
             dimension: { min: 3.0, max: 4.5, step: 0.01, type: 'float' },
-            gridDensity: { min: 4, max: 30, step: 0.1, type: 'float' },
+            gridDensity: { min: 4, max: 100, step: 0.1, type: 'float' },
             morphFactor: { min: 0, max: 2, step: 0.01, type: 'float' },
             chaos: { min: 0, max: 1, step: 0.01, type: 'float' },
             speed: { min: 0.1, max: 3, step: 0.01, type: 'float' },

@@ -151,12 +151,13 @@ float geometryFunction(vec4 p) {
         return dist * u_morphFactor;
     }
     else if (geomType == 6) {
-        // Wave lattice
+        // Wave lattice - CONSISTENT TIME CALCULATION
         float freq = u_gridDensity * 0.1;
         float time = u_time * 0.001 * u_speed;
         float wave1 = sin(p.x * freq + time);
         float wave2 = sin(p.y * freq + time * 1.3);
-        float interference = wave1 * wave2;
+        float wave3 = sin(p.z * freq * 0.8 + time * 0.7); // Add Z-dimension waves
+        float interference = wave1 * wave2 * wave3;
         return interference * u_morphFactor;
     }
     else if (geomType == 7) {
@@ -176,8 +177,9 @@ float geometryFunction(vec4 p) {
 void main() {
     vec2 uv = (gl_FragCoord.xy - u_resolution.xy * 0.5) / min(u_resolution.x, u_resolution.y);
     
-    // 4D position with mouse interaction
-    vec4 pos = vec4(uv * 3.0, sin(u_time * 0.0003), cos(u_time * 0.0002));
+    // 4D position with mouse interaction - NOW USING SPEED PARAMETER
+    float timeSpeed = u_time * 0.0001 * u_speed;
+    vec4 pos = vec4(uv * 3.0, sin(timeSpeed * 3.0), cos(timeSpeed * 2.0));
     pos.xy += (u_mouse - 0.5) * u_mouseIntensity * 2.0;
     
     // Apply 4D rotations
