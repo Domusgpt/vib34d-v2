@@ -17,7 +17,7 @@ export class VIB34DIntegratedEngine {
         // Core system components
         this.visualizers = [];
         this.parameterManager = new ParameterManager();
-        this.variationManager = new VariationManager();
+        this.variationManager = new VariationManager(this); // CRITICAL FIX: Pass this as engine parameter
         this.gallerySystem = new GallerySystem(this);
         this.exportManager = new ExportManager(this);
         this.interactionHandler = new InteractionHandler(this);
