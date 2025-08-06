@@ -366,12 +366,22 @@
             overflow: hidden;
         }
         
+        /* Start collapsed by default for mobile/previews */
+        body.mobile-mode .control-panel,
+        body.start-collapsed .control-panel {
+            transform: translateX(calc(100% - 50px));
+            opacity: 0.8;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .control-panel {
                 right: 10px;
                 top: 10px;
                 min-width: 280px;
+                /* Start collapsed on mobile */
+                transform: translateX(calc(100% - 50px));
+                opacity: 0.8;
             }
             
             .geometry-presets {
@@ -400,7 +410,7 @@
     </div>
     
     <!-- Control Panel -->
-    <div class="control-panel" id="controlPanel">
+    <div class="control-panel collapsed" id="controlPanel">
         <div class="collapse-toggle" id="collapseToggle" onclick="toggleControlPanel()">‹</div>
         <h2>VIB34D Holographic Engine</h2>
         
@@ -1511,5 +1521,28 @@
         });
         
     </script>
+    
+    <style>
+        /* Advanced Gallery Styles */
+        .variation-card:hover {
+            border-color: #00ffff !important;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3) !important;
+            transform: translateY(-3px) !important;
+        }
+        
+        .variation-card button:hover {
+            background: rgba(0, 255, 255, 0.4) !important;
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.5) !important;
+        }
+        
+        /* Gallery scroll optimization */
+        .gallery-overlay {
+            scroll-behavior: smooth;
+        }
+        
+        .variations-grid {
+            scroll-behavior: smooth;
+        }
+    </style>
 </body>
 </html>
