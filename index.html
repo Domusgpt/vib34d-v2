@@ -605,7 +605,7 @@
                         Density <span class="control-display" id="holoDensityDisplay">1.00</span>
                     </label>
                     <input type="range" id="holoDensity" class="control-input" min="0.5" max="3.0" step="0.1" value="1.0" 
-                           oninput="updateHoloParameter('density', this.value)">
+                           oninput="updateHoloParameter('density', this.value); this.nextElementSibling.querySelector('.control-display').textContent = parseFloat(this.value).toFixed(2)">
                 </div>
                 
                 <div class="control-group">
@@ -613,7 +613,7 @@
                         Speed <span class="control-display" id="holoSpeedDisplay">0.50</span>
                     </label>
                     <input type="range" id="holoSpeed" class="control-input" min="0.1" max="2.0" step="0.1" value="0.5" 
-                           oninput="updateHoloParameter('speed', this.value)">
+                           oninput="updateHoloParameter('speed', this.value); document.getElementById('holoSpeedDisplay').textContent = parseFloat(this.value).toFixed(2)">
                 </div>
                 
                 <div class="control-group">
@@ -621,7 +621,7 @@
                         Chaos <span class="control-display" id="holoChaosDisplay">0.00</span>
                     </label>
                     <input type="range" id="holoChaos" class="control-input" min="0" max="1" step="0.05" value="0" 
-                           oninput="updateHoloParameter('chaos', this.value)">
+                           oninput="updateHoloParameter('chaos', this.value); document.getElementById('holoChaosDisplay').textContent = parseFloat(this.value).toFixed(2)">
                 </div>
                 
                 <div class="control-group">
@@ -629,7 +629,7 @@
                         Morph <span class="control-display" id="holoMorphDisplay">0.00</span>
                     </label>
                     <input type="range" id="holoMorph" class="control-input" min="0" max="1" step="0.05" value="0" 
-                           oninput="updateHoloParameter('morph', this.value)">
+                           oninput="updateHoloParameter('morph', this.value); document.getElementById('holoMorphDisplay').textContent = parseFloat(this.value).toFixed(2)">
                 </div>
                 
                 <div class="control-group">
@@ -637,7 +637,7 @@
                         Hue <span class="control-display" id="holoHueDisplay">0°</span>
                     </label>
                     <input type="range" id="holoHue" class="control-input" min="0" max="360" step="5" value="0" 
-                           oninput="updateHoloParameter('hue', this.value)">
+                           oninput="updateHoloParameter('hue', this.value); document.getElementById('holoHueDisplay').textContent = this.value + '°'">
                 </div>
                 
                 <div class="control-group">
@@ -645,7 +645,7 @@
                         Saturation <span class="control-display" id="holoSaturationDisplay">0.80</span>
                     </label>
                     <input type="range" id="holoSaturation" class="control-input" min="0" max="1" step="0.05" value="0.8" 
-                           oninput="updateHoloParameter('saturation', this.value)">
+                           oninput="updateHoloParameter('saturation', this.value); document.getElementById('holoSaturationDisplay').textContent = parseFloat(this.value).toFixed(2)">
                 </div>
                 
                 <div class="control-group">
@@ -653,7 +653,7 @@
                         Intensity <span class="control-display" id="holoIntensityDisplay">0.50</span>
                     </label>
                     <input type="range" id="holoIntensity" class="control-input" min="0.1" max="1" step="0.05" value="0.5" 
-                           oninput="updateHoloParameter('intensity', this.value)">
+                           oninput="updateHoloParameter('intensity', this.value); document.getElementById('holoIntensityDisplay').textContent = parseFloat(this.value).toFixed(2)">
                 </div>
                 
                 <div style="margin-top: 15px;">
@@ -736,6 +736,37 @@
             
             // Initialize REAL Holographic System for the Active Holograms tab
             window.realHoloSystem = new RealHolographicSystem();
+            
+            // CRITICAL: Initialize with default parameters after creation
+            setTimeout(() => {
+                if (window.realHoloSystem && window.realHoloSystem.visualizers.length > 0) {
+                    console.log('🔧 Initializing holographic default parameters...');
+                    
+                    // Set reasonable default parameters
+                    const defaultParams = {
+                        geometryType: 0,
+                        density: 1.0,
+                        speed: 0.5,
+                        chaos: 0.0,
+                        morph: 0.0,
+                        hue: 200,
+                        saturation: 0.8,
+                        intensity: 0.5,
+                        name: 'DEFAULT TETRAHEDRON'
+                    };
+                    
+                    // Apply to all visualizers
+                    window.realHoloSystem.visualizers.forEach(viz => {
+                        viz.variantParams = { ...defaultParams };
+                        viz.roleParams = viz.generateRoleParams(viz.role);
+                    });
+                    
+                    // Update UI sliders to match
+                    updateHoloSliders(defaultParams);
+                    
+                    console.log('✨ Holographic system initialized with default parameters');
+                }
+            }, 100);
             
             console.log('✨ REAL Active Holographic System Loaded for Active Holograms tab');
             console.log('🔮 30 VIB3 Elaborate Holographic Variants with Complex Shaders');
@@ -825,12 +856,13 @@
                     name: 'CUSTOM RANDOMIZED'
                 };
                 
-                // Apply randomized parameters directly to ALL visualizers
+                // Apply randomized parameters directly to ALL visualizers  
                 window.realHoloSystem.visualizers.forEach(viz => {
                     // Override the variant params with our randomized values
-                    viz.variantParams = randomHoloParams;
-                    // Regenerate role params based on new variant params
+                    viz.variantParams = { ...randomHoloParams };
+                    // CRITICAL: Regenerate role params based on new variant params
                     viz.roleParams = viz.generateRoleParams(viz.role);
+                    console.log(`🎲 Applied random params to ${viz.role}:`, viz.variantParams);
                 });
                 
                 // Update UI sliders to match randomized values
@@ -895,10 +927,13 @@
                     name: currentParams.name || 'CUSTOM VISUAL'    
                 };
                 
-                // Apply to holographic visualizers by updating their variant params
+                // Apply visual params by updating variant params (keep geometry/morph)
                 window.realHoloSystem.visualizers.forEach(viz => {
+                    // Merge new visual params with existing params
                     viz.variantParams = { ...viz.variantParams, ...visualParams };
+                    // CRITICAL: Regenerate role params
                     viz.roleParams = viz.generateRoleParams(viz.role);
+                    console.log(`⚡ Applied visual params to ${viz.role}:`, visualParams);
                 });
                 
                 updateHoloSliders(visualParams);
@@ -1109,26 +1144,22 @@
         };
         
         window.updateHoloParameter = function(param, value) {
-            if (window.realHoloSystem) {
+            if (window.realHoloSystem && window.realHoloSystem.visualizers.length > 0) {
                 const numValue = parseFloat(value);
+                console.log(`🎛️ Updating holographic ${param} to ${numValue}`);
                 
                 // Update all visualizers' variant parameters directly
                 window.realHoloSystem.visualizers.forEach(viz => {
                     if (viz.variantParams) {
+                        // Update the specific parameter
                         viz.variantParams[param] = numValue;
-                        // Regenerate role params if needed
+                        
+                        // CRITICAL: Regenerate role params based on updated variant params
                         viz.roleParams = viz.generateRoleParams(viz.role);
+                        
+                        console.log(`Updated visualizer ${viz.role} with ${param}=${numValue}`);
                     }
                 });
-                
-                // Update display
-                const displayId = 'holo' + param.charAt(0).toUpperCase() + param.slice(1) + 'Display';
-                const displayElement = document.getElementById(displayId);
-                if (displayElement) {
-                    displayElement.textContent = param === 'hue' ? value + '°' : parseFloat(value).toFixed(2);
-                }
-                
-                console.log(`Updated holographic ${param} to ${numValue}`);
             }
         };
         
@@ -1190,8 +1221,108 @@
             }
         };
         
-        window.openUnifiedGallery = function() { 
-            window.open('./unified-gallery.html', '_blank'); 
+        window.openUnifiedGallery = function() {
+            // First, let's create a simple inline gallery instead of external file
+            showUnifiedGallery();
+        };
+        
+        window.showUnifiedGallery = function() {
+            // Get saved items from both systems
+            const vib34dSaves = JSON.parse(localStorage.getItem('vib34d-custom-variations') || '[]').filter(v => v !== null);
+            const holoSaves = JSON.parse(localStorage.getItem('vib34d-holo-portfolio') || '[]');
+            
+            let galleryHTML = `
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; overflow-y: auto; padding: 20px;">
+                    <div style="max-width: 1200px; margin: 0 auto;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                            <h1 style="color: #00ffff; font-family: 'Orbitron', monospace; font-size: 2rem;">🖼️ VIB34D Portfolio Gallery</h1>
+                            <button onclick="this.closest('div').remove()" style="background: rgba(255,0,0,0.3); border: 1px solid #ff0000; color: #ff0000; padding: 10px 20px; border-radius: 5px; cursor: pointer;">✕ Close</button>
+                        </div>
+                        
+                        <div style="margin-bottom: 30px;">
+                            <h2 style="color: #00ffff; font-family: 'Orbitron', monospace; margin-bottom: 15px;">🔷 VIB34D Custom Variations (${vib34dSaves.length})</h2>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+            `;
+            
+            // Add VIB34D saves
+            vib34dSaves.forEach((save, index) => {
+                if (save && save.parameters) {
+                    galleryHTML += `
+                        <div style="background: rgba(0,255,255,0.1); border: 1px solid rgba(0,255,255,0.3); border-radius: 8px; padding: 15px; cursor: pointer;" 
+                             onclick="loadVIB34DParameters(${index})">
+                            <h3 style="color: #00ffff; font-size: 0.9rem; margin-bottom: 8px;">${save.name || 'Custom Variation'}</h3>
+                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.7); margin-bottom: 8px;">${new Date(save.timestamp).toLocaleString()}</div>
+                            <div style="font-size: 0.6rem; color: rgba(255,255,255,0.5);">
+                                Geo: ${save.parameters.geometry || 0} | Hue: ${save.parameters.hue || 0}° | Chaos: ${(save.parameters.chaos || 0).toFixed(2)}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            galleryHTML += `
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h2 style="color: #00ffff; font-family: 'Orbitron', monospace; margin-bottom: 15px;">✨ Holographic Custom Creations (${holoSaves.length})</h2>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+            `;
+            
+            // Add Holographic saves
+            holoSaves.forEach((save, index) => {
+                if (save && save.parameters) {
+                    galleryHTML += `
+                        <div style="background: rgba(255,100,255,0.1); border: 1px solid rgba(255,100,255,0.3); border-radius: 8px; padding: 15px; cursor: pointer;" 
+                             onclick="loadHolographicParameters(${index})">
+                            <h3 style="color: #ff64ff; font-size: 0.9rem; margin-bottom: 8px;">${save.name || 'Custom Hologram'}</h3>
+                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.7); margin-bottom: 8px;">${new Date(save.timestamp).toLocaleString()}</div>
+                            <div style="font-size: 0.6rem; color: rgba(255,255,255,0.5);">
+                                Geo: ${save.parameters.geometryType || 0} | Hue: ${save.parameters.hue || 0}° | Density: ${(save.parameters.density || 0).toFixed(2)}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            galleryHTML += `
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', galleryHTML);
+        };
+        
+        window.loadVIB34DParameters = function(index) {
+            const saves = JSON.parse(localStorage.getItem('vib34d-custom-variations') || '[]').filter(v => v !== null);
+            const save = saves[index];
+            if (save && save.parameters && window.engine) {
+                window.engine.parameterManager.setParameters(save.parameters);
+                window.engine.updateDisplayValues();
+                window.engine.updateVisualizers();
+                switchToSystem('VIB34D');
+                showParameterNotification('💾 Loaded!', `VIB34D parameters from "${save.name}"`);
+            }
+        };
+        
+        window.loadHolographicParameters = function(index) {
+            const saves = JSON.parse(localStorage.getItem('vib34d-holo-portfolio') || '[]');
+            const save = saves[index];
+            if (save && save.parameters && window.realHoloSystem) {
+                // Apply loaded parameters to all visualizers
+                window.realHoloSystem.visualizers.forEach(viz => {
+                    viz.variantParams = { ...save.parameters };
+                    viz.roleParams = viz.generateRoleParams(viz.role);
+                });
+                
+                // Update UI sliders
+                updateHoloSliders(save.parameters);
+                
+                switchToSystem('Holographic');
+                showParameterNotification('💾 Loaded!', `Holographic parameters from "${save.name}"`);
+            }
         };
         
         // REAL Holographic system interface - ACTUALLY WORKING!
@@ -1258,7 +1389,9 @@
                 window.realHoloSystem.visualizers.forEach(viz => {
                     if (viz.variantParams) {
                         viz.variantParams.geometryType = baseGeometry;
+                        // CRITICAL: Regenerate role params with new geometry
                         viz.roleParams = viz.generateRoleParams(viz.role);
+                        console.log(`🔷 Set geometry ${baseGeometry} on ${viz.role}`);
                     }
                 });
                 
@@ -1301,8 +1434,75 @@
                 }
             });
             
-            console.log('Updated holographic sliders:', params);
+            console.log('🎛️ Updated holographic sliders:', params);
+            
+            // DEBUG: Let's also verify the visualizers actually have these parameters
+            if (window.realHoloSystem && window.realHoloSystem.visualizers.length > 0) {
+                const firstViz = window.realHoloSystem.visualizers[0];
+                console.log('🔍 First visualizer params after slider update:', firstViz.variantParams);
+            }
         };
+        
+        // DEBUG: Test function to verify parameter system is working
+        window.testHoloParameters = function() {
+            if (!window.realHoloSystem || window.realHoloSystem.visualizers.length === 0) {
+                console.error('❌ Holographic system not ready');
+                return;
+            }
+            
+            console.log('🧪 Testing holographic parameter system...');
+            
+            // Test sequence: Change hue dramatically
+            let hue = 0;
+            const testInterval = setInterval(() => {
+                hue = (hue + 60) % 360;
+                updateHoloParameter('hue', hue);
+                
+                // Also test intensity
+                const intensity = 0.2 + Math.random() * 0.6;
+                updateHoloParameter('intensity', intensity);
+                
+                console.log(`🌈 Test: Hue=${hue}°, Intensity=${intensity.toFixed(2)}`);
+                
+                if (hue === 0) {
+                    clearInterval(testInterval);
+                    console.log('✅ Parameter test complete');
+                }
+            }, 500);
+        };
+        
+        // Add a debug function to inspect current holographic state
+        window.debugHoloSystem = function() {
+            if (!window.realHoloSystem) {
+                console.log('❌ No holographic system loaded');
+                return;
+            }
+            
+            console.log('🔍 HOLOGRAPHIC SYSTEM DEBUG:');
+            console.log('Active:', window.realHoloSystem.isActive);
+            console.log('Visualizers:', window.realHoloSystem.visualizers.length);
+            
+            window.realHoloSystem.visualizers.forEach((viz, i) => {
+                console.log(`Visualizer ${i} (${viz.role}):`);
+                console.log('  Variant Params:', viz.variantParams);
+                console.log('  Role Params:', viz.roleParams);
+            });
+        };
+        
+        // Add keyboard shortcuts for debugging
+        document.addEventListener('keydown', (e) => {
+            // Skip if user is focused on input elements
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+            
+            if (e.ctrlKey && e.key === 't') {
+                e.preventDefault();
+                testHoloParameters();
+            }
+            if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                debugHoloSystem();
+            }
+        });
         
     </script>
 </body>
