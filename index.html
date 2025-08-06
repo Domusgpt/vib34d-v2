@@ -59,6 +59,7 @@
             border-radius: 10px;
             padding: 20px;
             min-width: 320px;
+            max-width: 380px;
             max-height: 90vh;
             overflow-y: auto;
             z-index: 1000;
@@ -66,35 +67,37 @@
             transition: transform 0.3s ease, opacity 0.3s ease;
         }
         
-        /* Collapsible Panel States */
+        /* Collapsible Panel States - FIXED POSITIONING */
         .control-panel.collapsed {
-            transform: translateX(calc(100% - 50px));
+            transform: translateX(280px); /* Move right by most of panel width */
             opacity: 0.8;
         }
         
         .control-panel.collapsed:hover {
-            transform: translateX(calc(100% - 80px));
+            transform: translateX(250px); /* Show slightly more on hover */
             opacity: 0.9;
         }
         
-        /* Collapse Toggle Button */
+        /* Collapse Toggle Button - FIXED POSITIONING */
         .collapse-toggle {
             position: absolute;
-            left: -40px;
-            top: 10px;
-            width: 35px;
-            height: 35px;
-            background: rgba(0, 255, 255, 0.2);
+            left: -45px; /* Position toggle button to the left of panel */
+            top: 15px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 255, 255, 0.3);
             border: 1px solid #00ffff;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 18px;
+            font-weight: bold;
             color: #00ffff;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
         
         .collapse-toggle:hover {
@@ -366,20 +369,36 @@
             overflow: hidden;
         }
         
-        /* Start collapsed by default for mobile/previews */
+        /* Start collapsed by default for mobile/previews - FIXED */
         body.mobile-mode .control-panel,
         body.start-collapsed .control-panel,
         .control-panel.start-collapsed {
-            transform: translateX(calc(100% - 50px));
+            transform: translateX(280px); /* Use same positioning as collapsed state */
             opacity: 0.8;
         }
         
-        /* Responsive */
+        /* Mobile specific adjustments */
         @media (max-width: 768px) {
             .control-panel {
                 right: 10px;
                 top: 10px;
                 min-width: 280px;
+                max-width: 300px; /* Smaller on mobile */
+            }
+            
+            .control-panel.collapsed,
+            body.start-collapsed .control-panel {
+                transform: translateX(260px); /* Adjust for smaller mobile panel */
+            }
+            
+            .control-panel.collapsed:hover {
+                transform: translateX(220px);
+            }
+            
+            .collapse-toggle {
+                left: -42px; /* Adjust toggle position on mobile */
+                width: 38px;
+                height: 38px;
             }
             
             .geometry-presets {
@@ -1118,19 +1137,23 @@
             // Implementation for loading URL parameters
         };
         
-        // Collapsible Control Panel
+        // Collapsible Control Panel - FIXED TOGGLE FUNCTION
         window.toggleControlPanel = function() {
             const panel = document.getElementById('controlPanel');
             const toggle = document.getElementById('collapseToggle');
             
+            // Remove any start-collapsed class and toggle collapsed state
+            document.body.classList.remove('start-collapsed');
             panel.classList.toggle('collapsed');
             
             if (panel.classList.contains('collapsed')) {
-                toggle.textContent = '›';
+                toggle.textContent = '›'; // Arrow pointing right (expand)
                 toggle.title = 'Expand Control Panel';
+                console.log('📦 Control panel collapsed');
             } else {
-                toggle.textContent = '‹';
+                toggle.textContent = '‹'; // Arrow pointing left (collapse)  
                 toggle.title = 'Collapse Control Panel';
+                console.log('📖 Control panel expanded');
             }
         };
         
