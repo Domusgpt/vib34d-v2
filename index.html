@@ -1516,13 +1516,25 @@
         };
         
         window.saveVIB34DToPortfolio = function() {
+            console.log('💾 Attempting to save VIB34D to portfolio...');
+            
             if (window.engine) {
+                console.log('🎛️ Engine found, calling saveAsCustomVariation...');
                 const saved = window.engine.saveAsCustomVariation();
+                console.log('📝 Save result:', saved);
+                
                 if (saved !== -1) {
                     showParameterNotification('💾 Saved!', `Current parameters saved as custom variation ${saved + 1}`);
+                    
+                    // Debug: Check what's actually in localStorage
+                    const stored = localStorage.getItem('vib34d-custom-variations');
+                    console.log('🗄️ localStorage after save:', stored);
                 } else {
                     showParameterNotification('⚠ Full!', 'All custom slots are full - delete some old ones first');
                 }
+            } else {
+                console.error('❌ No engine found for saving');
+                showParameterNotification('Error', 'Engine not initialized');
             }
         };
         
@@ -1553,9 +1565,14 @@
         };
         
         window.showUnifiedGallery = function() {
-            // Create unified collections with global numbering - ADVANCED VERSION
-            const vib34dSaves = JSON.parse(localStorage.getItem('vib34d-custom-variations') || '[]').filter(v => v !== null);
-            const holoSaves = JSON.parse(localStorage.getItem('vib34d-holo-portfolio') || '[]');
+            console.log('🖼️ Opening unified gallery...');
+            
+            try {
+                // Create unified collections with global numbering - ADVANCED VERSION
+                const vib34dSaves = JSON.parse(localStorage.getItem('vib34d-custom-variations') || '[]').filter(v => v !== null);
+                const holoSaves = JSON.parse(localStorage.getItem('vib34d-holo-portfolio') || '[]');
+                
+                console.log('📊 Gallery data:', { vib34dSaves: vib34dSaves.length, holoSaves: holoSaves.length });
             
             const collections = [];
             let globalId = 1; // Start at 1 for user-friendly numbering
@@ -1697,6 +1714,12 @@
             `;
             
             document.body.appendChild(galleryModal);
+            console.log('✅ Gallery modal created and added to DOM');
+            
+        } catch (error) {
+            console.error('❌ Error creating gallery:', error);
+            showParameterNotification('Gallery Error', 'Failed to load gallery - check console');
+        }
         };
         
         function createCollectionSection(collection, allCollections) {
@@ -1716,8 +1739,9 @@
         function createAdvancedVariationCard(variation) {
             const customBadge = variation.isCustom ? '<div style="position: absolute; top: 10px; right: 10px; background: rgba(255,100,255,0.3); color: #ff64ff; padding: 3px 8px; border-radius: 5px; font-size: 0.6rem; border: 1px solid #ff64ff;">CUSTOM</div>' : '';
             const systemColor = variation.system === 'VIB34D' ? '#00ffff' : '#ff64ff';
-            const previewHue = variation.parameters.hue || 0;
-            const previewSaturation = (variation.parameters.saturation || 0.8) * 100;
+            const parameters = variation.parameters || {};
+            const previewHue = parameters.hue || 0;
+            const previewSaturation = (parameters.saturation || 0.8) * 100;
             
             return `
                 <div style="background: rgba(0,0,0,0.8); border: 1px solid rgba(0,255,255,0.3); border-radius: 12px; padding: 15px; transition: all 0.3s ease; cursor: pointer; position: relative;"
