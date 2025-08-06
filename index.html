@@ -567,6 +567,13 @@
         <canvas id="holo-accent-canvas" class="holographic-canvas"></canvas>
     </div>
     
+    <!-- Fixed Action Tabs (Always Visible) -->
+    <div class="fixed-action-tabs" id="fixedActionTabs">
+        <button class="action-tab" onclick="saveCurrentVariation()" title="Save current variation">💾</button>
+        <button class="action-tab" onclick="toggleAudioGlobal()" title="Toggle audio">🎵</button>
+        <button class="action-tab" onclick="openUnifiedGallery()" title="Open gallery">🖼️</button>
+    </div>
+
     <!-- Control Panel -->
     <div class="control-panel collapsed" id="controlPanel">
         <div class="collapse-toggle" id="collapseToggle" onclick="toggleControlPanel()">‹</div>
@@ -578,41 +585,25 @@
             </div>
         </div>
         
-        <!-- Quick Actions -->
+        <!-- Top Menu Buttons - Keep randomize functions as they are -->
         <div class="quick-actions">
-            <button class="quick-btn" onclick="quickRandomize()" title="Quick randomize">⚡</button>
-            <button class="quick-btn" onclick="randomizeParameters()" title="Randomize all">🎲</button>
+            <button class="quick-btn" onclick="quickRandomize()" title="Visual randomize (keeps geometry)">⚡</button>
+            <button class="quick-btn" onclick="randomizeParameters()" title="Full randomize (includes geometry)">🎲</button>
             <button class="quick-btn" onclick="switchToSystem(unifiedParameters.systemType === 'VIB34D' ? 'Holographic' : 'VIB34D')" title="Switch system">🔄</button>
         </div>
         
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab-btn active" data-tab="variations" title="VIB34D Variations">🔷 VIB</button>
+            <button class="tab-btn active" data-tab="variations" title="Faceted Variations">🔷 Faceted</button>
             <button class="tab-btn" data-tab="polytopal" title="4D Mathematics">🧮 4D</button>
             <button class="tab-btn" data-tab="holographic" title="Holographic Params">🌀 Holo</button>
-            <button class="tab-btn" data-tab="holograms" title="Live Holographic">✨ Live</button>
+            <button class="tab-btn" data-tab="holograms" title="Live Holographic">✨ Holographic</button>
             <button class="tab-btn" data-tab="export" title="Export & Import">📤 I/O</button>
         </div>
         
         <!-- Variations Tab -->
         <div class="tab-content active" id="variations-tab">
-            <div class="collapsible-section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <span>📊 Current Variation</span>
-                    <span class="toggle-arrow">▼</span>
-                </div>
-                <div class="section-content">
-                    <div class="control-group">
-                        <label class="control-label">
-                            Variation <span class="control-display" id="currentVariationDisplay">1</span>
-                        </label>
-                        <input type="range" id="variationSlider" class="control-input" min="0" max="99" value="0">
-                    </div>
-                    <div class="variation-info">
-                        <div id="currentVariation">1 - TETRAHEDRON LATTICE 1</div>
-                    </div>
-                </div>
-            </div>
+            <!-- Variation slider removed - not needed for Faceted mode -->
             
             <div class="collapsible-section">
                 <div class="section-header" onclick="toggleSection(this)">
@@ -1855,8 +1846,9 @@
             
             return `
                 <div style="background: rgba(0,0,0,0.8); border: 1px solid rgba(0,255,255,0.3); border-radius: 12px; padding: 15px; transition: all 0.3s ease; cursor: pointer; position: relative;"
-                     onmouseenter="this.style.borderColor='#00ffff'; this.style.boxShadow='0 0 20px rgba(0,255,255,0.3)'; this.style.transform='translateY(-3px)'"
+                     onmouseenter="previewVariationOnHover(${variation.globalId}, '${variation.system}', ${JSON.stringify(parameters || {}).replace(/"/g, '&quot;')}); this.style.borderColor='#00ffff'; this.style.boxShadow='0 0 20px rgba(0,255,255,0.3)'; this.style.transform='translateY(-3px)'"
                      onmouseleave="this.style.borderColor='rgba(0,255,255,0.3)'; this.style.boxShadow='none'; this.style.transform='translateY(0px)'"
+                     ontouchstart="previewVariationOnHover(${variation.globalId}, '${variation.system}', ${JSON.stringify(parameters || {}).replace(/"/g, '&quot;')})"
                      onclick="loadVariationFromGallery(${variation.globalId}, '${variation.system}', ${JSON.stringify(parameters || {}).replace(/"/g, '&quot;')})">
                     ${customBadge}
                     
@@ -1932,6 +1924,40 @@
         }
         
         // Advanced variation loading with proper system switching
+        // Gallery hover/touch preview function
+        window.previewVariationOnHover = function(globalId, system, parameters) {
+            console.log(`👁️ Previewing ${system} variation #${globalId} on hover/touch`);
+            
+            if (!parameters || typeof parameters !== 'object') {
+                console.warn('⚠️ Invalid parameters for preview:', parameters);
+                return;
+            }
+
+            // Apply preview temporarily (restore after 2 seconds)
+            if (system === 'VIB34D' && window.engine) {
+                const currentParams = { ...window.engine.parameters };
+                window.engine.updateParameters(parameters);
+                
+                // Restore after preview
+                setTimeout(() => {
+                    if (window.engine) {
+                        window.engine.updateParameters(currentParams);
+                    }
+                }, 2000);
+                
+            } else if (system === 'Holographic' && window.realHoloSystem) {
+                // Preview holographic parameters
+                window.realHoloSystem.visualizers.forEach(viz => {
+                    Object.assign(viz.variantParams, parameters);
+                });
+                
+                setTimeout(() => {
+                    // Restore would need current state saving - for now just log
+                    console.log('🔄 Preview ended for holographic system');
+                }, 2000);
+            }
+        };
+
         window.loadVariationFromGallery = function(globalId, system, parameters) {
             console.log(`🔗 Loading ${system} variation #${globalId} from advanced gallery`);
             
@@ -2114,6 +2140,23 @@
             }
         };
         
+        // Fixed Action Tab Functions
+        window.saveCurrentVariation = function() {
+            if (unifiedParameters.systemType === 'VIB34D' || !window.realHoloSystem || !window.realHoloSystem.isActive) {
+                saveVIB34DToGallery();
+            } else {
+                saveHologramToGallery();
+            }
+        };
+
+        window.toggleAudioGlobal = function() {
+            if (unifiedParameters.systemType === 'VIB34D' || !window.realHoloSystem || !window.realHoloSystem.isActive) {
+                toggleVIB34DAudio();
+            } else {
+                toggleHolographicAudio();
+            }
+        };
+
         window.updateHoloSliders = function(params) {
             // Update all holographic parameter sliders and displays
             const paramMap = {
@@ -2286,6 +2329,51 @@
         
         .variations-grid {
             scroll-behavior: smooth;
+        }
+
+        /* Fixed Action Tabs - Always visible */
+        .fixed-action-tabs {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 5px;
+            z-index: 10000;
+        }
+
+        .action-tab {
+            width: 45px;
+            height: 45px;
+            border: 1px solid rgba(0,255,255,0.5);
+            background: rgba(0,0,0,0.8);
+            color: #00ffff;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .action-tab:hover {
+            background: rgba(0,255,255,0.2);
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0,255,255,0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Mobile responsive for fixed tabs */
+        @media (max-width: 768px) {
+            .fixed-action-tabs {
+                top: 10px;
+                right: 10px;
+                gap: 3px;
+            }
+            
+            .action-tab {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
         }
     </style>
 </body>
