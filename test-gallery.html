@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D Gallery Test</title>
+    <style>
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #000428, #004e92);
+            color: white;
+            font-family: 'Courier New', monospace;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid #00ffff;
+            border-radius: 10px;
+        }
+        .test-button {
+            padding: 15px 30px;
+            background: rgba(0,255,255,0.3);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            margin: 10px;
+            display: inline-block;
+        }
+        .test-button:hover {
+            background: rgba(0,255,255,0.5);
+        }
+        #test-results {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 5px;
+        }
+        .success { color: #00ff64; }
+        .error { color: #ff6464; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 VIB34D Gallery System Test</h1>
+        <p>This will test the gallery functionality without loading the full VIB34D system.</p>
+        
+        <button class="test-button" onclick="testCreateVariationCard()">Test createAdvancedVariationCard()</button>
+        <button class="test-button" onclick="testLocalStorage()">Test localStorage Operations</button>
+        <button class="test-button" onclick="testErrorHandling()">Test Error Handling</button>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        // Simplified gallery function for testing
+        function createAdvancedVariationCard(variation) {
+            // BULLETPROOF error handling - validate variation object
+            if (!variation) {
+                console.error('❌ createAdvancedVariationCard: variation is null/undefined');
+                return '<div style="color: #ff0000; padding: 10px;">Error: Invalid variation</div>';
+            }
+            
+            // ULTRA-SAFE parameter handling
+            let parameters = {};
+            try {
+                parameters = variation.parameters || {};
+                // Ensure it's an object
+                if (typeof parameters !== 'object' || parameters === null) {
+                    console.warn('⚠️ Parameters not an object, using defaults:', parameters);
+                    parameters = {};
+                }
+            } catch (error) {
+                console.error('❌ Error accessing variation.parameters:', error);
+                parameters = {};
+            }
+            
+            // SUPER SAFE property access with fallbacks
+            const safeGeometry = parameters.geometryType ?? parameters.geometry ?? 0;
+            const safeName = variation.name || `Variation ${variation.id || 0}`;
+            const safeId = variation.id || 0;
+            
+            return `<div style="border: 1px solid #00ffff; padding: 10px; margin: 5px;">
+                        <h3>${safeName}</h3>
+                        <p>ID: ${safeId}</p>
+                        <p>Geometry: ${safeGeometry}</p>
+                    </div>`;
+        }
+
+        function logResult(test, success, details) {
+            const results = document.getElementById('test-results');
+            const className = success ? 'success' : 'error';
+            const icon = success ? '✅' : '❌';
+            results.innerHTML += `<div class="${className}">${icon} ${test}: ${details}</div>`;
+        }
+
+        function testCreateVariationCard() {
+            try {
+                // Test 1: Valid variation
+                const valid = {
+                    id: 1,
+                    name: "Test Variation",
+                    parameters: { geometryType: 2, intensity: 0.5 }
+                };
+                const result1 = createAdvancedVariationCard(valid);
+                logResult("Valid variation", result1.includes("Test Variation"), "Created successfully");
+
+                // Test 2: Null variation
+                const result2 = createAdvancedVariationCard(null);
+                logResult("Null variation", result2.includes("Error: Invalid variation"), "Handled gracefully");
+
+                // Test 3: Variation without parameters
+                const noParams = { id: 2, name: "No Params" };
+                const result3 = createAdvancedVariationCard(noParams);
+                logResult("No parameters", result3.includes("No Params"), "Used defaults");
+
+                // Test 4: Variation with broken parameters
+                const broken = { id: 3, name: "Broken", parameters: "not an object" };
+                const result4 = createAdvancedVariationCard(broken);
+                logResult("Broken parameters", result4.includes("Broken"), "Handled invalid params");
+
+            } catch (error) {
+                logResult("createAdvancedVariationCard", false, error.message);
+            }
+        }
+
+        function testLocalStorage() {
+            try {
+                // Test localStorage operations
+                localStorage.setItem('test-gallery', JSON.stringify([{id: 1, name: "Test"}]));
+                const data = JSON.parse(localStorage.getItem('test-gallery') || '[]');
+                localStorage.removeItem('test-gallery');
+                
+                logResult("localStorage", data.length === 1, "Read/write successful");
+            } catch (error) {
+                logResult("localStorage", false, error.message);
+            }
+        }
+
+        function testErrorHandling() {
+            try {
+                // Test various error conditions
+                const tests = [
+                    { input: undefined, desc: "undefined input" },
+                    { input: {}, desc: "empty object" },
+                    { input: { id: null }, desc: "null id" },
+                    { input: { parameters: null }, desc: "null parameters" }
+                ];
+
+                tests.forEach(test => {
+                    const result = createAdvancedVariationCard(test.input);
+                    const success = typeof result === 'string' && result.length > 0;
+                    logResult(`Error handling (${test.desc})`, success, success ? "Handled" : "Failed");
+                });
+
+            } catch (error) {
+                logResult("Error handling", false, error.message);
+            }
+        }
+    </script>
+</body>
+</html>
