@@ -448,7 +448,7 @@
                 
                 <div class="variation-nav">
                     <button class="btn" onclick="saveVIB34DToPortfolio()" style="background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">💾 Save Current</button>
-                    <button class="btn" onclick="engine.openGalleryView()">Gallery</button>
+                    <button class="btn" onclick="openUnifiedGallery()">🖼️ Portfolio</button>
                 </div>
             </div>
             
@@ -719,6 +719,12 @@
             
             // Initialize VIB34D Engine
             window.engine = new VIB34DIntegratedEngine();
+            
+            // OVERRIDE: Use our working inline gallery instead of the module gallery
+            window.engine.openGalleryView = function() {
+                console.log('🖼️ Using inline gallery instead of module gallery');
+                openUnifiedGallery();
+            };
             
             console.log('🌌 VIB34D Holographic Engine - Refactored Version Loaded');
             console.log('✅ 5-Layer Holographic Rendering Active');
