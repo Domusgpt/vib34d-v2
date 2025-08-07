@@ -603,16 +603,16 @@
     </div>
 
     <!-- Control Panel -->
-    <div class="control-panel collapsed" id="controlPanel">
-        <div class="collapse-toggle" id="collapseToggle" onclick="toggleControlPanel()">‹</div>
-        <div class="panel-header">
-            <h2>VIB34D Engine</h2>
+    <div class="control-panel" id="controlPanel">
+        <div class="panel-header-clickable" onclick="toggleParameterPanel()">
+            <h2>VIB34D Parameters</h2>
             <div class="header-info">
                 <span id="currentSystemIndicator">🔷 VIB34D</span>
-                <span id="parameterSyncStatus">Synced</span>
+                <span class="panel-toggle-arrow" id="panelToggleArrow">▼</span>
             </div>
         </div>
         
+        <div class="panel-collapsible-content" id="panelContent">
         <!-- Top Menu Buttons - Keep randomize functions as they are -->
         <div class="quick-actions">
             <button class="quick-btn" onclick="quickRandomize()" title="Visual randomize (keeps geometry)">⚡</button>
@@ -870,6 +870,7 @@
                 <button class="btn" onclick="engine.importJSON()" style="width: 100%; margin-bottom: 5px;">Import JSON Config</button>
                 <button class="btn" onclick="engine.importFolder()" style="width: 100%;">Import Folder</button>
             </div>
+        </div>
         </div>
     </div>
     
@@ -2159,7 +2160,7 @@
         // NEW Unified Navigation System
         let currentVisualNumber = 1;
         let isNavMenuCollapsed = false;
-        let customVisualCounter = 100; // Start customs at 101
+        let isParameterPanelCollapsed = false;
 
         // Toggle navigation menu
         window.toggleNavMenu = function() {
@@ -2169,6 +2170,22 @@
             isNavMenuCollapsed = !isNavMenuCollapsed;
             
             if (isNavMenuCollapsed) {
+                content.classList.add('collapsed');
+                arrow.classList.add('collapsed');
+            } else {
+                content.classList.remove('collapsed');
+                arrow.classList.remove('collapsed');
+            }
+        };
+
+        // Toggle parameter panel
+        window.toggleParameterPanel = function() {
+            const content = document.getElementById('panelContent');
+            const arrow = document.getElementById('panelToggleArrow');
+            
+            isParameterPanelCollapsed = !isParameterPanelCollapsed;
+            
+            if (isParameterPanelCollapsed) {
                 content.classList.add('collapsed');
                 arrow.classList.add('collapsed');
             } else {
@@ -2624,7 +2641,7 @@
         /* NEW Unified Navigation Menu Styles */
         .unified-navigation-menu {
             position: fixed;
-            top: 20px;
+            top: 320px;
             left: 20px;
             background: rgba(0,0,0,0.95);
             border: 1px solid rgba(0,255,255,0.5);
@@ -2767,10 +2784,56 @@
             border-color: #ff6464;
         }
 
+        /* Collapsible Parameter Panel */
+        .panel-header-clickable {
+            cursor: pointer;
+            padding: 15px;
+            border-bottom: 1px solid rgba(0,255,255,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header-clickable:hover {
+            background: rgba(0,255,255,0.05);
+        }
+
+        .panel-header-clickable h2 {
+            margin: 0;
+            color: #00ffff;
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .panel-toggle-arrow {
+            color: #00ffff;
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+
+        .panel-toggle-arrow.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .panel-collapsible-content {
+            transition: all 0.3s ease;
+            overflow: hidden;
+            max-height: 2000px;
+        }
+
+        .panel-collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
         /* Mobile responsive */
         @media (max-width: 768px) {
             .unified-navigation-menu {
-                top: 10px;
+                top: 280px;
                 left: 10px;
                 min-width: 260px;
             }
