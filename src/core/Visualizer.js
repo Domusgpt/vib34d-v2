@@ -107,52 +107,52 @@ float geometryFunction(vec4 p) {
     int geomType = int(u_geometry);
     
     if (geomType == 0) {
-        // Tetrahedron lattice
-        vec4 pos = fract(p * u_gridDensity * 0.1);
+        // Tetrahedron lattice - UNIFORM GRID DENSITY
+        vec4 pos = fract(p * u_gridDensity * 0.08);
         vec4 dist = min(pos, 1.0 - pos);
         return min(min(dist.x, dist.y), min(dist.z, dist.w)) * u_morphFactor;
     }
     else if (geomType == 1) {
-        // Hypercube lattice
-        vec4 pos = fract(p * u_gridDensity * 0.1);
+        // Hypercube lattice - UNIFORM GRID DENSITY
+        vec4 pos = fract(p * u_gridDensity * 0.08);
         vec4 dist = min(pos, 1.0 - pos);
         float minDist = min(min(dist.x, dist.y), min(dist.z, dist.w));
         return minDist * u_morphFactor;
     }
     else if (geomType == 2) {
-        // Sphere lattice
+        // Sphere lattice - UNIFORM GRID DENSITY
         float r = length(p);
-        float density = u_gridDensity * 0.05;
+        float density = u_gridDensity * 0.08;
         float spheres = abs(fract(r * density) - 0.5) * 2.0;
         float theta = atan(p.y, p.x);
         float harmonics = sin(theta * 3.0) * 0.2;
         return (spheres + harmonics) * u_morphFactor;
     }
     else if (geomType == 3) {
-        // Torus lattice
+        // Torus lattice - UNIFORM GRID DENSITY
         float r1 = length(p.xy) - 2.0;
         float torus = length(vec2(r1, p.z)) - 0.8;
         float lattice = sin(p.x * u_gridDensity * 0.08) * sin(p.y * u_gridDensity * 0.08);
         return (torus + lattice * 0.3) * u_morphFactor;
     }
     else if (geomType == 4) {
-        // Klein bottle lattice
+        // Klein bottle lattice - UNIFORM GRID DENSITY
         float u = atan(p.y, p.x);
         float v = atan(p.w, p.z);
         float dist = length(p) - 2.0;
-        float lattice = sin(u * u_gridDensity * 0.06) * sin(v * u_gridDensity * 0.03);
+        float lattice = sin(u * u_gridDensity * 0.08) * sin(v * u_gridDensity * 0.08);
         return (dist + lattice * 0.4) * u_morphFactor;
     }
     else if (geomType == 5) {
-        // Fractal lattice
-        vec4 pos = abs(p);
-        pos = pos * 2.0 - 1.0;
+        // Fractal lattice - NOW WITH UNIFORM GRID DENSITY
+        vec4 pos = fract(p * u_gridDensity * 0.08);
+        pos = abs(pos * 2.0 - 1.0);
         float dist = length(max(abs(pos) - 1.0, 0.0));
         return dist * u_morphFactor;
     }
     else if (geomType == 6) {
-        // Wave lattice - CONSISTENT TIME CALCULATION
-        float freq = u_gridDensity * 0.1;
+        // Wave lattice - UNIFORM GRID DENSITY
+        float freq = u_gridDensity * 0.08;
         float time = u_time * 0.001 * u_speed;
         float wave1 = sin(p.x * freq + time);
         float wave2 = sin(p.y * freq + time * 1.3);
@@ -161,14 +161,14 @@ float geometryFunction(vec4 p) {
         return interference * u_morphFactor;
     }
     else if (geomType == 7) {
-        // Crystal lattice
-        vec4 pos = fract(p * u_gridDensity * 0.12) - 0.5;
+        // Crystal lattice - UNIFORM GRID DENSITY
+        vec4 pos = fract(p * u_gridDensity * 0.08) - 0.5;
         float cube = max(max(abs(pos.x), abs(pos.y)), max(abs(pos.z), abs(pos.w)));
         return cube * u_morphFactor;
     }
     else {
-        // Default hypercube
-        vec4 pos = fract(p * u_gridDensity * 0.1);
+        // Default hypercube - UNIFORM GRID DENSITY
+        vec4 pos = fract(p * u_gridDensity * 0.08);
         vec4 dist = min(pos, 1.0 - pos);
         return min(min(dist.x, dist.y), min(dist.z, dist.w)) * u_morphFactor;
     }

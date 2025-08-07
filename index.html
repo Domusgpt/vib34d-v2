@@ -567,6 +567,27 @@
         <canvas id="holo-accent-canvas" class="holographic-canvas"></canvas>
     </div>
     
+    <!-- Polychora Full-Screen Canvas -->
+    <div class="canvas-container" id="polychoraCanvasContainer" style="display: none;">
+        <canvas id="polychora-canvas" class="main-canvas"></canvas>
+        <div class="polytope-info" id="polytope-info" style="
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            color: #00ffff;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(0,255,255,0.3);
+            font-family: 'Orbitron', monospace;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        ">
+            <h4 style="margin: 0 0 5px 0; color: #00ffff;">🔮 5-Cell (4-Simplex)</h4>
+            <p style="margin: 0; font-size: 0.8rem; opacity: 0.8;">Simplest 4D polytope with 5 tetrahedral cells</p>
+        </div>
+    </div>
+    
     <!-- Fixed Action Tabs (Always Visible) -->
     <div class="fixed-action-tabs" id="fixedActionTabs">
         <button class="action-tab" onclick="saveCurrentVariation()" title="Save current variation">💾</button>
@@ -626,6 +647,7 @@
             <button class="tab-btn" data-tab="polytopal" title="4D Mathematics">🧮 4D</button>
             <button class="tab-btn" data-tab="holographic" title="Holographic Params">🌀 Holo</button>
             <button class="tab-btn" data-tab="holograms" title="Live Holographic">✨ Holographic</button>
+            <button class="tab-btn" data-tab="polychora" title="4D Polytope Lattice Projections">🔮 Polychora</button>
             <button class="tab-btn" data-tab="export" title="Export & Import">📤 I/O</button>
         </div>
         
@@ -650,19 +672,22 @@
                         <label class="control-label">
                             XW <span class="control-display" id="rot4dXWDisplay">0.00</span>
                         </label>
-                        <input type="range" id="rot4dXW" class="control-input" min="-2" max="2" step="0.01" value="0">
+                        <input type="range" id="rot4dXW" class="control-input" min="-2" max="2" step="0.01" value="0" 
+                               oninput="updateVIB34DParameter('rot4dXW', this.value); document.getElementById('rot4dXWDisplay').textContent = parseFloat(this.value).toFixed(2)">
                     </div>
                     <div class="control-group">
                         <label class="control-label">
                             YW <span class="control-display" id="rot4dYWDisplay">0.00</span>
                         </label>
-                        <input type="range" id="rot4dYW" class="control-input" min="-2" max="2" step="0.01" value="0">
+                        <input type="range" id="rot4dYW" class="control-input" min="-2" max="2" step="0.01" value="0"
+                               oninput="updateVIB34DParameter('rot4dYW', this.value); document.getElementById('rot4dYWDisplay').textContent = parseFloat(this.value).toFixed(2)">
                     </div>
                     <div class="control-group">
                         <label class="control-label">
                             ZW <span class="control-display" id="rot4dZWDisplay">0.00</span>
                         </label>
-                        <input type="range" id="rot4dZW" class="control-input" min="-2" max="2" step="0.01" value="0">
+                        <input type="range" id="rot4dZW" class="control-input" min="-2" max="2" step="0.01" value="0"
+                               oninput="updateVIB34DParameter('rot4dZW', this.value); document.getElementById('rot4dZWDisplay').textContent = parseFloat(this.value).toFixed(2)">
                     </div>
                 </div>
             </div>
@@ -677,7 +702,27 @@
                         <label class="control-label">
                             Dimension <span class="control-display" id="dimensionDisplay">3.50</span>
                         </label>
-                        <input type="range" id="dimension" class="control-input" min="3" max="4.5" step="0.01" value="3.5">
+                        <input type="range" id="dimension" class="control-input" min="3" max="4.5" step="0.01" value="3.5"
+                               oninput="updateVIB34DParameter('dimension', this.value); document.getElementById('dimensionDisplay').textContent = parseFloat(this.value).toFixed(2)">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="collapsible-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <span>🔷 Geometry Selection</span>
+                    <span class="toggle-arrow">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="geometry-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px;">
+                        <button class="btn vib34d-geom active" data-geometry="0" onclick="setCurrentGeometry(0)">Tetrahedron</button>
+                        <button class="btn vib34d-geom" data-geometry="1" onclick="setCurrentGeometry(1)">Hypercube</button>
+                        <button class="btn vib34d-geom" data-geometry="2" onclick="setCurrentGeometry(2)">Sphere</button>
+                        <button class="btn vib34d-geom" data-geometry="3" onclick="setCurrentGeometry(3)">Torus</button>
+                        <button class="btn vib34d-geom" data-geometry="4" onclick="setCurrentGeometry(4)">Klein</button>
+                        <button class="btn vib34d-geom" data-geometry="5" onclick="setCurrentGeometry(5)">Fractal</button>
+                        <button class="btn vib34d-geom" data-geometry="6" onclick="setCurrentGeometry(6)">Wave</button>
+                        <button class="btn vib34d-geom" data-geometry="7" onclick="setCurrentGeometry(7)">Crystal</button>
                     </div>
                 </div>
             </div>
@@ -703,35 +748,40 @@
                 <label class="control-label">
                     Grid Density <span class="control-display" id="gridDensityDisplay">15.0</span>
                 </label>
-                <input type="range" id="gridDensity" class="control-input" min="4" max="100" step="0.1" value="15">
+                <input type="range" id="gridDensity" class="control-input" min="4" max="100" step="0.1" value="15"
+                       oninput="updateUnifiedParameter('gridDensity', this.value); document.getElementById('gridDensityDisplay').textContent = parseFloat(this.value).toFixed(1)">
             </div>
             
             <div class="control-group">
                 <label class="control-label">
                     Morph Factor <span class="control-display" id="morphFactorDisplay">1.00</span>
                 </label>
-                <input type="range" id="morphFactor" class="control-input" min="0" max="2" step="0.01" value="1">
+                <input type="range" id="morphFactor" class="control-input" min="0" max="2" step="0.01" value="1"
+                       oninput="updateUnifiedParameter('morphFactor', this.value); document.getElementById('morphFactorDisplay').textContent = parseFloat(this.value).toFixed(2)">
             </div>
             
             <div class="control-group">
                 <label class="control-label">
                     Chaos <span class="control-display" id="chaosDisplay">0.20</span>
                 </label>
-                <input type="range" id="chaos" class="control-input" min="0" max="1" step="0.01" value="0.2">
+                <input type="range" id="chaos" class="control-input" min="0" max="1" step="0.01" value="0.2"
+                       oninput="updateUnifiedParameter('chaos', this.value); document.getElementById('chaosDisplay').textContent = parseFloat(this.value).toFixed(2)">
             </div>
             
             <div class="control-group">
                 <label class="control-label">
                     Speed <span class="control-display" id="speedDisplay">1.00</span>
                 </label>
-                <input type="range" id="speed" class="control-input" min="0.1" max="3" step="0.01" value="1">
+                <input type="range" id="speed" class="control-input" min="0.1" max="3" step="0.01" value="1"
+                       oninput="updateUnifiedParameter('speed', this.value); document.getElementById('speedDisplay').textContent = parseFloat(this.value).toFixed(2)">
             </div>
             
             <div class="control-group">
                 <label class="control-label">
                     Hue <span class="control-display" id="hueDisplay">200°</span>
                 </label>
-                <input type="range" id="hue" class="control-input" min="0" max="360" step="1" value="200">
+                <input type="range" id="hue" class="control-input" min="0" max="360" step="1" value="200"
+                       oninput="updateUnifiedParameter('hue', this.value); document.getElementById('hueDisplay').textContent = this.value + '°'">
             </div>
             
             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(0,255,255,0.3);">
@@ -852,6 +902,117 @@
                 <p>🎨 Audio-reactive visualizations</p>
                 <p>🔮 30 base variants + custom gallery</p>
                 <p>🖱️ Mouse, touch, scroll, audio interactions</p>
+            </div>
+        </div>
+        
+        <!-- Polychora Tab - 4D Polytope Lattice Projections -->
+        <div class="tab-content" id="polychora-tab">
+            <div class="control-group">
+                <h3 style="color: #00ffff; margin-bottom: 15px; text-align: center;">🔮 4D Polytope Lattice Projections</h3>
+                <p style="color: rgba(255,255,255,0.7); font-size: 0.8rem; margin-bottom: 20px; text-align: center;">
+                    Full-screen lattice topology showing 2D projections of 4D polytope rotations
+                </p>
+            </div>
+            
+            <div class="collapsible-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <span>🔮 Polytope Selection</span>
+                    <span class="toggle-arrow">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="geometry-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px;">
+                        <button class="btn polychora-geom active" data-polytope="0" onclick="setPolychoraGeometry(0)">5-Cell</button>
+                        <button class="btn polychora-geom" data-polytope="1" onclick="setPolychoraGeometry(1)">Tesseract</button>
+                        <button class="btn polychora-geom" data-polytope="2" onclick="setPolychoraGeometry(2)">16-Cell</button>
+                        <button class="btn polychora-geom" data-polytope="3" onclick="setPolychoraGeometry(3)">24-Cell</button>
+                        <button class="btn polychora-geom" data-polytope="4" onclick="setPolychoraGeometry(4)">600-Cell</button>
+                        <button class="btn polychora-geom" data-polytope="5" onclick="setPolychoraGeometry(5)">120-Cell</button>
+                    </div>
+                    <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); text-align: center;" id="polytope-description">
+                        5-Cell: Simplest 4D polytope (4-simplex) with 5 tetrahedral cells
+                    </div>
+                </div>
+            </div>
+            
+            <div class="collapsible-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <span>🌐 4D Rotation Controls</span>
+                    <span class="toggle-arrow">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="control-group">
+                        <label class="control-label">
+                            XW Plane <span class="control-display" id="polychoraXWDisplay">0.00</span>
+                        </label>
+                        <input type="range" id="polychoraXW" class="control-input" min="-6.28" max="6.28" step="0.01" value="0"
+                               oninput="updatePolychoraParameter('rotXW', this.value); document.getElementById('polychoraXWDisplay').textContent = parseFloat(this.value).toFixed(2)">
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            YW Plane <span class="control-display" id="polychoraYWDisplay">0.00</span>
+                        </label>
+                        <input type="range" id="polychoraYW" class="control-input" min="-6.28" max="6.28" step="0.01" value="0"
+                               oninput="updatePolychoraParameter('rotYW', this.value); document.getElementById('polychoraYWDisplay').textContent = parseFloat(this.value).toFixed(2)">
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            ZW Plane <span class="control-display" id="polychoraZWDisplay">0.00</span>
+                        </label>
+                        <input type="range" id="polychoraZW" class="control-input" min="-6.28" max="6.28" step="0.01" value="0"
+                               oninput="updatePolychoraParameter('rotZW', this.value); document.getElementById('polychoraZWDisplay').textContent = parseFloat(this.value).toFixed(2)">
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            XY Plane <span class="control-display" id="polychoraXYDisplay">0.00</span>
+                        </label>
+                        <input type="range" id="polychoraXY" class="control-input" min="-6.28" max="6.28" step="0.01" value="0"
+                               oninput="updatePolychoraParameter('rotXY', this.value); document.getElementById('polychoraXYDisplay').textContent = parseFloat(this.value).toFixed(2)">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="collapsible-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <span>⚙️ Lattice Parameters</span>
+                    <span class="toggle-arrow">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="control-group">
+                        <label class="control-label">
+                            Lattice Density <span class="control-display" id="polychoraDensityDisplay">20.0</span>
+                        </label>
+                        <input type="range" id="polychoraDensity" class="control-input" min="5" max="100" step="0.5" value="20"
+                               oninput="updatePolychoraParameter('density', this.value); document.getElementById('polychoraDensityDisplay').textContent = parseFloat(this.value).toFixed(1)">
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            Projection Depth <span class="control-display" id="polychoraDepthDisplay">2.0</span>
+                        </label>
+                        <input type="range" id="polychoraDepth" class="control-input" min="0.5" max="5.0" step="0.1" value="2.0"
+                               oninput="updatePolychoraParameter('depth', this.value); document.getElementById('polychoraDepthDisplay').textContent = parseFloat(this.value).toFixed(1)">
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            Animation Speed <span class="control-display" id="polychoraSpeedDisplay">1.0</span>
+                        </label>
+                        <input type="range" id="polychoraSpeed" class="control-input" min="0.0" max="3.0" step="0.1" value="1.0"
+                               oninput="updatePolychoraParameter('speed', this.value); document.getElementById('polychoraSpeedDisplay').textContent = parseFloat(this.value).toFixed(1)">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="collapsible-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <span>🎨 Visual Controls</span>
+                    <span class="toggle-arrow">▼</span>
+                </div>
+                <div class="section-content">
+                    <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                        <button class="btn" onclick="randomizePolychoraRotations()" style="flex: 1; font-size: 0.7rem;">🎲 Random</button>
+                        <button class="btn" onclick="resetPolychoraRotations()" style="flex: 1; font-size: 0.7rem;">Reset</button>
+                        <button class="btn" onclick="togglePolychoraAnimation()" style="flex: 1; font-size: 0.7rem;">⏸️ Pause</button>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -1552,6 +1713,58 @@
             }
         };
         
+        // VIB34D Parameter Update Function
+        window.updateVIB34DParameter = function(param, value) {
+            if (window.engine && window.engine.parameterManager) {
+                const numValue = parseFloat(value);
+                console.log(`🎛️ Updating VIB34D ${param} to ${numValue}`);
+                
+                // Update the parameter in the engine
+                const paramUpdate = {};
+                paramUpdate[param] = numValue;
+                window.engine.parameterManager.setParameters(paramUpdate);
+                window.engine.updateVisualizers();
+                
+                console.log(`✅ VIB34D ${param} updated to ${numValue}`);
+            } else {
+                console.warn('⚠️ VIB34D engine not available for parameter update');
+            }
+        };
+        
+        // Unified Parameter Update Function (works with both systems)
+        window.updateUnifiedParameter = function(param, value) {
+            const numValue = parseFloat(value);
+            console.log(`🎛️ Updating unified parameter ${param} to ${numValue}`);
+            
+            // Update VIB34D if active
+            if (unifiedParameters.systemType === 'VIB34D' && window.engine && window.engine.parameterManager) {
+                const paramUpdate = {};
+                paramUpdate[param] = numValue;
+                window.engine.parameterManager.setParameters(paramUpdate);
+                window.engine.updateVisualizers();
+                console.log(`✅ VIB34D ${param} updated to ${numValue}`);
+            }
+            
+            // Update Holographic if active  
+            if ((unifiedParameters.systemType === 'Holographic' || window.realHoloSystem?.isActive) && window.realHoloSystem) {
+                window.realHoloSystem.visualizers.forEach(viz => {
+                    if (viz.variantParams) {
+                        // Map parameter names for holographic system
+                        let holoParam = param;
+                        if (param === 'gridDensity') holoParam = 'density';
+                        if (param === 'morphFactor') holoParam = 'morph';
+                        
+                        viz.variantParams[holoParam] = numValue;
+                        viz.roleParams = viz.generateRoleParams(viz.role);
+                        console.log(`✅ Holographic ${viz.role} ${holoParam} updated to ${numValue}`);
+                    }
+                });
+            }
+            
+            // Update global state
+            unifiedParameters[param] = numValue;
+        };
+        
         window.toggleVIB34DAudio = function() {
             // Toggle VIB34D audio reactivity
             unifiedParameters.audioEnabled = !unifiedParameters.audioEnabled;
@@ -2140,6 +2353,426 @@
             }
         };
         
+        // VIB34D Geometry Selection Function
+        window.setCurrentGeometry = function(geometryIndex) {
+            console.log(`🔷 Setting VIB34D geometry to ${geometryIndex}`);
+            
+            // Update geometry buttons
+            document.querySelectorAll('.vib34d-geom').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.querySelector(`[data-geometry="${geometryIndex}"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            // Apply geometry to VIB34D engine
+            if (window.engine && window.engine.parameterManager) {
+                window.engine.parameterManager.setParameters({ geometry: geometryIndex });
+                window.engine.updateVisualizers();
+                console.log(`✅ VIB34D geometry updated to ${geometryIndex}`);
+                
+                // Show geometry name
+                const geometryNames = ['Tetrahedron', 'Hypercube', 'Sphere', 'Torus', 'Klein Bottle', 'Fractal', 'Wave', 'Crystal'];
+                showParameterNotification('🔷 Geometry Changed', `Now using ${geometryNames[geometryIndex]} geometry`);
+            } else {
+                console.warn('⚠️ VIB34D engine not available for geometry change');
+            }
+        };
+        
+        // ========== POLYCHORA SYSTEM - 4D POLYTOPE LATTICE PROJECTIONS ==========
+        
+        // Polychora System State
+        const polychoraSystem = {
+            canvas: null,
+            gl: null,
+            program: null,
+            uniforms: {},
+            parameters: {
+                polytope: 0,      // 0=5-cell, 1=tesseract, 2=16-cell, 3=24-cell, 4=600-cell, 5=120-cell
+                rotXW: 0,         // XW plane rotation
+                rotYW: 0,         // YW plane rotation  
+                rotZW: 0,         // ZW plane rotation
+                rotXY: 0,         // XY plane rotation (3D rotation)
+                density: 20,      // Lattice density
+                depth: 2.0,       // Projection depth
+                speed: 1.0,       // Animation speed
+                time: 0
+            },
+            isActive: false,
+            animationId: null
+        };
+        
+        // Polychora Geometry Selection
+        window.setPolychoraGeometry = function(polytopeIndex) {
+            console.log(`🔮 Setting Polychora polytope to ${polytopeIndex}`);
+            
+            // Update polytope buttons
+            document.querySelectorAll('.polychora-geom').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.querySelector(`[data-polytope="${polytopeIndex}"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            // Update polytope parameter
+            polychoraSystem.parameters.polytope = polytopeIndex;
+            
+            // Update info display
+            const polytopeNames = ['5-Cell (4-Simplex)', 'Tesseract (8-Cell)', '16-Cell (4-Orthoplex)', '24-Cell', '600-Cell', '120-Cell'];
+            const polytopeDescriptions = [
+                'Simplest 4D polytope with 5 tetrahedral cells',
+                '4D hypercube with 8 cubic cells',  
+                '4D cross-polytope with 16 tetrahedral cells',
+                'Unique 4D polytope with 24 octahedral cells',
+                '4D polytope with icosahedral symmetry and 600 tetrahedral cells',
+                'Largest regular 4D polytope with 120 dodecahedral cells'
+            ];
+            
+            document.getElementById('polytope-info').innerHTML = `
+                <h4 style="margin: 0 0 5px 0; color: #00ffff;">🔮 ${polytopeNames[polytopeIndex]}</h4>
+                <p style="margin: 0; font-size: 0.8rem; opacity: 0.8;">${polytopeDescriptions[polytopeIndex]}</p>
+            `;
+            
+            document.getElementById('polytope-description').textContent = 
+                polytopeNames[polytopeIndex] + ': ' + polytopeDescriptions[polytopeIndex];
+                
+            console.log(`✅ Polychora polytope updated to ${polytopeNames[polytopeIndex]}`);
+        };
+        
+        // Polychora Parameter Updates
+        window.updatePolychoraParameter = function(param, value) {
+            const numValue = parseFloat(value);
+            polychoraSystem.parameters[param] = numValue;
+            console.log(`🔮 Updated Polychora ${param} to ${numValue}`);
+        };
+        
+        // Polychora Control Functions
+        window.randomizePolychoraRotations = function() {
+            console.log('🎲 Randomizing Polychora rotations');
+            
+            const randomRotations = {
+                rotXW: (Math.random() - 0.5) * 12.56, // -2π to +2π
+                rotYW: (Math.random() - 0.5) * 12.56,
+                rotZW: (Math.random() - 0.5) * 12.56,
+                rotXY: (Math.random() - 0.5) * 12.56
+            };
+            
+            // Update sliders and parameters
+            Object.keys(randomRotations).forEach(param => {
+                polychoraSystem.parameters[param] = randomRotations[param];
+                const slider = document.getElementById('polychora' + param.replace('rot', '').toUpperCase());
+                if (slider) {
+                    slider.value = randomRotations[param];
+                    const display = document.getElementById('polychora' + param.replace('rot', '').toUpperCase() + 'Display');
+                    if (display) display.textContent = randomRotations[param].toFixed(2);
+                }
+            });
+            
+            showParameterNotification('🎲 Polychora Randomized!', 'Random 4D rotations applied');
+        };
+        
+        window.resetPolychoraRotations = function() {
+            console.log('🔄 Resetting Polychora rotations');
+            
+            ['rotXW', 'rotYW', 'rotZW', 'rotXY'].forEach(param => {
+                polychoraSystem.parameters[param] = 0;
+                const slider = document.getElementById('polychora' + param.replace('rot', '').toUpperCase());
+                if (slider) {
+                    slider.value = 0;
+                    const display = document.getElementById('polychora' + param.replace('rot', '').toUpperCase() + 'Display');
+                    if (display) display.textContent = '0.00';
+                }
+            });
+            
+            showParameterNotification('🔄 Polychora Reset', 'All rotations reset to zero');
+        };
+        
+        let polychoraAnimationPaused = false;
+        window.togglePolychoraAnimation = function() {
+            polychoraAnimationPaused = !polychoraAnimationPaused;
+            const btn = document.querySelector('[onclick="togglePolychoraAnimation()"]');
+            if (btn) {
+                btn.textContent = polychoraAnimationPaused ? '▶️ Play' : '⏸️ Pause';
+            }
+            console.log('🎬 Polychora animation:', polychoraAnimationPaused ? 'PAUSED' : 'PLAYING');
+        };
+        
+        // Initialize Polychora WebGL System
+        function initPolychoraSystem() {
+            console.log('🔮 Initializing Polychora System');
+            
+            polychoraSystem.canvas = document.getElementById('polychora-canvas');
+            polychoraSystem.gl = polychoraSystem.canvas.getContext('webgl');
+            
+            if (!polychoraSystem.gl) {
+                console.error('❌ WebGL not supported for Polychora system');
+                return false;
+            }
+            
+            // Create shader program
+            const vertexShaderSource = `
+attribute vec2 a_position;
+void main() {
+    gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+            
+            const fragmentShaderSource = `
+precision highp float;
+
+uniform vec2 u_resolution;
+uniform float u_time;
+uniform int u_polytope;
+uniform float u_rotXW;
+uniform float u_rotYW;
+uniform float u_rotZW; 
+uniform float u_rotXY;
+uniform float u_density;
+uniform float u_depth;
+uniform float u_speed;
+
+// 4D rotation matrices
+mat4 rotateXW(float theta) {
+    float c = cos(theta);
+    float s = sin(theta);
+    return mat4(c, 0.0, 0.0, -s, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, s, 0.0, 0.0, c);
+}
+
+mat4 rotateYW(float theta) {
+    float c = cos(theta);
+    float s = sin(theta);
+    return mat4(1.0, 0.0, 0.0, 0.0, 0.0, c, 0.0, -s, 0.0, 0.0, 1.0, 0.0, 0.0, s, 0.0, c);
+}
+
+mat4 rotateZW(float theta) {
+    float c = cos(theta);
+    float s = sin(theta);
+    return mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, c, -s, 0.0, 0.0, s, c);
+}
+
+mat4 rotateXY(float theta) {
+    float c = cos(theta);
+    float s = sin(theta);
+    return mat4(c, -s, 0.0, 0.0, s, c, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+}
+
+// 4D to 3D projection
+vec3 project4Dto3D(vec4 p) {
+    float w = u_depth / (u_depth + p.w);
+    return vec3(p.x * w, p.y * w, p.z * w);
+}
+
+// 4D Polytope distance functions
+float polytope4D(vec4 p, int type) {
+    if (type == 0) {
+        // 5-Cell (4-Simplex) - distance to 4D simplex
+        float d1 = dot(p, normalize(vec4(1.0, 1.0, 1.0, 1.0)));
+        float d2 = dot(p, normalize(vec4(-1.0, -1.0, 1.0, 1.0)));
+        float d3 = dot(p, normalize(vec4(-1.0, 1.0, -1.0, 1.0)));
+        float d4 = dot(p, normalize(vec4(1.0, -1.0, -1.0, 1.0)));
+        float d5 = dot(p, normalize(vec4(0.0, 0.0, 0.0, -1.0)));
+        return max(max(max(max(d1, d2), d3), d4), d5) - 1.0;
+    }
+    else if (type == 1) {
+        // Tesseract (8-Cell) - 4D hypercube
+        vec4 q = abs(p) - 1.0;
+        return length(max(q, 0.0)) + min(max(q.x, max(q.y, max(q.z, q.w))), 0.0);
+    }
+    else if (type == 2) {
+        // 16-Cell (4-Orthoplex) - 4D cross-polytope
+        return length(p) - 1.0; // Simplified as 4D sphere for now
+    }
+    else if (type == 3) {
+        // 24-Cell - complex regular polytope
+        vec4 q = abs(p);
+        float d1 = max(q.x + q.y, q.z + q.w) - 1.4142;
+        float d2 = max(q.x + q.z, q.y + q.w) - 1.4142;
+        float d3 = max(q.x + q.w, q.y + q.z) - 1.4142;
+        return min(min(d1, d2), d3);
+    }
+    else if (type == 4) {
+        // 600-Cell - icosahedral symmetry
+        float phi = 1.618033988749; // Golden ratio
+        vec4 q = abs(p);
+        float d = max(max(q.x, q.y), max(q.z, q.w)) - phi;
+        return d;
+    }
+    else if (type == 5) {
+        // 120-Cell - largest regular 4D polytope
+        vec4 q = abs(p);
+        float d1 = length(q.xy) + length(q.zw) - 2.0;
+        float d2 = length(q.xz) + length(q.yw) - 2.0;
+        float d3 = length(q.xw) + length(q.yz) - 2.0;
+        return min(min(d1, d2), d3);
+    }
+    else {
+        // Default: 5-cell
+        return polytope4D(p, 0);
+    }
+}
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy - u_resolution.xy * 0.5) / min(u_resolution.x, u_resolution.y);
+    
+    // Create 4D lattice grid
+    float animTime = u_time * u_speed * 0.001;
+    vec4 pos = vec4(uv * 3.0, sin(animTime), cos(animTime * 1.3));
+    
+    // Apply 4D rotations in sequence
+    pos = rotateXY(u_rotXY + animTime * 0.1) * pos;
+    pos = rotateXW(u_rotXW + animTime * 0.2) * pos;
+    pos = rotateYW(u_rotYW + animTime * 0.3) * pos;
+    pos = rotateZW(u_rotZW + animTime * 0.15) * pos;
+    
+    // Create lattice structure
+    vec4 latticePos = fract(pos * u_density * 0.1) - 0.5;
+    
+    // Calculate polytope distance in 4D
+    float polyDist = polytope4D(latticePos * 4.0, u_polytope);
+    
+    // Create lattice visualization
+    float lattice = 1.0 - smoothstep(0.4, 0.5, abs(polyDist));
+    
+    // Add grid lines
+    vec4 grid = abs(fract(pos * u_density * 0.05) - 0.5) / fwidth(pos * u_density * 0.05);
+    float gridLine = 1.0 - min(min(grid.x, grid.y), min(grid.z, grid.w));
+    
+    // Combine lattice and grid
+    float intensity = lattice + gridLine * 0.3;
+    
+    // Color based on polytope type and 4D position
+    vec3 color1 = vec3(0.0, 1.0, 1.0);    // Cyan
+    vec3 color2 = vec3(1.0, 0.0, 1.0);    // Magenta  
+    vec3 color3 = vec3(1.0, 1.0, 0.0);    // Yellow
+    
+    float colorMix = sin(pos.w * 2.0 + animTime) * 0.5 + 0.5;
+    vec3 color = mix(mix(color1, color2, colorMix), color3, sin(animTime * 0.5) * 0.5 + 0.5);
+    
+    gl_FragColor = vec4(color * intensity, intensity * 0.8);
+}`;
+            
+            // Compile shaders and create program
+            polychoraSystem.program = createShaderProgram(polychoraSystem.gl, vertexShaderSource, fragmentShaderSource);
+            if (!polychoraSystem.program) {
+                console.error('❌ Failed to create Polychora shader program');
+                return false;
+            }
+            
+            // Get uniform locations
+            polychoraSystem.uniforms = {
+                resolution: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_resolution'),
+                time: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_time'),
+                polytope: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_polytope'),
+                rotXW: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_rotXW'),
+                rotYW: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_rotYW'),
+                rotZW: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_rotZW'),
+                rotXY: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_rotXY'),
+                density: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_density'),
+                depth: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_depth'),
+                speed: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_speed')
+            };
+            
+            // Create vertex buffer
+            const positions = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+            const buffer = polychoraSystem.gl.createBuffer();
+            polychoraSystem.gl.bindBuffer(polychoraSystem.gl.ARRAY_BUFFER, buffer);
+            polychoraSystem.gl.bufferData(polychoraSystem.gl.ARRAY_BUFFER, positions, polychoraSystem.gl.STATIC_DRAW);
+            
+            const positionLocation = polychoraSystem.gl.getAttribLocation(polychoraSystem.program, 'a_position');
+            polychoraSystem.gl.enableVertexAttribArray(positionLocation);
+            polychoraSystem.gl.vertexAttribPointer(positionLocation, 2, polychoraSystem.gl.FLOAT, false, 0, 0);
+            
+            console.log('✅ Polychora System initialized successfully');
+            return true;
+        }
+        
+        // Polychora render loop
+        function renderPolychora() {
+            if (!polychoraSystem.isActive || !polychoraSystem.gl || !polychoraSystem.program) return;
+            
+            // Update time
+            if (!polychoraAnimationPaused) {
+                polychoraSystem.parameters.time += 16; // ~60fps
+            }
+            
+            // Resize canvas to full screen
+            const canvas = polychoraSystem.canvas;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            polychoraSystem.gl.viewport(0, 0, canvas.width, canvas.height);
+            
+            // Clear screen
+            polychoraSystem.gl.clearColor(0.0, 0.0, 0.1, 1.0);
+            polychoraSystem.gl.clear(polychoraSystem.gl.COLOR_BUFFER_BIT);
+            
+            // Use shader program
+            polychoraSystem.gl.useProgram(polychoraSystem.program);
+            
+            // Set uniforms
+            polychoraSystem.gl.uniform2f(polychoraSystem.uniforms.resolution, canvas.width, canvas.height);
+            polychoraSystem.gl.uniform1f(polychoraSystem.uniforms.time, polychoraSystem.parameters.time);
+            polychoraSystem.gl.uniform1i(polychoraSystem.uniforms.polytope, polychoraSystem.parameters.polytope);
+            polychoraSystem.gl.uniform1f(polychoraSystem.uniforms.rotXW, polychoraSystem.parameters.rotXW);
+            polychoraSystem.gl.uniform1f(polychoraSystem.uniforms.rotYW, polychoraSystem.parameters.rotYW);
+            polychoraSystem.gl.uniform1f(polychoraSystem.uniforms.rotZW, polychoraSystem.parameters.rotZW);
+            polychoraSystem.gl.uniform1f(polychoraSystem.uniforms.rotXY, polychoraSystem.parameters.rotXY);
+            polychoraSystem.gl.uniform1f(polychoraSystem.uniforms.density, polychoraSystem.parameters.density);
+            polychoraSystem.gl.uniform1f(polychoraSystem.uniforms.depth, polychoraSystem.parameters.depth);
+            polychoraSystem.gl.uniform1f(polychoraSystem.uniforms.speed, polychoraSystem.parameters.speed);
+            
+            // Draw
+            polychoraSystem.gl.drawArrays(polychoraSystem.gl.TRIANGLE_STRIP, 0, 4);
+            
+            // Continue animation
+            polychoraSystem.animationId = requestAnimationFrame(renderPolychora);
+        }
+        
+        // Start/Stop Polychora System
+        function startPolychoraSystem() {
+            console.log('🔮 Starting Polychora System');
+            polychoraSystem.isActive = true;
+            document.getElementById('polychoraCanvasContainer').style.display = 'block';
+            renderPolychora();
+        }
+        
+        function stopPolychoraSystem() {
+            console.log('🔮 Stopping Polychora System');
+            polychoraSystem.isActive = false;
+            document.getElementById('polychoraCanvasContainer').style.display = 'none';
+            if (polychoraSystem.animationId) {
+                cancelAnimationFrame(polychoraSystem.animationId);
+                polychoraSystem.animationId = null;
+            }
+        }
+        
+        // Helper function to create shader program
+        function createShaderProgram(gl, vertexSource, fragmentSource) {
+            const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexSource);
+            const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
+            
+            if (!vertexShader || !fragmentShader) return null;
+            
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.error('Program linking failed:', gl.getProgramInfoLog(program));
+                return null;
+            }
+            
+            return program;
+        }
+        
+        function createShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error('Shader compilation failed:', gl.getShaderInfoLog(shader));
+                return null;
+            }
+            
+            return shader;
+        }
+        
+        // ========== END POLYCHORA SYSTEM ==========
+        
         // Fixed Action Tab Functions
         window.saveCurrentVariation = function() {
             if (unifiedParameters.systemType === 'VIB34D' || !window.realHoloSystem || !window.realHoloSystem.isActive) {
@@ -2474,6 +3107,18 @@
                     // Add active class to clicked tab
                     button.classList.add('active');
                     document.getElementById(`${targetTab}-tab`).classList.add('active');
+                    
+                    // Handle Polychora system
+                    if (targetTab === 'polychora') {
+                        // Initialize Polychora system if not already done
+                        if (!polychoraSystem.canvas) {
+                            initPolychoraSystem();
+                        }
+                        startPolychoraSystem();
+                    } else {
+                        // Stop Polychora system when switching away
+                        stopPolychoraSystem();
+                    }
                 });
             });
         }
