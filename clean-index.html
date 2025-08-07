@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D Engine - Clean Interface</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* ========== TOP BAR ========== */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.9);
+            border-bottom: 2px solid #00ffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #00ffff;
+            text-shadow: 0 0 20px #00ffff;
+        }
+        
+        .system-selector {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .system-btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .system-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        .system-btn.active {
+            background: rgba(0, 255, 255, 0.3);
+            border-color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            background: rgba(255, 0, 255, 0.1);
+            border: 2px solid rgba(255, 0, 255, 0.3);
+            color: #ff00ff;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .action-btn:hover {
+            background: rgba(255, 0, 255, 0.3);
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        /* ========== CANVAS ========== */
+        .canvas-container {
+            position: fixed;
+            top: 50px;
+            left: 0;
+            right: 300px;
+            bottom: 0;
+        }
+        
+        .visualization-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* ========== CONTROL PANEL ========== */
+        .control-panel {
+            position: fixed;
+            top: 50px;
+            right: 0;
+            bottom: 0;
+            width: 300px;
+            background: rgba(0, 0, 0, 0.95);
+            border-left: 2px solid #00ffff;
+            padding: 20px;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+        }
+        
+        .panel-header {
+            font-size: 1.1rem;
+            color: #ff00ff;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+        
+        .control-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+        
+        .control-section:last-child {
+            border-bottom: none;
+        }
+        
+        .section-title {
+            font-size: 0.9rem;
+            color: #00ffff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        /* Geometry Grid */
+        .geometry-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 5px;
+        }
+        
+        .geom-btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+            padding: 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.3s;
+        }
+        
+        .geom-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+        }
+        
+        .geom-btn.active {
+            background: rgba(0, 255, 255, 0.4);
+            border-color: #00ffff;
+            box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+        }
+        
+        /* Sliders */
+        .control-group {
+            margin-bottom: 12px;
+        }
+        
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 5px;
+        }
+        
+        .control-value {
+            color: #00ffff;
+            font-weight: bold;
+        }
+        
+        .control-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 6px;
+            background: rgba(0, 255, 255, 0.2);
+            outline: none;
+            border-radius: 3px;
+        }
+        
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #00ffff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        /* Action Buttons */
+        .action-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .panel-btn {
+            flex: 1;
+            background: rgba(255, 0, 255, 0.1);
+            border: 1px solid rgba(255, 0, 255, 0.3);
+            color: #ff00ff;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+        
+        .panel-btn:hover {
+            background: rgba(255, 0, 255, 0.3);
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        /* Hide scrollbar but keep scrollable */
+        .control-panel::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        .control-panel::-webkit-scrollbar-track {
+            background: rgba(0, 255, 255, 0.1);
+        }
+        
+        .control-panel::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 255, 0.3);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="logo">VIB34D ENGINE</div>
+        
+        <div class="system-selector">
+            <button class="system-btn active" data-system="faceted" onclick="switchSystem('faceted')">
+                🔷 Faceted
+            </button>
+            <button class="system-btn" data-system="holographic" onclick="switchSystem('holographic')">
+                ✨ Holographic
+            </button>
+            <button class="system-btn" data-system="polychora" onclick="switchSystem('polychora')">
+                🔮 Polychora
+            </button>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="action-btn" onclick="openGallery()" title="Gallery">🖼️</button>
+            <button class="action-btn" onclick="toggleAudio()" title="Audio">🎵</button>
+            <button class="action-btn" onclick="toggleInteractivity()" title="Interactivity Menu (Press I)">I</button>
+        </div>
+    </div>
+    
+    <!-- Canvas Container -->
+    <div class="canvas-container" id="canvasContainer">
+        <!-- Canvases will be added here dynamically -->
+    </div>
+    
+    <!-- Control Panel -->
+    <div class="control-panel">
+        <div class="panel-header" id="panelHeader">FACETED SYSTEM</div>
+        
+        <!-- GEOMETRY SECTION (Faceted & Polychora) -->
+        <div class="control-section" id="geometrySection">
+            <div class="section-title">GEOMETRY</div>
+            <div class="geometry-grid" id="geometryGrid">
+                <!-- Will be populated based on system -->
+            </div>
+        </div>
+        
+        <!-- VARIATION SECTION (Holographic only) -->
+        <div class="control-section" id="variationSection" style="display: none;">
+            <div class="section-title">VARIATION</div>
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Preset</span>
+                    <span class="control-value" id="variationValue">1 / 30</span>
+                </div>
+                <input type="range" class="control-slider" id="variationSlider" 
+                       min="0" max="29" value="0" oninput="updateVariation(this.value)">
+            </div>
+        </div>
+        
+        <!-- 4D ROTATION SECTION -->
+        <div class="control-section">
+            <div class="section-title">4D ROTATION</div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>XW Plane</span>
+                    <span class="control-value" id="xwValue">0.00</span>
+                </div>
+                <input type="range" class="control-slider" id="xwSlider" 
+                       min="-6.28" max="6.28" step="0.01" value="0" 
+                       oninput="updateParameter('rot4dXW', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>YW Plane</span>
+                    <span class="control-value" id="ywValue">0.00</span>
+                </div>
+                <input type="range" class="control-slider" id="ywSlider" 
+                       min="-6.28" max="6.28" step="0.01" value="0" 
+                       oninput="updateParameter('rot4dYW', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>ZW Plane</span>
+                    <span class="control-value" id="zwValue">0.00</span>
+                </div>
+                <input type="range" class="control-slider" id="zwSlider" 
+                       min="-6.28" max="6.28" step="0.01" value="0" 
+                       oninput="updateParameter('rot4dZW', this.value)">
+            </div>
+        </div>
+        
+        <!-- VISUAL PARAMETERS SECTION -->
+        <div class="control-section">
+            <div class="section-title">VISUAL</div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Density</span>
+                    <span class="control-value" id="densityValue">15</span>
+                </div>
+                <input type="range" class="control-slider" id="densitySlider" 
+                       min="5" max="100" value="15" 
+                       oninput="updateParameter('gridDensity', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Morph</span>
+                    <span class="control-value" id="morphValue">1.0</span>
+                </div>
+                <input type="range" class="control-slider" id="morphSlider" 
+                       min="0" max="2" step="0.01" value="1" 
+                       oninput="updateParameter('morphFactor', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Chaos</span>
+                    <span class="control-value" id="chaosValue">0.2</span>
+                </div>
+                <input type="range" class="control-slider" id="chaosSlider" 
+                       min="0" max="1" step="0.01" value="0.2" 
+                       oninput="updateParameter('chaos', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Speed</span>
+                    <span class="control-value" id="speedValue">1.0</span>
+                </div>
+                <input type="range" class="control-slider" id="speedSlider" 
+                       min="0.1" max="3" step="0.1" value="1" 
+                       oninput="updateParameter('speed', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Hue</span>
+                    <span class="control-value" id="hueValue">200°</span>
+                </div>
+                <input type="range" class="control-slider" id="hueSlider" 
+                       min="0" max="360" value="200" 
+                       oninput="updateParameter('hue', this.value)">
+            </div>
+        </div>
+        
+        <!-- ACTION BUTTONS -->
+        <div class="action-row">
+            <button class="panel-btn" onclick="randomizeAll()">🎲 Random</button>
+            <button class="panel-btn" onclick="resetAll()">🔄 Reset</button>
+        </div>
+    </div>
+    
+    <script>
+        // Global state
+        let currentSystem = 'faceted';
+        let audioEnabled = false;
+        let interactivityVisible = false;
+        
+        // Geometry configurations
+        const geometries = {
+            faceted: [
+                'Tetra', 'Cube', 'Sphere',
+                'Torus', 'Klein', 'Fractal',
+                'Wave', 'Crystal'
+            ],
+            polychora: [
+                '5-Cell', 'Tesseract', '16-Cell',
+                '24-Cell', '600-Cell', '120-Cell'
+            ]
+        };
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupGeometry('faceted');
+            console.log('🚀 VIB34D Clean Interface Ready');
+        });
+        
+        // System switching
+        function switchSystem(system) {
+            currentSystem = system;
+            
+            // Update UI
+            document.querySelectorAll('.system-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.system === system);
+            });
+            
+            // Update panel header
+            const headers = {
+                faceted: 'FACETED SYSTEM',
+                holographic: 'HOLOGRAPHIC SYSTEM',
+                polychora: 'POLYCHORA SYSTEM'
+            };
+            document.getElementById('panelHeader').textContent = headers[system];
+            
+            // Show/hide sections
+            document.getElementById('geometrySection').style.display = 
+                system === 'holographic' ? 'none' : 'block';
+            document.getElementById('variationSection').style.display = 
+                system === 'holographic' ? 'block' : 'none';
+            
+            // Setup geometry if needed
+            if (system !== 'holographic') {
+                setupGeometry(system);
+            }
+            
+            console.log(`🔄 Switched to ${system} system`);
+        }
+        
+        // Setup geometry buttons
+        function setupGeometry(system) {
+            const grid = document.getElementById('geometryGrid');
+            const geoList = geometries[system] || geometries.faceted;
+            
+            grid.innerHTML = geoList.map((name, i) => 
+                `<button class="geom-btn ${i === 0 ? 'active' : ''}" 
+                         data-index="${i}" onclick="selectGeometry(${i})">
+                    ${name}
+                </button>`
+            ).join('');
+        }
+        
+        // Select geometry
+        function selectGeometry(index) {
+            document.querySelectorAll('.geom-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.index == index);
+            });
+            console.log(`📐 Selected geometry: ${index}`);
+        }
+        
+        // Update parameter
+        function updateParameter(param, value) {
+            const displays = {
+                rot4dXW: 'xwValue',
+                rot4dYW: 'ywValue', 
+                rot4dZW: 'zwValue',
+                gridDensity: 'densityValue',
+                morphFactor: 'morphValue',
+                chaos: 'chaosValue',
+                speed: 'speedValue',
+                hue: 'hueValue'
+            };
+            
+            const display = document.getElementById(displays[param]);
+            if (display) {
+                if (param === 'hue') {
+                    display.textContent = value + '°';
+                } else if (param.startsWith('rot4d')) {
+                    display.textContent = parseFloat(value).toFixed(2);
+                } else {
+                    display.textContent = parseFloat(value).toFixed(1);
+                }
+            }
+            
+            // Here you would update the actual visualization
+            console.log(`📊 ${param}: ${value}`);
+        }
+        
+        // Update variation (Holographic only)
+        function updateVariation(value) {
+            document.getElementById('variationValue').textContent = 
+                `${parseInt(value) + 1} / 30`;
+            console.log(`🌀 Variation: ${value}`);
+        }
+        
+        // Action functions
+        function openGallery() {
+            console.log('🖼️ Opening gallery...');
+        }
+        
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            console.log(`🎵 Audio: ${audioEnabled ? 'ON' : 'OFF'}`);
+        }
+        
+        function toggleInteractivity() {
+            interactivityVisible = !interactivityVisible;
+            console.log(`🎛️ Interactivity: ${interactivityVisible ? 'VISIBLE' : 'HIDDEN'}`);
+        }
+        
+        function randomizeAll() {
+            // Randomize all sliders
+            document.querySelectorAll('.control-slider').forEach(slider => {
+                const min = parseFloat(slider.min);
+                const max = parseFloat(slider.max);
+                const value = Math.random() * (max - min) + min;
+                slider.value = value;
+                slider.oninput();
+            });
+            console.log('🎲 Randomized all parameters');
+        }
+        
+        function resetAll() {
+            // Reset all sliders to defaults
+            const defaults = {
+                xwSlider: 0,
+                ywSlider: 0,
+                zwSlider: 0,
+                densitySlider: 15,
+                morphSlider: 1,
+                chaosSlider: 0.2,
+                speedSlider: 1,
+                hueSlider: 200,
+                variationSlider: 0
+            };
+            
+            Object.entries(defaults).forEach(([id, value]) => {
+                const slider = document.getElementById(id);
+                if (slider) {
+                    slider.value = value;
+                    slider.oninput();
+                }
+            });
+            console.log('🔄 Reset all parameters');
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'i' || e.key === 'I') {
+                toggleInteractivity();
+            }
+        });
+    </script>
+</body>
+</html>
