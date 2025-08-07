@@ -543,6 +543,12 @@
                 if (polychoraSystem) polychoraSystem.start();
             }
             
+            // Update Universal Interactivity Engine if active
+            if (window.interactivityEngine) {
+                window.interactivityEngine.switchSystem(system);
+                console.log(`🎛️ Universal Interactivity switched to ${system} system`);
+            }
+            
             console.log(`🔄 Switched to ${system} system`);
         }
         
@@ -604,10 +610,25 @@
                 // For VIB34DIntegratedEngine, update parameter manager and call updateFromControls
                 engine.parameterManager.setParameter(param, parseFloat(value));
                 engine.updateVisualizers();
+                
+                // Also notify Universal Interactivity Engine if active
+                if (window.interactivityEngine) {
+                    window.interactivityEngine.notifyParameterChange(param, parseFloat(value), 'faceted');
+                }
             } else if (currentSystem === 'holographic' && holographicSystem) {
                 holographicSystem.visualizers.forEach(v => v.updateParameters({ [param]: parseFloat(value) }));
+                
+                // Also notify Universal Interactivity Engine if active
+                if (window.interactivityEngine) {
+                    window.interactivityEngine.notifyParameterChange(param, parseFloat(value), 'holographic');
+                }
             } else if (currentSystem === 'polychora' && polychoraSystem) {
                 polychoraSystem.updateParameters({ [param]: parseFloat(value) });
+                
+                // Also notify Universal Interactivity Engine if active
+                if (window.interactivityEngine) {
+                    window.interactivityEngine.notifyParameterChange(param, parseFloat(value), 'polychora');
+                }
             }
             
             console.log(`📊 ${param}: ${value}`);
@@ -644,21 +665,85 @@
         window.toggleInteractivity = async function() {
             interactivityVisible = !interactivityVisible;
             
-            if (interactivityVisible && !window.interactivityMenu) {
-                // Load interactivity system
-                const { UniversalInteractivityEngine } = await import('./src/core/UniversalInteractivityEngine.js');
-                const { InteractivityMenu } = await import('./src/ui/InteractivityMenu.js');
-                
-                window.interactivityEngine = new UniversalInteractivityEngine();
-                await window.interactivityEngine.initialize();
-                
-                window.interactivityMenu = new InteractivityMenu(window.interactivityEngine);
-                window.interactivityMenu.show();
-            } else if (window.interactivityMenu) {
-                window.interactivityMenu.toggle();
+            if (interactivityVisible && !window.interactivityEngine) {
+                // Initialize Universal Interactivity Engine for ALL systems
+                try {
+                    const { UniversalInteractivityEngine } = await import('./src/core/UniversalInteractivityEngine.js');
+                    window.interactivityEngine = new UniversalInteractivityEngine();
+                    await window.interactivityEngine.initialize();
+                    
+                    // Connect to all visualization systems
+                    window.interactivityEngine.connectToEngine('faceted', engine);
+                    window.interactivityEngine.connectToEngine('holographic', holographicSystem);
+                    if (polychoraSystem) {
+                        window.interactivityEngine.connectToEngine('polychora', polychoraSystem);
+                    }
+                    
+                    // Start universal interactivity
+                    window.interactivityEngine.startUniversalMode(currentSystem);
+                    console.log('✅ Universal Interactivity Engine initialized for ALL systems');
+                    
+                    // Show overlay menu
+                    showInteractivityOverlay();
+                } catch (error) {
+                    console.error('❌ Failed to initialize Universal Interactivity:', error);
+                }
+            } else if (window.interactivityEngine) {
+                // Toggle existing system
+                if (interactivityVisible) {
+                    window.interactivityEngine.startUniversalMode(currentSystem);
+                    showInteractivityOverlay();
+                } else {
+                    window.interactivityEngine.stopUniversalMode();
+                    hideInteractivityOverlay();
+                }
             }
             
-            console.log(`🎛️ Interactivity: ${interactivityVisible ? 'VISIBLE' : 'HIDDEN'}`);
+            console.log(`🎛️ Universal Interactivity: ${interactivityVisible ? 'ACTIVE' : 'INACTIVE'} for ${currentSystem.toUpperCase()} system`);
+        }
+        
+        function showInteractivityOverlay() {
+            // Create floating overlay for interactivity status
+            if (!document.getElementById('interactivity-overlay')) {
+                const overlay = document.createElement('div');
+                overlay.id = 'interactivity-overlay';
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 60px;
+                    left: 20px;
+                    background: rgba(0, 255, 255, 0.1);
+                    border: 2px solid rgba(0, 255, 255, 0.5);
+                    padding: 15px;
+                    border-radius: 10px;
+                    backdrop-filter: blur(10px);
+                    color: #00ffff;
+                    font-family: 'Orbitron', monospace;
+                    font-size: 0.9rem;
+                    z-index: 999;
+                    max-width: 250px;
+                `;
+                overlay.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 8px;">🎛️ UNIVERSAL INTERACTIVITY</div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;">
+                        Active for ALL systems<br>
+                        Audio: <span id="audio-status">OFF</span><br>
+                        Mouse: <span id="mouse-status">TRACKED</span><br>
+                        Gamepad: <span id="gamepad-status">OFF</span><br>
+                        Wearable: <span id="wearable-status">OFF</span>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 0.7rem; opacity: 0.6;">
+                        Press I to toggle
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+            }
+        }
+        
+        function hideInteractivityOverlay() {
+            const overlay = document.getElementById('interactivity-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
         }
         
         window.randomizeAll = function() {
