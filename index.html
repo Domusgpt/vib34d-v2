@@ -43,11 +43,52 @@
             pointer-events: auto;
         }
         
+        .polychora-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: auto;
+        }
+        
         #background-canvas { z-index: 1; opacity: 0.6; mix-blend-mode: normal; }
         #shadow-canvas { z-index: 3; opacity: 0.4; mix-blend-mode: multiply; }
         #content-canvas { z-index: 5; opacity: 0.9; mix-blend-mode: screen; }
         #highlight-canvas { z-index: 7; opacity: 0.7; mix-blend-mode: overlay; }
         #accent-canvas { z-index: 15; opacity: 0.5; mix-blend-mode: color-dodge; }
+        
+        /* Polychora Glassmorphic Layer Styles */
+        #polychora-background-canvas { 
+            z-index: 2; 
+            opacity: 0.3; 
+            mix-blend-mode: normal;
+            backdrop-filter: blur(2px);
+        }
+        #polychora-shadow-canvas { 
+            z-index: 4; 
+            opacity: 0.6; 
+            mix-blend-mode: multiply;
+            backdrop-filter: blur(1px);
+        }
+        #polychora-content-canvas { 
+            z-index: 6; 
+            opacity: 0.85; 
+            mix-blend-mode: screen;
+            backdrop-filter: blur(0.5px);
+        }
+        #polychora-highlight-canvas { 
+            z-index: 8; 
+            opacity: 0.7; 
+            mix-blend-mode: overlay;
+            backdrop-filter: blur(1.5px);
+        }
+        #polychora-accent-canvas { 
+            z-index: 16; 
+            opacity: 0.4; 
+            mix-blend-mode: color-dodge;
+            backdrop-filter: blur(3px);
+        }
         
         /* COMPACT FLOATING TAB PANEL DESIGN */
         .control-panel {
@@ -567,25 +608,13 @@
         <canvas id="holo-accent-canvas" class="holographic-canvas"></canvas>
     </div>
     
-    <!-- Polychora Full-Screen Canvas -->
-    <div class="canvas-container" id="polychoraCanvasContainer" style="display: none;">
-        <canvas id="polychora-canvas" class="main-canvas"></canvas>
-        <div class="polytope-info" id="polytope-info" style="
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0,0,0,0.8);
-            color: #00ffff;
-            padding: 15px 20px;
-            border-radius: 10px;
-            border: 1px solid rgba(0,255,255,0.3);
-            font-family: 'Orbitron', monospace;
-            backdrop-filter: blur(10px);
-            z-index: 100;
-        ">
-            <h4 style="margin: 0 0 5px 0; color: #00ffff;">🔮 5-Cell (4-Simplex)</h4>
-            <p style="margin: 0; font-size: 0.8rem; opacity: 0.8;">Simplest 4D polytope with 5 tetrahedral cells</p>
-        </div>
+    <!-- Polychora 5-Layer System -->
+    <div class="polychora-layers" id="polychoraLayers" style="display: none;">
+        <canvas id="polychora-background-canvas" class="polychora-canvas"></canvas>
+        <canvas id="polychora-shadow-canvas" class="polychora-canvas"></canvas>
+        <canvas id="polychora-content-canvas" class="polychora-canvas"></canvas>
+        <canvas id="polychora-highlight-canvas" class="polychora-canvas"></canvas>
+        <canvas id="polychora-accent-canvas" class="polychora-canvas"></canvas>
     </div>
     
     <!-- Fixed Action Tabs (Always Visible) -->
@@ -2376,30 +2405,12 @@
             }
         };
         
-        // ========== POLYCHORA SYSTEM - 4D POLYTOPE LATTICE PROJECTIONS ==========
+        // ========== POLYCHORA SYSTEM INTEGRATION ==========
         
-        // Polychora System State
-        const polychoraSystem = {
-            canvas: null,
-            gl: null,
-            program: null,
-            uniforms: {},
-            parameters: {
-                polytope: 0,      // 0=5-cell, 1=tesseract, 2=16-cell, 3=24-cell, 4=600-cell, 5=120-cell
-                rotXW: 0,         // XW plane rotation
-                rotYW: 0,         // YW plane rotation  
-                rotZW: 0,         // ZW plane rotation
-                rotXY: 0,         // XY plane rotation (3D rotation)
-                density: 20,      // Lattice density
-                depth: 2.0,       // Projection depth
-                speed: 1.0,       // Animation speed
-                time: 0
-            },
-            isActive: false,
-            animationId: null
-        };
+        // Import and initialize Polychora system
+        let polychoraSystem = null;
         
-        // Polychora Geometry Selection
+        // Polychora System Functions
         window.setPolychoraGeometry = function(polytopeIndex) {
             console.log(`🔮 Setting Polychora polytope to ${polytopeIndex}`);
             
@@ -2408,57 +2419,51 @@
             const activeBtn = document.querySelector(`[data-polytope="${polytopeIndex}"]`);
             if (activeBtn) activeBtn.classList.add('active');
             
-            // Update polytope parameter
-            polychoraSystem.parameters.polytope = polytopeIndex;
-            
-            // Update info display
-            const polytopeNames = ['5-Cell (4-Simplex)', 'Tesseract (8-Cell)', '16-Cell (4-Orthoplex)', '24-Cell', '600-Cell', '120-Cell'];
-            const polytopeDescriptions = [
-                'Simplest 4D polytope with 5 tetrahedral cells',
-                '4D hypercube with 8 cubic cells',  
-                '4D cross-polytope with 16 tetrahedral cells',
-                'Unique 4D polytope with 24 octahedral cells',
-                '4D polytope with icosahedral symmetry and 600 tetrahedral cells',
-                'Largest regular 4D polytope with 120 dodecahedral cells'
-            ];
-            
-            document.getElementById('polytope-info').innerHTML = `
-                <h4 style="margin: 0 0 5px 0; color: #00ffff;">🔮 ${polytopeNames[polytopeIndex]}</h4>
-                <p style="margin: 0; font-size: 0.8rem; opacity: 0.8;">${polytopeDescriptions[polytopeIndex]}</p>
-            `;
-            
-            document.getElementById('polytope-description').textContent = 
-                polytopeNames[polytopeIndex] + ': ' + polytopeDescriptions[polytopeIndex];
-                
-            console.log(`✅ Polychora polytope updated to ${polytopeNames[polytopeIndex]}`);
+            if (polychoraSystem) {
+                const polytope = polychoraSystem.setPolytope(polytopeIndex);
+                if (polytope) {
+                    // Update description display
+                    const descDisplay = document.getElementById('polytope-description');
+                    if (descDisplay) {
+                        descDisplay.textContent = `${polytope.name}: ${polytope.description}`;
+                    }
+                    
+                    showParameterNotification('🔮 Polytope Changed', `Now using ${polytope.name}`);
+                }
+            }
         };
         
-        // Polychora Parameter Updates
         window.updatePolychoraParameter = function(param, value) {
             const numValue = parseFloat(value);
-            polychoraSystem.parameters[param] = numValue;
-            console.log(`🔮 Updated Polychora ${param} to ${numValue}`);
+            console.log(`🔮 Updating Polychora ${param} to ${numValue}`);
+            
+            if (polychoraSystem) {
+                const updateObj = {};
+                updateObj[param] = numValue;
+                polychoraSystem.updateParameters(updateObj);
+            }
         };
         
-        // Polychora Control Functions
         window.randomizePolychoraRotations = function() {
             console.log('🎲 Randomizing Polychora rotations');
             
-            const randomRotations = {
-                rotXW: (Math.random() - 0.5) * 12.56, // -2π to +2π
-                rotYW: (Math.random() - 0.5) * 12.56,
-                rotZW: (Math.random() - 0.5) * 12.56,
-                rotXY: (Math.random() - 0.5) * 12.56
+            const randomParams = {
+                rot4dXW: (Math.random() - 0.5) * 12.56,
+                rot4dYW: (Math.random() - 0.5) * 12.56, 
+                rot4dZW: (Math.random() - 0.5) * 12.56
             };
             
-            // Update sliders and parameters
-            Object.keys(randomRotations).forEach(param => {
-                polychoraSystem.parameters[param] = randomRotations[param];
-                const slider = document.getElementById('polychora' + param.replace('rot', '').toUpperCase());
+            if (polychoraSystem) {
+                polychoraSystem.updateParameters(randomParams);
+            }
+            
+            // Update UI sliders
+            Object.keys(randomParams).forEach(param => {
+                const slider = document.getElementById('polychora' + param.replace('rot4d', '').toUpperCase());
                 if (slider) {
-                    slider.value = randomRotations[param];
-                    const display = document.getElementById('polychora' + param.replace('rot', '').toUpperCase() + 'Display');
-                    if (display) display.textContent = randomRotations[param].toFixed(2);
+                    slider.value = randomParams[param];
+                    const display = document.getElementById('polychora' + param.replace('rot4d', '').toUpperCase() + 'Display');
+                    if (display) display.textContent = randomParams[param].toFixed(2);
                 }
             });
             
@@ -2468,12 +2473,22 @@
         window.resetPolychoraRotations = function() {
             console.log('🔄 Resetting Polychora rotations');
             
-            ['rotXW', 'rotYW', 'rotZW', 'rotXY'].forEach(param => {
-                polychoraSystem.parameters[param] = 0;
-                const slider = document.getElementById('polychora' + param.replace('rot', '').toUpperCase());
+            const resetParams = {
+                rot4dXW: 0,
+                rot4dYW: 0,
+                rot4dZW: 0
+            };
+            
+            if (polychoraSystem) {
+                polychoraSystem.updateParameters(resetParams);
+            }
+            
+            // Update UI sliders
+            Object.keys(resetParams).forEach(param => {
+                const slider = document.getElementById('polychora' + param.replace('rot4d', '').toUpperCase());
                 if (slider) {
                     slider.value = 0;
-                    const display = document.getElementById('polychora' + param.replace('rot', '').toUpperCase() + 'Display');
+                    const display = document.getElementById('polychora' + param.replace('rot4d', '').toUpperCase() + 'Display');
                     if (display) display.textContent = '0.00';
                 }
             });
@@ -2481,297 +2496,45 @@
             showParameterNotification('🔄 Polychora Reset', 'All rotations reset to zero');
         };
         
-        let polychoraAnimationPaused = false;
-        window.togglePolychoraAnimation = function() {
-            polychoraAnimationPaused = !polychoraAnimationPaused;
-            const btn = document.querySelector('[onclick="togglePolychoraAnimation()"]');
-            if (btn) {
-                btn.textContent = polychoraAnimationPaused ? '▶️ Play' : '⏸️ Pause';
-            }
-            console.log('🎬 Polychora animation:', polychoraAnimationPaused ? 'PAUSED' : 'PLAYING');
-        };
-        
-        // Initialize Polychora WebGL System
-        function initPolychoraSystem() {
-            console.log('🔮 Initializing Polychora System');
+        // Initialize Polychora system when needed
+        async function initializePolychoraSystem() {
+            if (polychoraSystem) return true;
             
-            polychoraSystem.canvas = document.getElementById('polychora-canvas');
-            polychoraSystem.gl = polychoraSystem.canvas.getContext('webgl');
-            
-            if (!polychoraSystem.gl) {
-                console.error('❌ WebGL not supported for Polychora system');
+            try {
+                console.log('🔮 Loading Polychora System...');
+                
+                // Dynamic import of Polychora system
+                const { PolychoraSystem } = await import('./src/core/PolychoraSystem.js');
+                polychoraSystem = new PolychoraSystem();
+                
+                if (polychoraSystem.initialize()) {
+                    console.log('✅ Polychora System loaded successfully');
+                    return true;
+                } else {
+                    console.error('❌ Failed to initialize Polychora System');
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Error loading Polychora System:', error);
                 return false;
             }
-            
-            // Create shader program
-            const vertexShaderSource = `
-attribute vec2 a_position;
-void main() {
-    gl_Position = vec4(a_position, 0.0, 1.0);
-}`;
-            
-            const fragmentShaderSource = `
-precision highp float;
-
-uniform vec2 u_resolution;
-uniform float u_time;
-uniform int u_polytope;
-uniform float u_rotXW;
-uniform float u_rotYW;
-uniform float u_rotZW; 
-uniform float u_rotXY;
-uniform float u_density;
-uniform float u_depth;
-uniform float u_speed;
-
-// 4D rotation matrices
-mat4 rotateXW(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat4(c, 0.0, 0.0, -s, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, s, 0.0, 0.0, c);
-}
-
-mat4 rotateYW(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat4(1.0, 0.0, 0.0, 0.0, 0.0, c, 0.0, -s, 0.0, 0.0, 1.0, 0.0, 0.0, s, 0.0, c);
-}
-
-mat4 rotateZW(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, c, -s, 0.0, 0.0, s, c);
-}
-
-mat4 rotateXY(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat4(c, -s, 0.0, 0.0, s, c, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-}
-
-// 4D to 3D projection
-vec3 project4Dto3D(vec4 p) {
-    float w = u_depth / (u_depth + p.w);
-    return vec3(p.x * w, p.y * w, p.z * w);
-}
-
-// 4D Polytope distance functions
-float polytope4D(vec4 p, int type) {
-    if (type == 0) {
-        // 5-Cell (4-Simplex) - distance to 4D simplex
-        float d1 = dot(p, normalize(vec4(1.0, 1.0, 1.0, 1.0)));
-        float d2 = dot(p, normalize(vec4(-1.0, -1.0, 1.0, 1.0)));
-        float d3 = dot(p, normalize(vec4(-1.0, 1.0, -1.0, 1.0)));
-        float d4 = dot(p, normalize(vec4(1.0, -1.0, -1.0, 1.0)));
-        float d5 = dot(p, normalize(vec4(0.0, 0.0, 0.0, -1.0)));
-        return max(max(max(max(d1, d2), d3), d4), d5) - 1.0;
-    }
-    else if (type == 1) {
-        // Tesseract (8-Cell) - 4D hypercube
-        vec4 q = abs(p) - 1.0;
-        return length(max(q, 0.0)) + min(max(q.x, max(q.y, max(q.z, q.w))), 0.0);
-    }
-    else if (type == 2) {
-        // 16-Cell (4-Orthoplex) - 4D cross-polytope
-        return length(p) - 1.0; // Simplified as 4D sphere for now
-    }
-    else if (type == 3) {
-        // 24-Cell - complex regular polytope
-        vec4 q = abs(p);
-        float d1 = max(q.x + q.y, q.z + q.w) - 1.4142;
-        float d2 = max(q.x + q.z, q.y + q.w) - 1.4142;
-        float d3 = max(q.x + q.w, q.y + q.z) - 1.4142;
-        return min(min(d1, d2), d3);
-    }
-    else if (type == 4) {
-        // 600-Cell - icosahedral symmetry
-        float phi = 1.618033988749; // Golden ratio
-        vec4 q = abs(p);
-        float d = max(max(q.x, q.y), max(q.z, q.w)) - phi;
-        return d;
-    }
-    else if (type == 5) {
-        // 120-Cell - largest regular 4D polytope
-        vec4 q = abs(p);
-        float d1 = length(q.xy) + length(q.zw) - 2.0;
-        float d2 = length(q.xz) + length(q.yw) - 2.0;
-        float d3 = length(q.xw) + length(q.yz) - 2.0;
-        return min(min(d1, d2), d3);
-    }
-    else {
-        // Default: 5-cell
-        return polytope4D(p, 0);
-    }
-}
-
-void main() {
-    vec2 uv = (gl_FragCoord.xy - u_resolution.xy * 0.5) / min(u_resolution.x, u_resolution.y);
-    
-    // Create 4D lattice grid
-    float animTime = u_time * u_speed * 0.001;
-    vec4 pos = vec4(uv * 3.0, sin(animTime), cos(animTime * 1.3));
-    
-    // Apply 4D rotations in sequence
-    pos = rotateXY(u_rotXY + animTime * 0.1) * pos;
-    pos = rotateXW(u_rotXW + animTime * 0.2) * pos;
-    pos = rotateYW(u_rotYW + animTime * 0.3) * pos;
-    pos = rotateZW(u_rotZW + animTime * 0.15) * pos;
-    
-    // Create lattice structure
-    vec4 latticePos = fract(pos * u_density * 0.1) - 0.5;
-    
-    // Calculate polytope distance in 4D
-    float polyDist = polytope4D(latticePos * 4.0, u_polytope);
-    
-    // Create lattice visualization
-    float lattice = 1.0 - smoothstep(0.4, 0.5, abs(polyDist));
-    
-    // Add grid lines
-    vec4 grid = abs(fract(pos * u_density * 0.05) - 0.5) / fwidth(pos * u_density * 0.05);
-    float gridLine = 1.0 - min(min(grid.x, grid.y), min(grid.z, grid.w));
-    
-    // Combine lattice and grid
-    float intensity = lattice + gridLine * 0.3;
-    
-    // Color based on polytope type and 4D position
-    vec3 color1 = vec3(0.0, 1.0, 1.0);    // Cyan
-    vec3 color2 = vec3(1.0, 0.0, 1.0);    // Magenta  
-    vec3 color3 = vec3(1.0, 1.0, 0.0);    // Yellow
-    
-    float colorMix = sin(pos.w * 2.0 + animTime) * 0.5 + 0.5;
-    vec3 color = mix(mix(color1, color2, colorMix), color3, sin(animTime * 0.5) * 0.5 + 0.5);
-    
-    gl_FragColor = vec4(color * intensity, intensity * 0.8);
-}`;
-            
-            // Compile shaders and create program
-            polychoraSystem.program = createShaderProgram(polychoraSystem.gl, vertexShaderSource, fragmentShaderSource);
-            if (!polychoraSystem.program) {
-                console.error('❌ Failed to create Polychora shader program');
-                return false;
-            }
-            
-            // Get uniform locations
-            polychoraSystem.uniforms = {
-                resolution: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_resolution'),
-                time: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_time'),
-                polytope: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_polytope'),
-                rotXW: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_rotXW'),
-                rotYW: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_rotYW'),
-                rotZW: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_rotZW'),
-                rotXY: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_rotXY'),
-                density: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_density'),
-                depth: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_depth'),
-                speed: polychoraSystem.gl.getUniformLocation(polychoraSystem.program, 'u_speed')
-            };
-            
-            // Create vertex buffer
-            const positions = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-            const buffer = polychoraSystem.gl.createBuffer();
-            polychoraSystem.gl.bindBuffer(polychoraSystem.gl.ARRAY_BUFFER, buffer);
-            polychoraSystem.gl.bufferData(polychoraSystem.gl.ARRAY_BUFFER, positions, polychoraSystem.gl.STATIC_DRAW);
-            
-            const positionLocation = polychoraSystem.gl.getAttribLocation(polychoraSystem.program, 'a_position');
-            polychoraSystem.gl.enableVertexAttribArray(positionLocation);
-            polychoraSystem.gl.vertexAttribPointer(positionLocation, 2, polychoraSystem.gl.FLOAT, false, 0, 0);
-            
-            console.log('✅ Polychora System initialized successfully');
-            return true;
         }
         
-        // Polychora render loop
-        function renderPolychora() {
-            if (!polychoraSystem.isActive || !polychoraSystem.gl || !polychoraSystem.program) return;
-            
-            // Update time
-            if (!polychoraAnimationPaused) {
-                polychoraSystem.parameters.time += 16; // ~60fps
-            }
-            
-            // Resize canvas to full screen
-            const canvas = polychoraSystem.canvas;
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            polychoraSystem.gl.viewport(0, 0, canvas.width, canvas.height);
-            
-            // Clear screen
-            polychoraSystem.gl.clearColor(0.0, 0.0, 0.1, 1.0);
-            polychoraSystem.gl.clear(polychoraSystem.gl.COLOR_BUFFER_BIT);
-            
-            // Use shader program
-            polychoraSystem.gl.useProgram(polychoraSystem.program);
-            
-            // Set uniforms
-            polychoraSystem.gl.uniform2f(polychoraSystem.uniforms.resolution, canvas.width, canvas.height);
-            polychoraSystem.gl.uniform1f(polychoraSystem.uniforms.time, polychoraSystem.parameters.time);
-            polychoraSystem.gl.uniform1i(polychoraSystem.uniforms.polytope, polychoraSystem.parameters.polytope);
-            polychoraSystem.gl.uniform1f(polychoraSystem.uniforms.rotXW, polychoraSystem.parameters.rotXW);
-            polychoraSystem.gl.uniform1f(polychoraSystem.uniforms.rotYW, polychoraSystem.parameters.rotYW);
-            polychoraSystem.gl.uniform1f(polychoraSystem.uniforms.rotZW, polychoraSystem.parameters.rotZW);
-            polychoraSystem.gl.uniform1f(polychoraSystem.uniforms.rotXY, polychoraSystem.parameters.rotXY);
-            polychoraSystem.gl.uniform1f(polychoraSystem.uniforms.density, polychoraSystem.parameters.density);
-            polychoraSystem.gl.uniform1f(polychoraSystem.uniforms.depth, polychoraSystem.parameters.depth);
-            polychoraSystem.gl.uniform1f(polychoraSystem.uniforms.speed, polychoraSystem.parameters.speed);
-            
-            // Draw
-            polychoraSystem.gl.drawArrays(polychoraSystem.gl.TRIANGLE_STRIP, 0, 4);
-            
-            // Continue animation
-            polychoraSystem.animationId = requestAnimationFrame(renderPolychora);
-        }
-        
-        // Start/Stop Polychora System
+        // Start Polychora system
         function startPolychoraSystem() {
-            console.log('🔮 Starting Polychora System');
-            polychoraSystem.isActive = true;
-            document.getElementById('polychoraCanvasContainer').style.display = 'block';
-            renderPolychora();
+            if (polychoraSystem) {
+                polychoraSystem.start();
+            }
         }
         
+        // Stop Polychora system  
         function stopPolychoraSystem() {
-            console.log('🔮 Stopping Polychora System');
-            polychoraSystem.isActive = false;
-            document.getElementById('polychoraCanvasContainer').style.display = 'none';
-            if (polychoraSystem.animationId) {
-                cancelAnimationFrame(polychoraSystem.animationId);
-                polychoraSystem.animationId = null;
+            if (polychoraSystem) {
+                polychoraSystem.stop();
             }
         }
         
-        // Helper function to create shader program
-        function createShaderProgram(gl, vertexSource, fragmentSource) {
-            const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexSource);
-            const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
-            
-            if (!vertexShader || !fragmentShader) return null;
-            
-            const program = gl.createProgram();
-            gl.attachShader(program, vertexShader);
-            gl.attachShader(program, fragmentShader);
-            gl.linkProgram(program);
-            
-            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-                console.error('Program linking failed:', gl.getProgramInfoLog(program));
-                return null;
-            }
-            
-            return program;
-        }
-        
-        function createShader(gl, type, source) {
-            const shader = gl.createShader(type);
-            gl.shaderSource(shader, source);
-            gl.compileShader(shader);
-            
-            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                console.error('Shader compilation failed:', gl.getShaderInfoLog(shader));
-                return null;
-            }
-            
-            return shader;
-        }
-        
-        // ========== END POLYCHORA SYSTEM ==========
+        // ========== END POLYCHORA SYSTEM INTEGRATION ==========
         
         // Fixed Action Tab Functions
         window.saveCurrentVariation = function() {
@@ -3108,13 +2871,15 @@ void main() {
                     button.classList.add('active');
                     document.getElementById(`${targetTab}-tab`).classList.add('active');
                     
-                    // Handle Polychora system
+                    // Handle system switching
                     if (targetTab === 'polychora') {
-                        // Initialize Polychora system if not already done
-                        if (!polychoraSystem.canvas) {
-                            initPolychoraSystem();
-                        }
-                        startPolychoraSystem();
+                        // Initialize and start Polychora system
+                        initializePolychoraSystem().then(success => {
+                            if (success) {
+                                startPolychoraSystem();
+                                console.log('🔮 Polychora system started');
+                            }
+                        });
                     } else {
                         // Stop Polychora system when switching away
                         stopPolychoraSystem();
