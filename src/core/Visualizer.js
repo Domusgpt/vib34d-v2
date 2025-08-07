@@ -32,6 +32,8 @@ export class IntegratedHolographicVisualizer {
             chaos: 0.2,
             speed: 1.0,
             hue: 200,
+            intensity: 0.5,
+            saturation: 0.8,
             dimension: 3.5,
             rot4dXW: 0.0,
             rot4dYW: 0.0,
@@ -70,6 +72,8 @@ uniform float u_morphFactor;
 uniform float u_chaos;
 uniform float u_speed;
 uniform float u_hue;
+uniform float u_intensity;
+uniform float u_saturation;
 uniform float u_dimension;
 uniform float u_rot4dXW;
 uniform float u_rot4dYW;
@@ -194,18 +198,27 @@ void main() {
     float noise = sin(pos.x * 7.0) * cos(pos.y * 11.0) * sin(pos.z * 13.0);
     value += noise * u_chaos;
     
-    // Color based on geometry value and hue
-    float intensity = 1.0 - clamp(abs(value), 0.0, 1.0);
-    intensity += u_clickIntensity * 0.3;
+    // Color based on geometry value and hue with user-controlled intensity/saturation
+    float geometryIntensity = 1.0 - clamp(abs(value), 0.0, 1.0);
+    geometryIntensity += u_clickIntensity * 0.3;
+    
+    // Apply user intensity control
+    float finalIntensity = geometryIntensity * u_intensity;
     
     float hue = u_hue / 360.0 + value * 0.1;
-    vec3 color = vec3(
+    
+    // Create color with saturation control
+    vec3 baseColor = vec3(
         sin(hue * 6.28318 + 0.0) * 0.5 + 0.5,
         sin(hue * 6.28318 + 2.0943) * 0.5 + 0.5,
         sin(hue * 6.28318 + 4.1887) * 0.5 + 0.5
-    ) * intensity;
+    );
     
-    gl_FragColor = vec4(color, intensity * u_roleIntensity);
+    // Apply saturation (mix with grayscale)
+    float gray = (baseColor.r + baseColor.g + baseColor.b) / 3.0;
+    vec3 color = mix(vec3(gray), baseColor, u_saturation) * finalIntensity;
+    
+    gl_FragColor = vec4(color, finalIntensity * u_roleIntensity);
 }`;
         
         this.program = this.createProgram(vertexShaderSource, fragmentShaderSource);
@@ -219,6 +232,8 @@ void main() {
             chaos: this.gl.getUniformLocation(this.program, 'u_chaos'),
             speed: this.gl.getUniformLocation(this.program, 'u_speed'),
             hue: this.gl.getUniformLocation(this.program, 'u_hue'),
+            intensity: this.gl.getUniformLocation(this.program, 'u_intensity'),
+            saturation: this.gl.getUniformLocation(this.program, 'u_saturation'),
             dimension: this.gl.getUniformLocation(this.program, 'u_dimension'),
             rot4dXW: this.gl.getUniformLocation(this.program, 'u_rot4dXW'),
             rot4dYW: this.gl.getUniformLocation(this.program, 'u_rot4dYW'),
@@ -340,6 +355,8 @@ void main() {
         this.gl.uniform1f(this.uniforms.chaos, this.params.chaos);
         this.gl.uniform1f(this.uniforms.speed, this.params.speed);
         this.gl.uniform1f(this.uniforms.hue, this.params.hue);
+        this.gl.uniform1f(this.uniforms.intensity, this.params.intensity);
+        this.gl.uniform1f(this.uniforms.saturation, this.params.saturation);
         this.gl.uniform1f(this.uniforms.dimension, this.params.dimension);
         this.gl.uniform1f(this.uniforms.rot4dXW, this.params.rot4dXW);
         this.gl.uniform1f(this.uniforms.rot4dYW, this.params.rot4dYW);

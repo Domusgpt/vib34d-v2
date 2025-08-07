@@ -179,6 +179,9 @@ export class HolographicVisualizer {
             uniform float u_audioSpeedBoost;
             uniform float u_audioChaosBoost;
             uniform float u_audioColorShift;
+            uniform float u_rot4dXW;
+            uniform float u_rot4dYW;
+            uniform float u_rot4dZW;
             
             // 4D rotation matrices
             mat4 rotateXW(float theta) {
@@ -341,9 +344,10 @@ export class HolographicVisualizer {
                 float scrollRotation = u_scrollParallax * 0.1;
                 float touchRotation = u_touchMorph * 0.2;
                 
-                p4d = rotateXW(time * 0.2 + mouseOffset.y * 0.5 + scrollRotation) * p4d;
-                p4d = rotateYW(time * 0.15 + mouseOffset.x * 0.5 + touchRotation) * p4d;
-                p4d = rotateZW(time * 0.25 + u_clickIntensity * 0.3 + u_touchChaos * 0.4) * p4d;
+                // Combine manual rotation with automatic/interactive rotation
+                p4d = rotateXW(u_rot4dXW + time * 0.2 + mouseOffset.y * 0.5 + scrollRotation) * p4d;
+                p4d = rotateYW(u_rot4dYW + time * 0.15 + mouseOffset.x * 0.5 + touchRotation) * p4d;
+                p4d = rotateZW(u_rot4dZW + time * 0.25 + u_clickIntensity * 0.3 + u_touchChaos * 0.4) * p4d;
                 
                 vec3 p = project4Dto3D(p4d);
                 
@@ -413,7 +417,10 @@ export class HolographicVisualizer {
             audioMorphBoost: this.gl.getUniformLocation(this.program, 'u_audioMorphBoost'),
             audioSpeedBoost: this.gl.getUniformLocation(this.program, 'u_audioSpeedBoost'),
             audioChaosBoost: this.gl.getUniformLocation(this.program, 'u_audioChaosBoost'),
-            audioColorShift: this.gl.getUniformLocation(this.program, 'u_audioColorShift')
+            audioColorShift: this.gl.getUniformLocation(this.program, 'u_audioColorShift'),
+            rot4dXW: this.gl.getUniformLocation(this.program, 'u_rot4dXW'),
+            rot4dYW: this.gl.getUniformLocation(this.program, 'u_rot4dYW'),
+            rot4dZW: this.gl.getUniformLocation(this.program, 'u_rot4dZW')
         };
     }
     
@@ -623,6 +630,11 @@ export class HolographicVisualizer {
         this.gl.uniform1f(this.uniforms.audioSpeedBoost, this.audioSpeedBoost || 0.0);
         this.gl.uniform1f(this.uniforms.audioChaosBoost, this.audioChaosBoost || 0.0);
         this.gl.uniform1f(this.uniforms.audioColorShift, this.audioColorShift || 0.0);
+        
+        // 4D rotation uniforms
+        this.gl.uniform1f(this.uniforms.rot4dXW, this.variantParams.rot4dXW || 0.0);
+        this.gl.uniform1f(this.uniforms.rot4dYW, this.variantParams.rot4dYW || 0.0);
+        this.gl.uniform1f(this.uniforms.rot4dZW, this.variantParams.rot4dZW || 0.0);
         
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
     }
