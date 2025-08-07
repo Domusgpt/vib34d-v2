@@ -316,16 +316,28 @@
             </div>
         </div>
         
-        <!-- VARIATION SECTION (Holographic only) -->
-        <div class="control-section" id="variationSection" style="display: none;">
-            <div class="section-title">VARIATION</div>
+        <!-- HOLOGRAPHIC PARAMETERS (Holographic only) -->
+        <div class="control-section" id="holographicSection" style="display: none;">
+            <div class="section-title">HOLOGRAPHIC</div>
+            
             <div class="control-group">
                 <div class="control-label">
-                    <span>Preset</span>
-                    <span class="control-value" id="variationValue">1 / 30</span>
+                    <span>Intensity</span>
+                    <span class="control-value" id="intensityValue">0.5</span>
                 </div>
-                <input type="range" class="control-slider" id="variationSlider" 
-                       min="0" max="29" value="0" oninput="updateVariation(this.value)">
+                <input type="range" class="control-slider" id="intensity" 
+                       min="0" max="1" step="0.01" value="0.5" 
+                       oninput="updateParameter('intensity', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Saturation</span>
+                    <span class="control-value" id="saturationValue">0.8</span>
+                </div>
+                <input type="range" class="control-slider" id="saturation" 
+                       min="0" max="1" step="0.01" value="0.8" 
+                       oninput="updateParameter('saturation', this.value)">
             </div>
         </div>
         
@@ -485,12 +497,30 @@
                 const { PolychoraSystem } = await import('./src/core/PolychoraSystem.js');
                 polychoraSystem = new PolychoraSystem();
                 
-                if (polychoraSystem.initialize()) {
+                // Temporarily show polychora layers for WebGL initialization
+                const polychoraLayers = document.getElementById('polychoraLayers');
+                const wasHidden = polychoraLayers.style.display === 'none';
+                if (wasHidden) {
+                    polychoraLayers.style.display = 'block';
+                }
+                
+                const success = polychoraSystem.initialize();
+                
+                // Hide again if it was hidden
+                if (wasHidden) {
+                    polychoraLayers.style.display = 'none';
+                }
+                
+                if (success) {
                     console.log('✅ Polychora System initialized');
                     return true;
+                } else {
+                    console.error('❌ Polychora System initialization failed');
+                    polychoraSystem = null;
                 }
             } catch (error) {
                 console.error('❌ Failed to initialize Polychora:', error);
+                polychoraSystem = null;
             }
             return false;
         }
@@ -512,10 +542,10 @@
             };
             document.getElementById('panelHeader').textContent = headers[system];
             
-            // Show/hide sections
+            // Show/hide sections based on system
             document.getElementById('geometrySection').style.display = 
                 system === 'holographic' ? 'none' : 'block';
-            document.getElementById('variationSection').style.display = 
+            document.getElementById('holographicSection').style.display = 
                 system === 'holographic' ? 'block' : 'none';
             
             // Setup geometry if needed
@@ -598,7 +628,9 @@
                 morphFactor: 'morphValue',
                 chaos: 'chaosValue',
                 speed: 'speedValue',
-                hue: 'hueValue'
+                hue: 'hueValue',
+                intensity: 'intensityValue',
+                saturation: 'saturationValue'
             };
             
             const display = document.getElementById(displays[param]);
@@ -620,9 +652,8 @@
                 
                 // Universal Interactivity notifications disabled until system is repaired
             } else if (currentSystem === 'holographic' && holographicSystem) {
-                // Holographic system is audio-reactive and doesn't use external parameter controls
-                // Only log parameter changes for debugging
-                console.log(`🌌 Holographic ${param}: ${value} (audio-reactive system, no manual control)`);
+                // Update holographic visualizers with the new parameter value
+                holographicSystem.updateParameter(param, parseFloat(value));
             } else if (currentSystem === 'polychora' && polychoraSystem) {
                 polychoraSystem.updateParameters({ [param]: parseFloat(value) });
                 
@@ -632,17 +663,7 @@
             console.log(`📊 ${param}: ${value}`);
         }
         
-        // Update variation (Holographic only)
-        window.updateVariation = function(value) {
-            document.getElementById('variationValue').textContent = 
-                `${parseInt(value) + 1} / 30`;
-            
-            if (holographicSystem && holographicSystem.updateVariant) {
-                holographicSystem.updateVariant(parseInt(value));
-            }
-            
-            console.log(`🌀 Variation: ${value}`);
-        }
+        // Old updateVariation function removed - holographic now uses parameters directly
         
         // Action functions
         window.openGallery = function() {
@@ -715,15 +736,45 @@
         }
         
         window.randomizeAll = function() {
-            // Randomize all sliders
+            // Two-stage randomization: parameters first, then geometry/hue
+            randomizeParameters();
+            setTimeout(() => randomizeGeometryAndHue(), 50);
+        }
+        
+        function randomizeParameters() {
+            // Randomize all parameters EXCEPT geometry and hue
+            const skipParams = ['geometry', 'hue'];
+            
             document.querySelectorAll('.control-slider').forEach(slider => {
-                const min = parseFloat(slider.min);
-                const max = parseFloat(slider.max);
-                const value = Math.random() * (max - min) + min;
-                slider.value = value;
-                slider.oninput();
+                const paramName = slider.id;
+                if (!skipParams.includes(paramName)) {
+                    const min = parseFloat(slider.min);
+                    const max = parseFloat(slider.max);
+                    const value = Math.random() * (max - min) + min;
+                    slider.value = value;
+                    slider.oninput();
+                }
             });
-            console.log('🎲 Randomized all parameters');
+            console.log('🎲 Stage 1: Randomized parameters (excluding geometry/hue)');
+        }
+        
+        function randomizeGeometryAndHue() {
+            // Randomize geometry selection
+            if (currentSystem !== 'holographic') {
+                const geometryCount = geometries[currentSystem]?.length || 8;
+                const randomGeometry = Math.floor(Math.random() * geometryCount);
+                selectGeometry(randomGeometry);
+            }
+            
+            // Randomize hue
+            const hueSlider = document.getElementById('hue');
+            if (hueSlider) {
+                const randomHue = Math.random() * 360;
+                hueSlider.value = randomHue;
+                hueSlider.oninput();
+            }
+            
+            console.log('🎲 Stage 2: Randomized geometry and hue');
         }
         
         window.resetAll = function() {
@@ -737,7 +788,8 @@
                 chaos: 0.2,
                 speed: 1,
                 hue: 200,
-                variationSlider: 0
+                intensity: 0.5,
+                saturation: 0.8
             };
             
             Object.entries(defaults).forEach(([id, value]) => {

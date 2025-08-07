@@ -143,6 +143,20 @@ export class RealHolographicSystem {
         this.updateVariant(variant);
     }
     
+    updateParameter(param, value) {
+        // Update individual parameter across all visualizers
+        this.visualizers.forEach(visualizer => {
+            if (visualizer.variantParams) {
+                visualizer.variantParams[param] = value;
+                // If it's a geometry type change, regenerate role params too
+                if (param === 'geometryType') {
+                    visualizer.roleParams = visualizer.generateRoleParams(visualizer.role);
+                }
+            }
+        });
+        console.log(`🌌 Updated holographic ${param}: ${value}`);
+    }
+    
     getCurrentVariantInfo() {
         return {
             variant: this.currentVariant,
