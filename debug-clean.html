@@ -90,16 +90,17 @@
         
         // Test Engine import
         try {
-            const { Engine } = await import('./src/core/Engine.js');
+            const { VIB34DIntegratedEngine } = await import('./src/core/Engine.js');
             log('✅ Engine module imported', 'success');
             
             try {
-                const engine = new Engine();
+                const engine = new VIB34DIntegratedEngine();
                 log('✅ Engine instantiated', 'success');
                 
                 try {
-                    await engine.initialize();
-                    log('✅ Engine initialized', 'success');
+                    // Engine auto-initializes in constructor, so just start it
+                    engine.start();
+                    log('✅ Engine started', 'success');
                     
                     // Check if visualizers exist
                     if (engine.visualizers && engine.visualizers.length > 0) {

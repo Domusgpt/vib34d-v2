@@ -419,7 +419,7 @@
     
     <script type="module">
         // Import VIB34D modules
-        import { Engine } from './src/core/Engine.js';
+        import { VIB34DIntegratedEngine } from './src/core/Engine.js';
         import { RealHolographicSystem } from './src/holograms/RealHolographicSystem.js';
         
         // Global state
@@ -454,8 +454,8 @@
         async function initializeEngine() {
             try {
                 // Initialize Faceted engine
-                engine = new Engine();
-                await engine.initialize();
+                engine = new VIB34DIntegratedEngine();
+                // Engine auto-initializes in constructor
                 engine.start();
                 console.log('✅ VIB34D Engine initialized');
                 
