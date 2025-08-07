@@ -15,17 +15,9 @@ export class CollectionManager {
     async autoDiscoverCollections() {
         console.log('🔍 Auto-discovering collections...');
         
-        // List of known collection files to try loading
+        // List of essential collection files to try loading
         const knownCollections = [
-            'base-variations.json',
-            'community-favorites.json',
-            'dual-geometry-experiments.json',
-            'holographic-gemstones.json',
-            'special-variations.json',
-            'geometric-dreams.json',
-            'experimental-forms.json',
-            'paul-custom-pack.json',
-            'custom-variations.json'
+            'base-variations.json'
         ];
         
         const loadPromises = knownCollections.map(filename => 
@@ -36,17 +28,12 @@ export class CollectionManager {
             })
         );
         
-        // Also try to load any user-custom files with date pattern
-        const datePattern = /user-custom-\d{4}-\d{2}-\d{2}\.json$/;
-        for (let i = 0; i < 10; i++) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            const dateStr = date.toISOString().split('T')[0];
-            const filename = `user-custom-${dateStr}.json`;
-            loadPromises.push(
-                this.loadCollection(filename).catch(() => null)
-            );
-        }
+        // Try to load current date user-custom file only
+        const currentDate = new Date().toISOString().split('T')[0];
+        const userFilename = `user-custom-${currentDate}.json`;
+        loadPromises.push(
+            this.loadCollection(userFilename).catch(() => null)
+        );
         
         const results = await Promise.allSettled(loadPromises);
         const loadedCount = results.filter(r => r.status === 'fulfilled' && r.value).length;
