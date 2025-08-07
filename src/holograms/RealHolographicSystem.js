@@ -144,17 +144,49 @@ export class RealHolographicSystem {
     }
     
     updateParameter(param, value) {
+        // Store custom parameter overrides
+        if (!this.customParams) {
+            this.customParams = {};
+        }
+        this.customParams[param] = value;
+        
         // Update individual parameter across all visualizers
         this.visualizers.forEach(visualizer => {
             if (visualizer.variantParams) {
                 visualizer.variantParams[param] = value;
-                // If it's a geometry type change, regenerate role params too
+                
+                // If it's a geometry type change, regenerate role params with new geometry
                 if (param === 'geometryType') {
                     visualizer.roleParams = visualizer.generateRoleParams(visualizer.role);
                 }
             }
         });
         console.log(`🌌 Updated holographic ${param}: ${value}`);
+    }
+    
+    // Override updateVariant to preserve custom parameters
+    updateVariant(newVariant) {
+        if (newVariant < 0) newVariant = this.totalVariants - 1;
+        if (newVariant >= this.totalVariants) newVariant = 0;
+        
+        this.currentVariant = newVariant;
+        
+        // Update all visualizers with new variant parameters
+        this.visualizers.forEach(visualizer => {
+            visualizer.variant = this.currentVariant;
+            visualizer.variantParams = visualizer.generateVariantParams(this.currentVariant);
+            visualizer.roleParams = visualizer.generateRoleParams(visualizer.role);
+            
+            // Apply any custom parameter overrides
+            if (this.customParams) {
+                Object.keys(this.customParams).forEach(param => {
+                    visualizer.variantParams[param] = this.customParams[param];
+                });
+            }
+        });
+        
+        this.updateVariantDisplay();
+        console.log(`🔄 REAL Holograms switched to variant ${this.currentVariant + 1}: ${this.variantNames[this.currentVariant]}`);
     }
     
     getCurrentVariantInfo() {

@@ -22,6 +22,8 @@ export class ParameterManager {
             chaos: 0.2,        // Randomization level (0 to 1)
             speed: 1.0,        // Animation speed (0.1 to 3)
             hue: 200,          // Color rotation (0 to 360)
+            intensity: 0.5,    // Visual intensity (0 to 1)
+            saturation: 0.8,   // Color saturation (0 to 1)
             
             // Geometry selection
             geometry: 0        // Current geometry type (0-7)
@@ -39,6 +41,8 @@ export class ParameterManager {
             chaos: { min: 0, max: 1, step: 0.01, type: 'float' },
             speed: { min: 0.1, max: 3, step: 0.01, type: 'float' },
             hue: { min: 0, max: 360, step: 1, type: 'int' },
+            intensity: { min: 0, max: 1, step: 0.01, type: 'float' },
+            saturation: { min: 0, max: 1, step: 0.01, type: 'float' },
             geometry: { min: 0, max: 7, step: 1, type: 'int' }
         };
         

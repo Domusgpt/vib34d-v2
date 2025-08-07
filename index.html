@@ -316,28 +316,12 @@
             </div>
         </div>
         
-        <!-- HOLOGRAPHIC PARAMETERS (Holographic only) -->
+        <!-- HOLOGRAPHIC PARAMETERS (Audio Reactive) -->
         <div class="control-section" id="holographicSection" style="display: none;">
-            <div class="section-title">HOLOGRAPHIC</div>
-            
-            <div class="control-group">
-                <div class="control-label">
-                    <span>Intensity</span>
-                    <span class="control-value" id="intensityValue">0.5</span>
-                </div>
-                <input type="range" class="control-slider" id="intensity" 
-                       min="0" max="1" step="0.01" value="0.5" 
-                       oninput="updateParameter('intensity', this.value)">
-            </div>
-            
-            <div class="control-group">
-                <div class="control-label">
-                    <span>Saturation</span>
-                    <span class="control-value" id="saturationValue">0.8</span>
-                </div>
-                <input type="range" class="control-slider" id="saturation" 
-                       min="0" max="1" step="0.01" value="0.8" 
-                       oninput="updateParameter('saturation', this.value)">
+            <div class="section-title">AUDIO REACTIVE</div>
+            <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.6); margin-bottom: 10px;">
+                💡 Holographic system responds to microphone input.<br>
+                Use geometry + visual parameters above to customize base appearance.
             </div>
         </div>
         
@@ -428,6 +412,26 @@
                 <input type="range" class="control-slider" id="hue" 
                        min="0" max="360" value="200" 
                        oninput="updateParameter('hue', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Intensity</span>
+                    <span class="control-value" id="intensityValue">0.5</span>
+                </div>
+                <input type="range" class="control-slider" id="intensity" 
+                       min="0" max="1" step="0.01" value="0.5" 
+                       oninput="updateParameter('intensity', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Saturation</span>
+                    <span class="control-value" id="saturationValue">0.8</span>
+                </div>
+                <input type="range" class="control-slider" id="saturation" 
+                       min="0" max="1" step="0.01" value="0.8" 
+                       oninput="updateParameter('saturation', this.value)">
             </div>
         </div>
         
@@ -543,15 +547,13 @@
             document.getElementById('panelHeader').textContent = headers[system];
             
             // Show/hide sections based on system
-            document.getElementById('geometrySection').style.display = 
-                system === 'holographic' ? 'none' : 'block';
+            // ALL systems show geometry section
+            document.getElementById('geometrySection').style.display = 'block';
             document.getElementById('holographicSection').style.display = 
                 system === 'holographic' ? 'block' : 'none';
             
-            // Setup geometry if needed
-            if (system !== 'holographic') {
-                setupGeometry(system);
-            }
+            // Setup geometry for current system
+            setupGeometry(system);
             
             // Switch visualization systems
             if (system === 'faceted') {
@@ -611,6 +613,8 @@
             if (currentSystem === 'faceted' && engine) {
                 engine.parameterManager.setParameter('geometry', index);
                 engine.updateVisualizers();
+            } else if (currentSystem === 'holographic' && holographicSystem) {
+                holographicSystem.updateParameter('geometryType', index);
             } else if (currentSystem === 'polychora' && polychoraSystem) {
                 polychoraSystem.setPolytope(index);
             }
