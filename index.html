@@ -552,11 +552,8 @@
                 if (polychoraSystem) polychoraSystem.start();
             }
             
-            // Update Universal Interactivity Engine if active
-            if (window.interactivityEngine) {
-                window.interactivityEngine.switchSystem(system);
-                console.log(`🎛️ Universal Interactivity switched to ${system} system`);
-            }
+            // Universal Interactivity Engine disabled until system is repaired
+            // TODO: Re-enable when Universal Interactivity is fixed
             
             console.log(`🔄 Switched to ${system} system`);
         }
@@ -621,21 +618,15 @@
                 engine.parameterManager.setParameter(param, parseFloat(value));
                 engine.updateVisualizers();
                 
-                // Also notify Universal Interactivity Engine if active
-                if (window.interactivityEngine) {
-                    window.interactivityEngine.notifyParameterChange(param, parseFloat(value), 'faceted');
-                }
+                // Universal Interactivity notifications disabled until system is repaired
             } else if (currentSystem === 'holographic' && holographicSystem) {
-                // Holographic system has different parameter methods - just log for now
-                console.log(`🌌 Holographic ${param}: ${value}`);
-                // TODO: Implement proper holographic parameter updates
+                // Holographic system is audio-reactive and doesn't use external parameter controls
+                // Only log parameter changes for debugging
+                console.log(`🌌 Holographic ${param}: ${value} (audio-reactive system, no manual control)`);
             } else if (currentSystem === 'polychora' && polychoraSystem) {
                 polychoraSystem.updateParameters({ [param]: parseFloat(value) });
                 
-                // Also notify Universal Interactivity Engine if active
-                if (window.interactivityEngine) {
-                    window.interactivityEngine.notifyParameterChange(param, parseFloat(value), 'polychora');
-                }
+                // Universal Interactivity notifications disabled until system is repaired
             }
             
             console.log(`📊 ${param}: ${value}`);
@@ -675,13 +666,8 @@
         }
         
         window.toggleInteractivity = async function() {
-            interactivityVisible = !interactivityVisible;
-            
-            // Simple interactivity toggle - disable for now until system is fixed
-            console.log(`🎛️ Interactivity toggle - currently disabled until system is repaired`);
-            showInteractivityOverlay();
-            
-            console.log(`🎛️ Universal Interactivity: ${interactivityVisible ? 'ACTIVE' : 'INACTIVE'} for ${currentSystem.toUpperCase()} system`);
+            console.log(`🎛️ Universal Interactivity System currently disabled - requires repair before use`);
+            console.log(`🔧 This system needs to be fixed before it can work with the existing visualization engines`);
         }
         
         function showInteractivityOverlay() {
@@ -770,6 +756,67 @@
                 toggleInteractivity();
             }
         });
+        
+        // UNIFIED GALLERY PARAMETER LOADING SYSTEM
+        // Listen for parameters loaded from advanced gallery via localStorage
+        function checkGalleryParameters() {
+            const savedParams = localStorage.getItem('vib34d-load-params');
+            if (savedParams) {
+                try {
+                    const data = JSON.parse(savedParams);
+                    console.log('🔗 Received parameters from gallery:', data);
+                    
+                    // Clear the stored parameters to prevent repeated loading
+                    localStorage.removeItem('vib34d-load-params');
+                    
+                    // Switch to the appropriate system
+                    if (data.system && data.system !== currentSystem) {
+                        switchSystem(data.system);
+                        // Wait for system switch to complete
+                        setTimeout(() => loadGalleryParameters(data), 100);
+                    } else {
+                        loadGalleryParameters(data);
+                    }
+                } catch (error) {
+                    console.error('❌ Failed to parse gallery parameters:', error);
+                    localStorage.removeItem('vib34d-load-params');
+                }
+            }
+        }
+        
+        function loadGalleryParameters(data) {
+            const { system, parameters, globalId } = data;
+            console.log(`🎯 Loading ${system} variation #${globalId} from gallery`);
+            
+            if (system === 'faceted' && engine) {
+                // Load VIB34D parameters
+                Object.entries(parameters).forEach(([param, value]) => {
+                    if (param === 'geometry' && typeof value === 'number') {
+                        selectGeometry(value);
+                    } else {
+                        const slider = document.getElementById(param);
+                        if (slider) {
+                            slider.value = value;
+                            updateParameter(param, value);
+                        }
+                    }
+                });
+            } else if (system === 'holographic' && holographicSystem) {
+                // Load Holographic variation
+                if (parameters.variation !== undefined) {
+                    document.getElementById('variationSlider').value = parameters.variation;
+                    updateVariation(parameters.variation);
+                }
+            }
+            
+            console.log(`✅ Successfully loaded variation #${globalId} from gallery`);
+        }
+        
+        // Check for gallery parameters on page load and periodically
+        setInterval(checkGalleryParameters, 500);
+        
+        // Also check when page gains focus (user returns from gallery)
+        window.addEventListener('focus', checkGalleryParameters);
     </script>
 </body>
 </html>
