@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D Polychora System Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #00ffff;
+            font-family: 'Courier New', monospace;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #ff00ff;
+            text-shadow: 0 0 20px #ff00ff;
+        }
+        .info-box {
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-link {
+            display: inline-block;
+            background: rgba(255, 0, 255, 0.2);
+            border: 2px solid #ff00ff;
+            color: #ff00ff;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+        .test-link:hover {
+            background: rgba(255, 0, 255, 0.4);
+            box-shadow: 0 0 20px #ff00ff;
+        }
+        .status {
+            color: #00ff00;
+        }
+        .warning {
+            color: #ffff00;
+        }
+        code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔮 VIB34D Polychora System Test Page</h1>
+        
+        <div class="info-box">
+            <h2 class="status">✅ Polychora Branch Deployed</h2>
+            <p>This page tests the new <strong>Polychora System</strong> with real 4D polytope mathematics.</p>
+            <p>Branch: <code>polychora-redesign</code></p>
+            <p>Status: <span class="status">READY FOR TESTING</span></p>
+        </div>
+
+        <div class="info-box">
+            <h2>🌌 What's New in Polychora System</h2>
+            <ul>
+                <li>✨ <strong>6 Regular 4D Polytopes:</strong> 5-Cell, Tesseract, 16-Cell, 24-Cell, 600-Cell, 120-Cell</li>
+                <li>🔮 <strong>5-Layer Glassmorphic Rendering:</strong> Background, Shadow, Content, Highlight, Accent</li>
+                <li>📐 <strong>Real 4D Mathematics:</strong> Proper distance functions and projections</li>
+                <li>💎 <strong>Line-Based Visualization:</strong> Core lines with soft glow and edge detection</li>
+                <li>🌈 <strong>Unique Visual Style:</strong> Different from Faceted and Holographic systems</li>
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <h2>🧪 Test Links</h2>
+            <div style="text-align: center;">
+                <a href="index.html" class="test-link">
+                    🚀 Launch Full VIB34D System
+                </a>
+                <a href="#" onclick="testPolychora()" class="test-link">
+                    🔮 Test Polychora Tab Only
+                </a>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h2>📝 Testing Instructions</h2>
+            <ol>
+                <li>Click "Launch Full VIB34D System" to open the complete application</li>
+                <li>Navigate to the <strong>🔮 Polychora</strong> tab (third tab)</li>
+                <li>Test the 6 polytope geometry buttons: 5-Cell, Tesseract, 16-Cell, etc.</li>
+                <li>Adjust the 4D rotation sliders (XW, YW, ZW planes)</li>
+                <li>Modify lattice density and projection depth</li>
+                <li>Check that glassmorphic line effects are rendering correctly</li>
+            </ol>
+        </div>
+
+        <div class="info-box">
+            <h2 class="warning">⚠️ Known Issues</h2>
+            <ul>
+                <li>Polychora system requires WebGL support</li>
+                <li>Performance may vary based on GPU capabilities</li>
+                <li>Universal interactivity system not yet implemented (coming next)</li>
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <h2>🔗 GitHub Links</h2>
+            <p>
+                Repository: <a href="https://github.com/domusgpt/vib34d-holographic-engine" style="color: #00ffff;">
+                    github.com/domusgpt/vib34d-holographic-engine
+                </a>
+            </p>
+            <p>
+                Branch: <a href="https://github.com/domusgpt/vib34d-holographic-engine/tree/polychora-redesign" style="color: #00ffff;">
+                    polychora-redesign
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function testPolychora() {
+            // Navigate directly to Polychora tab
+            window.location.href = 'index.html#polychora';
+        }
+
+        // Add some visual effects
+        document.addEventListener('DOMContentLoaded', () => {
+            const title = document.querySelector('h1');
+            let hue = 0;
+            setInterval(() => {
+                hue = (hue + 1) % 360;
+                title.style.textShadow = `0 0 20px hsl(${hue}, 100%, 50%)`;
+            }, 50);
+        });
+    </script>
+</body>
+</html>
