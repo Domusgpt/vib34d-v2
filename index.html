@@ -438,6 +438,9 @@
         <!-- ACTION BUTTONS -->
         <div class="action-row">
             <button class="panel-btn" onclick="randomizeAll()">🎲 Random</button>
+            <button class="panel-btn" onclick="randomizeEverything()">🌀 Full</button>
+        </div>
+        <div class="action-row">
             <button class="panel-btn" onclick="resetAll()">🔄 Reset</button>
         </div>
     </div>
@@ -656,8 +659,10 @@
                 
                 // Universal Interactivity notifications disabled until system is repaired
             } else if (currentSystem === 'holographic' && holographicSystem) {
-                // Update holographic visualizers with the new parameter value
-                holographicSystem.updateParameter(param, parseFloat(value));
+                // Map parameter names for holographic system
+                const holoParam = param === 'gridDensity' ? 'density' : 
+                                 param === 'morphFactor' ? 'morph' : param;
+                holographicSystem.updateParameter(holoParam, parseFloat(value));
             } else if (currentSystem === 'polychora' && polychoraSystem) {
                 polychoraSystem.updateParameters({ [param]: parseFloat(value) });
                 
@@ -740,14 +745,19 @@
         }
         
         window.randomizeAll = function() {
-            // Two-stage randomization: parameters first, then geometry/hue
+            // Randomize ONLY parameters (NO hue, NO geometry)
+            randomizeParameters();
+        }
+        
+        window.randomizeEverything = function() {
+            // Full randomization: parameters + geometry + hue
             randomizeParameters();
             setTimeout(() => randomizeGeometryAndHue(), 50);
         }
         
         function randomizeParameters() {
-            // Randomize all parameters EXCEPT geometry and hue
-            const skipParams = ['geometry', 'hue'];
+            // Randomize all parameters EXCEPT hue and geometry
+            const skipParams = ['hue'];
             
             document.querySelectorAll('.control-slider').forEach(slider => {
                 const paramName = slider.id;
@@ -759,7 +769,7 @@
                     slider.oninput();
                 }
             });
-            console.log('🎲 Stage 1: Randomized parameters (excluding geometry/hue)');
+            console.log('🎲 Parameters randomized (NO hue, NO geometry)');
         }
         
         function randomizeGeometryAndHue() {
