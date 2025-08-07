@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery Debug Test</title>
+    <style>
+        body { background: #000; color: #fff; font-family: monospace; padding: 20px; }
+        .log { margin: 10px 0; padding: 10px; border-left: 3px solid #00ffff; }
+        .error { border-left-color: #ff6b6b; }
+        .success { border-left-color: #51cf66; }
+    </style>
+</head>
+<body>
+    <h1>VIB34D Gallery Debug Test</h1>
+    <div id="output"></div>
+    
+    <script>
+        // Override console.log to show in UI
+        const output = document.getElementById('output');
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            output.innerHTML += `<div class="log success">${args.join(' ')}</div>`;
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            output.innerHTML += `<div class="log error">ERROR: ${args.join(' ')}</div>`;
+        };
+        
+        // Clear any old localStorage that might interfere
+        console.log('🧹 Clearing localStorage...');
+        localStorage.clear();
+        
+        async function testGallerySystem() {
+            try {
+                console.log('🔍 Testing Gallery System...');
+                console.log('Current URL:', window.location.href);
+                
+                // Test 1: Direct file access
+                console.log('📁 Testing direct file access...');
+                const response = await fetch('./collections/base-variations.json');
+                console.log(`Response status: ${response.status}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(`✅ base-variations.json loaded: ${data.name} (${data.variations.length} variations)`);
+                } else {
+                    console.error(`❌ Failed to load base-variations.json: ${response.status}`);
+                    return;
+                }
+                
+                // Test 2: CollectionManager
+                console.log('🔧 Testing CollectionManager...');
+                const { CollectionManager } = await import('./src/features/CollectionManager.js');
+                const manager = new CollectionManager();
+                
+                console.log('📦 Calling autoDiscoverCollections...');
+                const collections = await manager.autoDiscoverCollections();
+                
+                console.log(`✅ Collections discovered: ${collections.length}`);
+                collections.forEach(col => {
+                    console.log(`  - ${col.name}: ${col.variations.length} variations`);
+                });
+                
+                // Test 3: Check for any network errors
+                console.log('🌐 Test completed successfully!');
+                
+            } catch (error) {
+                console.error('❌ Test failed:', error);
+                console.error('Stack:', error.stack);
+            }
+        }
+        
+        // Run test when page loads
+        window.addEventListener('load', testGallerySystem);
+    </script>
+</body>
+</html>

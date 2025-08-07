@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gallery Debug Test</title>
+</head>
+<body>
+    <h1>Gallery Debug Test</h1>
+    <div id="output"></div>
+    
+    <script>
+        async function testCollectionFetch() {
+            const output = document.getElementById('output');
+            
+            try {
+                console.log('Testing collection fetch...');
+                
+                // Test 1: Check if base-variations.json exists
+                const response = await fetch('./collections/base-variations.json');
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ base-variations.json loaded successfully');
+                    console.log('Collection name:', data.name);
+                    console.log('Variations count:', data.variations.length);
+                    output.innerHTML += '<p>✅ base-variations.json loaded successfully</p>';
+                    output.innerHTML += '<p>Collection: ' + data.name + '</p>';
+                    output.innerHTML += '<p>Variations: ' + data.variations.length + '</p>';
+                } else {
+                    console.error('❌ Failed to load base-variations.json:', response.status);
+                    output.innerHTML += '<p>❌ Failed to load base-variations.json: ' + response.status + '</p>';
+                }
+                
+                // Test 2: Try CollectionManager
+                const { CollectionManager } = await import('./src/features/CollectionManager.js');
+                const manager = new CollectionManager();
+                const collections = await manager.autoDiscoverCollections();
+                
+                console.log('✅ CollectionManager imported successfully');
+                console.log('Auto-discovered collections:', collections.length);
+                output.innerHTML += '<p>✅ CollectionManager works</p>';
+                output.innerHTML += '<p>Discovered collections: ' + collections.length + '</p>';
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                output.innerHTML += '<p>❌ Error: ' + error.message + '</p>';
+            }
+        }
+        
+        window.addEventListener('load', testCollectionFetch);
+    </script>
+</body>
+</html>
