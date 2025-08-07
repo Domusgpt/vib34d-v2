@@ -574,6 +574,19 @@
         <button class="action-tab" onclick="openUnifiedGallery()" title="Open gallery">🖼️</button>
     </div>
 
+    <!-- Unified Navigation Bar -->
+    <div class="unified-nav-bar" id="unifiedNavBar">
+        <div class="nav-current-info">
+            <span class="nav-type-indicator" id="navTypeIndicator">🔷 FACETED</span>
+            <span class="nav-visual-number" id="navVisualNumber">#1</span>
+        </div>
+        <div class="nav-controls">
+            <button class="nav-btn" onclick="previousVisual()" title="Previous visual">‹</button>
+            <button class="nav-btn" onclick="nextVisual()" title="Next visual">›</button>
+            <button class="nav-btn" onclick="randomizeCurrentVisual()" title="Randomize current">🎲</button>
+        </div>
+    </div>
+
     <!-- Control Panel -->
     <div class="control-panel collapsed" id="controlPanel">
         <div class="collapse-toggle" id="collapseToggle" onclick="toggleControlPanel()">‹</div>
@@ -605,23 +618,7 @@
         <div class="tab-content active" id="variations-tab">
             <!-- Variation slider removed - not needed for Faceted mode -->
             
-            <div class="collapsible-section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <span>🎮 Navigation</span>
-                    <span class="toggle-arrow">▼</span>
-                </div>
-                <div class="section-content">
-                    <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                        <button class="btn" onclick="engine.previousVariation()" style="flex: 1; font-size: 0.7rem;">← Prev</button>
-                        <button class="btn" onclick="randomizeParameters('VIB34D')" style="flex: 1; font-size: 0.7rem;">🎲</button>
-                        <button class="btn" onclick="engine.nextVariation()" style="flex: 1; font-size: 0.7rem;">Next →</button>
-                    </div>
-                    <div style="display: flex; gap: 5px;">
-                        <button class="btn" onclick="saveVIB34DToGallery()" style="flex: 1; font-size: 0.7rem; background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">💾 Save</button>
-                        <button class="btn" onclick="openUnifiedGallery()" style="flex: 1; font-size: 0.7rem;">🖼️ Gallery</button>
-                    </div>
-                </div>
-            </div>
+            <!-- Navigation section removed - moved to unified navigation bar -->
             
             <div class="collapsible-section">
                 <div class="section-header" onclick="toggleSection(this)">
@@ -699,7 +696,7 @@
                     </div>
                     <div style="display: flex; gap: 5px;">
                         <button class="btn" id="vib34dAudioToggle" onclick="toggleVIB34DAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio</button>
-                        <button class="btn" onclick="saveVIB34DToGallery()" style="flex: 1; font-size: 0.7rem; background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">💾 Save</button>
+                        <!-- Save button removed - now in unified navigation -->
                     </div>
                 </div>
             </div>
@@ -746,9 +743,8 @@
                 <h4 style="color: #00ffff; margin-bottom: 10px; font-size: 0.9rem;">⚙️ System Controls</h4>
                 <div style="display: flex; gap: 10px; margin-bottom: 10px;">
                     <button class="btn" id="vib34dAudioToggle2" onclick="toggleVIB34DAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio Off</button>
-                    <button class="btn" onclick="saveVIB34DToGallery()" style="flex: 1; font-size: 0.7rem; background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">💾 Save</button>
+                    <!-- Save and Gallery buttons removed - now in unified navigation -->
                 </div>
-                <button class="btn" onclick="openUnifiedGallery()" style="width: 100%; font-size: 0.7rem; background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">🖼️ Gallery</button>
             </div>
         </div>
         
@@ -855,9 +851,9 @@
                 <div style="margin-top: 15px;">
                     <div style="display: flex; gap: 10px; margin-bottom: 10px;">
                         <button class="btn" id="holoAudioToggle" onclick="toggleHolographicAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio On</button>
-                        <button class="btn" onclick="saveHologramToGallery()" style="flex: 1; font-size: 0.7rem; background: rgba(255,100,255,0.3); border-color: #ff64ff; color: #ff64ff;">💾 Save</button>
+                        <!-- Save button removed - now in unified navigation -->
                     </div>
-                    <button class="btn" onclick="openUnifiedGallery()" style="width: 100%; font-size: 0.7rem; background: rgba(0,255,100,0.3); border-color: #00ff64; color: #00ff64;">🖼️ Gallery</button>
+                    <!-- Gallery button removed - now in unified navigation -->
                 </div>
             </div>
             
@@ -1038,6 +1034,11 @@
             console.log('🔮 100 Geometric Variations Available');
             console.log('🧮 4D Polytopal Mathematics Ready');
             console.log('🎮 Interactive Controls Enabled');
+            
+            // Initialize unified navigation
+            setTimeout(() => {
+                updateUnifiedNav();
+            }, 100);
         }).catch(error => {
             console.error('❌ Failed to load VIB34D Engine:', error);
             document.body.innerHTML += '<div style="color: red; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: black; padding: 20px; border: 1px solid red;">VIB34D Loading Error: ' + error.message + '</div>';
@@ -1476,6 +1477,9 @@
             if (indicator) {
                 indicator.textContent = systemType === 'VIB34D' ? '🔷 VIB34D System' : '✨ Holographic System';
             }
+
+            // Update unified navigation
+            updateUnifiedNav();
             
             showParameterNotification(`🔄 Switched to ${systemType}`, 'System active and ready');
         };
@@ -2157,6 +2161,46 @@
             }
         };
 
+        // Unified Navigation Functions
+        let currentVisualNumber = 1;
+
+        window.updateUnifiedNav = function() {
+            const typeIndicator = document.getElementById('navTypeIndicator');
+            const visualNumber = document.getElementById('navVisualNumber');
+            
+            if (unifiedParameters.systemType === 'VIB34D' || !window.realHoloSystem || !window.realHoloSystem.isActive) {
+                typeIndicator.textContent = '🔷 FACETED';
+                typeIndicator.style.color = '#00ffff';
+                typeIndicator.style.borderColor = 'rgba(0,255,255,0.3)';
+            } else {
+                typeIndicator.textContent = '🌀 HOLOGRAPHIC';
+                typeIndicator.style.color = '#ff64ff';
+                typeIndicator.style.borderColor = 'rgba(255,100,255,0.3)';
+            }
+            
+            visualNumber.textContent = `#${currentVisualNumber}`;
+        };
+
+        window.previousVisual = function() {
+            // Just randomize parameters - don't use broken variation system
+            randomizeParameters();
+            currentVisualNumber = Math.max(1, currentVisualNumber - 1);
+            updateUnifiedNav();
+        };
+
+        window.nextVisual = function() {
+            // Just randomize parameters - don't use broken variation system
+            randomizeParameters();
+            currentVisualNumber = currentVisualNumber + 1;
+            updateUnifiedNav();
+        };
+
+        window.randomizeCurrentVisual = function() {
+            randomizeParameters();
+            currentVisualNumber = Math.floor(Math.random() * 1000) + 1;
+            updateUnifiedNav();
+        };
+
         window.updateHoloSliders = function(params) {
             // Update all holographic parameter sliders and displays
             const paramMap = {
@@ -2373,6 +2417,97 @@
                 width: 40px;
                 height: 40px;
                 font-size: 1rem;
+            }
+        }
+
+        /* Unified Navigation Bar */
+        .unified-nav-bar {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(0,0,0,0.9);
+            border: 1px solid rgba(0,255,255,0.5);
+            border-radius: 10px;
+            padding: 10px 15px;
+            backdrop-filter: blur(15px);
+            z-index: 9999;
+        }
+
+        .nav-current-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-type-indicator {
+            color: #00ffff;
+            font-weight: bold;
+            font-size: 0.9rem;
+            padding: 3px 8px;
+            background: rgba(0,255,255,0.1);
+            border: 1px solid rgba(0,255,255,0.3);
+            border-radius: 5px;
+        }
+
+        .nav-visual-number {
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .nav-btn {
+            width: 35px;
+            height: 35px;
+            border: 1px solid rgba(0,255,255,0.4);
+            background: rgba(0,255,255,0.1);
+            color: #00ffff;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0,255,255,0.3);
+            border-color: #00ffff;
+            box-shadow: 0 0 10px rgba(0,255,255,0.4);
+        }
+
+        /* Mobile responsive for unified nav */
+        @media (max-width: 768px) {
+            .unified-nav-bar {
+                top: 10px;
+                left: 10px;
+                padding: 8px 12px;
+                gap: 10px;
+            }
+            
+            .nav-type-indicator {
+                font-size: 0.8rem;
+                padding: 2px 6px;
+            }
+            
+            .nav-visual-number {
+                font-size: 1rem;
+            }
+            
+            .nav-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 0.9rem;
             }
         }
     </style>
