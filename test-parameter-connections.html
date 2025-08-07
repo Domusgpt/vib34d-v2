@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parameter Connection Test</title>
+    <style>
+        body {
+            background: #000;
+            color: #0ff;
+            font-family: monospace;
+            padding: 20px;
+        }
+        .test-section {
+            background: rgba(0,255,255,0.1);
+            border: 2px solid #0ff;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+        .warning { color: #ff0; }
+        button {
+            background: rgba(0,255,255,0.2);
+            border: 2px solid #0ff;
+            color: #0ff;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: rgba(0,255,255,0.4);
+        }
+    </style>
+</head>
+<body>
+    <h1>🔬 VIB34D Parameter Connection Test</h1>
+    
+    <div class="test-section">
+        <h2>📋 Test Results</h2>
+        <div id="testResults"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🎛️ Parameter Tests</h2>
+        <button onclick="testAllSliders()">Test All Sliders</button>
+        <button onclick="testGeometryButtons()">Test Geometry Buttons</button>
+        <button onclick="testSystemSwitching()">Test System Switching</button>
+        <button onclick="testInteractivity()">Test Universal Interactivity</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>🖼️ Canvas Status</h2>
+        <div id="canvasStatus"></div>
+    </div>
+    
+    <script type="module">
+        const log = (msg, type = 'info') => {
+            const results = document.getElementById('testResults');
+            const entry = document.createElement('div');
+            entry.className = type;
+            entry.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${msg}`;
+            results.appendChild(entry);
+            console.log(msg);
+        };
+
+        let testWindow = null;
+
+        // Open clean interface for testing
+        window.openTestInterface = () => {
+            testWindow = window.open('./clean-index.html', 'vib34d-test', 'width=1200,height=800');
+            log('✅ Opened clean interface for testing', 'success');
+            
+            // Wait for load then run tests
+            setTimeout(() => {
+                if (testWindow && testWindow.engine) {
+                    runParameterTests();
+                } else {
+                    log('⚠️ Waiting for test interface to initialize...', 'warning');
+                    setTimeout(runParameterTests, 2000);
+                }
+            }, 1000);
+        };
+
+        window.testAllSliders = () => {
+            log('🎛️ Testing all parameter sliders...');
+            
+            // Test slider IDs match what's expected
+            const expectedSliders = [
+                'rot4dXW', 'rot4dYW', 'rot4dZW',
+                'gridDensity', 'morphFactor', 'chaos', 'speed', 'hue'
+            ];
+            
+            expectedSliders.forEach(sliderId => {
+                // Simulate slider change
+                const testValue = Math.random() * 2 - 1; // Random value
+                log(`Testing slider: ${sliderId} = ${testValue.toFixed(2)}`, 'info');
+                
+                if (testWindow && testWindow.updateParameter) {
+                    try {
+                        testWindow.updateParameter(sliderId, testValue);
+                        log(`✅ ${sliderId} parameter updated successfully`, 'success');
+                    } catch (error) {
+                        log(`❌ ${sliderId} parameter update failed: ${error.message}`, 'error');
+                    }
+                } else {
+                    log(`⚠️ ${sliderId} test window not ready`, 'warning');
+                }
+            });
+        };
+
+        window.testGeometryButtons = () => {
+            log('📐 Testing geometry selection...');
+            
+            if (testWindow && testWindow.selectGeometry) {
+                for (let i = 0; i < 6; i++) {
+                    setTimeout(() => {
+                        try {
+                            testWindow.selectGeometry(i);
+                            log(`✅ Geometry ${i} selected successfully`, 'success');
+                        } catch (error) {
+                            log(`❌ Geometry ${i} selection failed: ${error.message}`, 'error');
+                        }
+                    }, i * 500);
+                }
+            } else {
+                log('❌ Test window selectGeometry not available', 'error');
+            }
+        };
+
+        window.testSystemSwitching = () => {
+            log('🔄 Testing system switching...');
+            
+            const systems = ['faceted', 'holographic', 'polychora'];
+            
+            systems.forEach((system, index) => {
+                setTimeout(() => {
+                    if (testWindow && testWindow.switchSystem) {
+                        try {
+                            testWindow.switchSystem(system);
+                            log(`✅ Switched to ${system} system`, 'success');
+                        } catch (error) {
+                            log(`❌ ${system} system switch failed: ${error.message}`, 'error');
+                        }
+                    } else {
+                        log(`❌ Test window switchSystem not available`, 'error');
+                    }
+                }, index * 1000);
+            });
+        };
+
+        window.testInteractivity = () => {
+            log('🎛️ Testing Universal Interactivity...');
+            
+            if (testWindow && testWindow.toggleInteractivity) {
+                try {
+                    testWindow.toggleInteractivity();
+                    log('✅ Universal Interactivity toggled', 'success');
+                    
+                    // Test again to toggle off
+                    setTimeout(() => {
+                        testWindow.toggleInteractivity();
+                        log('✅ Universal Interactivity toggled off', 'success');
+                    }, 2000);
+                } catch (error) {
+                    log(`❌ Universal Interactivity test failed: ${error.message}`, 'error');
+                }
+            } else {
+                log('❌ Test window toggleInteractivity not available', 'error');
+            }
+        };
+
+        function checkCanvasStatus() {
+            const statusDiv = document.getElementById('canvasStatus');
+            statusDiv.innerHTML = '';
+            
+            const canvasIds = [
+                'background-canvas', 'shadow-canvas', 'content-canvas', 'highlight-canvas', 'accent-canvas',
+                'polychora-background-canvas', 'polychora-shadow-canvas', 'polychora-content-canvas', 
+                'polychora-highlight-canvas', 'polychora-accent-canvas'
+            ];
+            
+            canvasIds.forEach(id => {
+                const canvas = testWindow ? testWindow.document.getElementById(id) : null;
+                const status = canvas ? (canvas.width > 0 && canvas.height > 0 ? '✅' : '⚠️') : '❌';
+                statusDiv.innerHTML += `<div>${status} ${id}: ${canvas ? `${canvas.width}x${canvas.height}` : 'Not found'}</div>`;
+            });
+        }
+
+        // Auto-open test interface
+        log('🚀 Parameter Connection Test Starting...');
+        log('📖 This test will verify all parameter sliders work correctly');
+        
+        // Open test interface automatically
+        setTimeout(() => {
+            openTestInterface();
+        }, 1000);
+
+        // Check canvas status periodically
+        setInterval(() => {
+            if (testWindow) {
+                checkCanvasStatus();
+            }
+        }, 2000);
+
+        // Add test interface opener
+        window.openTestInterface = openTestInterface;
+    </script>
+</body>
+</html>

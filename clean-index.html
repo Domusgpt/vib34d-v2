@@ -276,8 +276,8 @@
     
     <!-- Canvas Container -->
     <div class="canvas-container" id="canvasContainer">
-        <!-- 5-Layer Canvas System -->
-        <div class="holographic-layers" id="holoLayers">
+        <!-- VIB34D Faceted System Canvases -->
+        <div class="holographic-layers" id="vib34dLayers">
             <canvas id="background-canvas" class="visualization-canvas"></canvas>
             <canvas id="shadow-canvas" class="visualization-canvas"></canvas>
             <canvas id="content-canvas" class="visualization-canvas"></canvas>
@@ -285,7 +285,16 @@
             <canvas id="accent-canvas" class="visualization-canvas"></canvas>
         </div>
         
-        <!-- Polychora Layers (hidden by default) -->
+        <!-- Holographic System Canvases -->
+        <div class="holographic-layers" id="holographicLayers" style="display: none;">
+            <canvas id="holo-background-canvas" class="visualization-canvas"></canvas>
+            <canvas id="holo-shadow-canvas" class="visualization-canvas"></canvas>
+            <canvas id="holo-content-canvas" class="visualization-canvas"></canvas>
+            <canvas id="holo-highlight-canvas" class="visualization-canvas"></canvas>
+            <canvas id="holo-accent-canvas" class="visualization-canvas"></canvas>
+        </div>
+        
+        <!-- Polychora System Canvases -->
         <div class="holographic-layers" id="polychoraLayers" style="display: none;">
             <canvas id="polychora-background-canvas" class="visualization-canvas"></canvas>
             <canvas id="polychora-shadow-canvas" class="visualization-canvas"></canvas>
@@ -453,10 +462,8 @@
         // Initialize VIB34D Engine
         async function initializeEngine() {
             try {
-                // Initialize Faceted engine
+                // Initialize Faceted engine (auto-initializes in constructor)
                 engine = new VIB34DIntegratedEngine();
-                // Engine auto-initializes in constructor
-                engine.start();
                 console.log('✅ VIB34D Engine initialized');
                 
                 // Initialize Holographic system
@@ -518,24 +525,26 @@
             
             // Switch visualization systems
             if (system === 'faceted') {
-                // Show VIB34D canvases
-                document.getElementById('holoLayers').style.display = 'block';
+                // Show VIB34D canvases, hide others
+                document.getElementById('vib34dLayers').style.display = 'block';
+                document.getElementById('holographicLayers').style.display = 'none';
                 document.getElementById('polychoraLayers').style.display = 'none';
                 if (holographicSystem) holographicSystem.setActive(false);
                 if (polychoraSystem) polychoraSystem.stop();
-                if (engine) engine.start();
+                // VIB34DIntegratedEngine runs automatically, no start() method
             } else if (system === 'holographic') {
-                // Show Holographic canvases
-                document.getElementById('holoLayers').style.display = 'block';
+                // Show Holographic canvases, hide others
+                document.getElementById('vib34dLayers').style.display = 'none';
+                document.getElementById('holographicLayers').style.display = 'block';
                 document.getElementById('polychoraLayers').style.display = 'none';
-                if (engine) engine.stop();
                 if (polychoraSystem) polychoraSystem.stop();
                 if (holographicSystem) holographicSystem.setActive(true);
+                // VIB34DIntegratedEngine continues running in background
             } else if (system === 'polychora') {
-                // Show Polychora canvases
-                document.getElementById('holoLayers').style.display = 'none';
+                // Show Polychora canvases, hide others
+                document.getElementById('vib34dLayers').style.display = 'none';
+                document.getElementById('holographicLayers').style.display = 'none';
                 document.getElementById('polychoraLayers').style.display = 'block';
-                if (engine) engine.stop();
                 if (holographicSystem) holographicSystem.setActive(false);
                 
                 // Initialize Polychora if needed
@@ -649,7 +658,12 @@
         // Action functions
         window.openGallery = function() {
             console.log('🖼️ Opening gallery...');
-            // TODO: Implement gallery
+            if (engine && engine.openGalleryView) {
+                engine.openGalleryView();
+            } else {
+                // Fallback: open advanced gallery
+                window.open('./advanced-gallery.html', 'vib34d-gallery', 'width=1200,height=800');
+            }
         }
         
         window.toggleAudio = async function() {
