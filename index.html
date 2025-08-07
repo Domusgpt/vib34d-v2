@@ -248,6 +248,22 @@
             background: rgba(0, 255, 255, 0.3);
             border-radius: 5px;
         }
+        
+        /* Hide gallery modal by default */
+        .modal.gallery-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+        }
+        
+        .modal.gallery-modal.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -677,12 +693,8 @@
         // Action functions
         window.openGallery = function() {
             console.log('🖼️ Opening gallery...');
-            if (engine && engine.openGalleryView) {
-                engine.openGalleryView();
-            } else {
-                // Fallback: open advanced gallery
-                window.open('./advanced-gallery.html', 'vib34d-gallery', 'width=1200,height=800');
-            }
+            // Always open the new unified gallery instead of engine modal
+            window.open('./gallery.html', 'vib34d-gallery', 'width=1200,height=800');
         }
         
         window.toggleAudio = async function() {
