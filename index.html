@@ -971,6 +971,19 @@
                     document.getElementById('variationSlider').value = parameters.variation;
                     updateVariation(parameters.variation);
                 }
+            } else if (system === 'polychora' && polychoraSystem) {
+                // Load Polychora parameters
+                console.log('🔮 Loading Polychora parameters:', parameters);
+                polychoraSystem.updateParameters(parameters);
+                
+                // Update UI sliders if they exist
+                Object.entries(parameters).forEach(([param, value]) => {
+                    const slider = document.getElementById(param);
+                    if (slider) {
+                        slider.value = value;
+                        // Trigger parameter update event if needed
+                    }
+                });
             }
             
             console.log(`✅ Successfully loaded variation #${globalId} from gallery`);

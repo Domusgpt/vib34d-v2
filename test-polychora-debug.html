@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polychora Debug Test</title>
+    <style>
+        body { 
+            background: #000; 
+            color: #fff; 
+            font-family: monospace; 
+            padding: 20px;
+            margin: 0;
+        }
+        .log { 
+            margin: 5px 0; 
+            padding: 8px; 
+            border-left: 3px solid #00ffff;
+            font-size: 12px;
+        }
+        .error { border-left-color: #ff6b6b; }
+        .success { border-left-color: #51cf66; }
+        .warning { border-left-color: #ffa500; }
+        
+        .polychora-container {
+            position: fixed;
+            top: 200px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            border: 2px solid #00ffff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .visualization-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+        }
+        
+        .controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <h2>Polychora System Debug Test</h2>
+        <div id="output"></div>
+        <button onclick="testPolychora()" style="margin-top: 10px; padding: 5px 10px;">Test Polychora</button>
+        <button onclick="togglePolychora()" style="margin: 10px 5px; padding: 5px 10px;">Toggle System</button>
+    </div>
+    
+    <div id="polychoraLayers" class="polychora-container">
+        <canvas id="polychora-background-canvas" class="visualization-canvas"></canvas>
+        <canvas id="polychora-shadow-canvas" class="visualization-canvas"></canvas>
+        <canvas id="polychora-content-canvas" class="visualization-canvas"></canvas>
+        <canvas id="polychora-highlight-canvas" class="visualization-canvas"></canvas>
+        <canvas id="polychora-accent-canvas" class="visualization-canvas"></canvas>
+    </div>
+    
+    <script>
+        let output, polychoraSystem;
+        let isActive = false;
+        
+        // Override console logging
+        function log(message, type = 'log') {
+            if (!output) output = document.getElementById('output');
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warn' ? 'warning' : '';
+            output.innerHTML += `<div class="log ${className}">${message}</div>`;
+            output.scrollTop = output.scrollHeight;
+            console[type](message);
+        }
+        
+        async function testPolychora() {
+            try {
+                log('🔮 Testing Polychora System...', 'log');
+                
+                // Test 1: Check canvas elements
+                const layers = ['background', 'shadow', 'content', 'highlight', 'accent'];
+                let canvasesFound = 0;
+                
+                layers.forEach(layer => {
+                    const canvasId = `polychora-${layer}-canvas`;
+                    const canvas = document.getElementById(canvasId);
+                    if (canvas) {
+                        canvasesFound++;
+                        log(`✅ Canvas found: ${canvasId}`, 'success');
+                    } else {
+                        log(`❌ Missing canvas: ${canvasId}`, 'error');
+                    }
+                });
+                
+                log(`📊 Canvas elements: ${canvasesFound}/${layers.length}`, canvasesFound === layers.length ? 'success' : 'warning');
+                
+                // Test 2: Import PolychoraSystem
+                log('📦 Importing PolychoraSystem...', 'log');
+                const { PolychoraSystem } = await import('./src/core/PolychoraSystem.js');
+                log('✅ PolychoraSystem imported successfully', 'success');
+                
+                // Test 3: Create and initialize
+                log('🔧 Creating PolychoraSystem instance...', 'log');
+                polychoraSystem = new PolychoraSystem();
+                
+                log('🔧 Initializing PolychoraSystem...', 'log');
+                const initSuccess = polychoraSystem.initialize();
+                
+                if (initSuccess) {
+                    log('✅ PolychoraSystem initialized successfully!', 'success');
+                    log(`📈 Visualizers created: ${polychoraSystem.visualizers.length}`, 'success');
+                } else {
+                    log('❌ PolychoraSystem initialization failed', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Test failed: ${error.message}`, 'error');
+                log(`Stack: ${error.stack}`, 'error');
+            }
+        }
+        
+        function togglePolychora() {
+            if (!polychoraSystem) {
+                log('❌ PolychoraSystem not initialized. Run test first.', 'error');
+                return;
+            }
+            
+            if (isActive) {
+                log('🛑 Stopping Polychora System', 'log');
+                polychoraSystem.stop();
+                isActive = false;
+            } else {
+                log('🚀 Starting Polychora System', 'log');
+                polychoraSystem.start();
+                isActive = true;
+                
+                // Test parameter updates
+                setTimeout(() => {
+                    log('🔄 Testing parameter updates...', 'log');
+                    polychoraSystem.updateParameters({
+                        polytope: 1, // Tesseract
+                        rot4dXW: 0.3,
+                        rot4dYW: 0.5,
+                        hue: 180
+                    });
+                    log('✅ Parameters updated', 'success');
+                }, 2000);
+            }
+        }
+        
+        // Auto-run test on load
+        window.addEventListener('load', testPolychora);
+    </script>
+</body>
+</html>

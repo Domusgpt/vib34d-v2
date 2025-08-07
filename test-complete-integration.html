@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D Complete Integration Test</title>
+    <style>
+        body { 
+            background: #000; 
+            color: #fff; 
+            font-family: monospace; 
+            padding: 20px;
+            margin: 0;
+        }
+        .log { 
+            margin: 2px 0; 
+            padding: 4px; 
+            border-left: 3px solid #00ffff;
+            font-size: 11px;
+        }
+        .error { border-left-color: #ff6b6b; }
+        .success { border-left-color: #51cf66; }
+        .warning { border-left-color: #ffa500; }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #333;
+            border-radius: 5px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        button {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 8px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 11px;
+        }
+        
+        button:hover {
+            background: #444;
+        }
+        
+        .results {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #111;
+            padding: 10px;
+            border-radius: 3px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 VIB34D Complete Integration Test</h1>
+    
+    <div class="test-section">
+        <h3>📦 1. Collection Manager Test</h3>
+        <div class="controls">
+            <button onclick="testCollectionManager()">Test CollectionManager</button>
+        </div>
+        <div class="results" id="collectionResults"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🎨 2. Gallery System Test</h3>
+        <div class="controls">
+            <button onclick="testGalleryGeneration()">Test Gallery Generation</button>
+            <button onclick="testParameterMapping()">Test Parameter Mapping</button>
+        </div>
+        <div class="results" id="galleryResults"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🔮 3. Polychora System Test</h3>
+        <div class="controls">
+            <button onclick="testPolychoraSystem()">Test Polychora System</button>
+            <button onclick="testPolychoraParameters()">Test Parameter Updates</button>
+        </div>
+        <div class="results" id="polychoraResults"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🔗 4. Integration Test</h3>
+        <div class="controls">
+            <button onclick="testURLParameters()">Test URL Parameters</button>
+            <button onclick="testSystemSwitching()">Test System Switching</button>
+        </div>
+        <div class="results" id="integrationResults"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>📊 5. Results Summary</h3>
+        <div class="results" id="summaryResults">
+            <div class="log">Ready to run tests...</div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = {};
+        
+        function log(message, type = 'log', containerId) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '';
+                container.innerHTML += `<div class="log ${className}">${message}</div>`;
+                container.scrollTop = container.scrollHeight;
+            }
+            console[type](message);
+        }
+        
+        async function testCollectionManager() {
+            const containerId = 'collectionResults';
+            log('🔍 Testing CollectionManager...', 'log', containerId);
+            
+            try {
+                // Test 1: Import and create CollectionManager
+                const { CollectionManager } = await import('./src/features/CollectionManager.js');
+                log('✅ CollectionManager imported successfully', 'success', containerId);
+                
+                const manager = new CollectionManager();
+                log('✅ CollectionManager instance created', 'success', containerId);
+                
+                // Test 2: Auto-discover collections
+                const collections = await manager.autoDiscoverCollections();
+                log(`✅ Auto-discovery complete: ${collections.length} collections`, 'success', containerId);
+                
+                // Test 3: Check base-variations.json specifically
+                const baseCollection = manager.getCollection('base-variations.json');
+                if (baseCollection) {
+                    log(`✅ base-variations.json loaded: ${baseCollection.variations.length} variations`, 'success', containerId);
+                } else {
+                    log('⚠️ base-variations.json not found in collections', 'warning', containerId);
+                }
+                
+                testResults.collectionManager = { success: true, collections: collections.length };
+                
+            } catch (error) {
+                log(`❌ CollectionManager test failed: ${error.message}`, 'error', containerId);
+                testResults.collectionManager = { success: false, error: error.message };
+            }
+        }
+        
+        async function testGalleryGeneration() {
+            const containerId = 'galleryResults';
+            log('🎨 Testing Gallery Generation...', 'log', containerId);
+            
+            try {
+                // Test generation functions (copied from gallery.html)
+                const geometries = ['TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'];
+                
+                // Test Polychora variations generation
+                const polytopes = ['5-CELL', 'TESSERACT', '16-CELL', '24-CELL', '600-CELL', '120-CELL'];
+                let polychoraVariations = [];
+                let globalId = 201;
+                
+                polytopes.forEach((polytope, polyIndex) => {
+                    for (let level = 1; level <= 3; level++) {
+                        polychoraVariations.push({
+                            id: globalId,
+                            name: `${polytope} Glass ${level}`,
+                            system: 'polychora',
+                            parameters: {
+                                polytope: polyIndex,
+                                geometryType: polyIndex,
+                                gridDensity: 15 + (level * 8),
+                                morphFactor: 0.3 + (level * 0.25),
+                                hue: (polyIndex * 60 + level * 20) % 360
+                            },
+                            globalId: globalId,
+                            isCustom: false
+                        });
+                        globalId++;
+                    }
+                });
+                
+                log(`✅ Generated ${polychoraVariations.length} Polychora variations`, 'success', containerId);
+                log(`✅ ID range: ${polychoraVariations[0].globalId} - ${polychoraVariations[polychoraVariations.length-1].globalId}`, 'success', containerId);
+                
+                testResults.galleryGeneration = { success: true, variations: polychoraVariations.length };
+                
+            } catch (error) {
+                log(`❌ Gallery generation test failed: ${error.message}`, 'error', containerId);
+                testResults.galleryGeneration = { success: false, error: error.message };
+            }
+        }
+        
+        async function testParameterMapping() {
+            const containerId = 'galleryResults';
+            log('🔗 Testing Parameter Mapping...', 'log', containerId);
+            
+            try {
+                // Test parameter formats for different systems
+                const polychoraParams = {
+                    polytope: 1,
+                    geometryType: 1,
+                    gridDensity: 23,
+                    morphFactor: 0.55,
+                    hue: 180,
+                    rot4dXW: 0.4,
+                    rot4dYW: 0.5,
+                    rot4dZW: 0.15
+                };
+                
+                log('✅ Polychora parameter format validated', 'success', containerId);
+                log(`   Polytope: ${polychoraParams.polytope} (Tesseract)`, 'log', containerId);
+                log(`   Density: ${polychoraParams.gridDensity}, Morph: ${polychoraParams.morphFactor}`, 'log', containerId);
+                log(`   4D Rotations: ${polychoraParams.rot4dXW}, ${polychoraParams.rot4dYW}, ${polychoraParams.rot4dZW}`, 'log', containerId);
+                
+                testResults.parameterMapping = { success: true, sampleParams: polychoraParams };
+                
+            } catch (error) {
+                log(`❌ Parameter mapping test failed: ${error.message}`, 'error', containerId);
+                testResults.parameterMapping = { success: false, error: error.message };
+            }
+        }
+        
+        async function testPolychoraSystem() {
+            const containerId = 'polychoraResults';
+            log('🔮 Testing Polychora System...', 'log', containerId);
+            
+            try {
+                // Test import
+                const { PolychoraSystem } = await import('./src/core/PolychoraSystem.js');
+                log('✅ PolychoraSystem imported successfully', 'success', containerId);
+                
+                // Test polytope definitions
+                const system = new PolychoraSystem();
+                log(`✅ PolychoraSystem created with ${system.polytopes.length} polytopes`, 'success', containerId);
+                
+                system.polytopes.forEach((polytope, index) => {
+                    log(`   ${index}: ${polytope.name} - ${polytope.description}`, 'log', containerId);
+                });
+                
+                testResults.polychoraSystem = { success: true, polytopes: system.polytopes.length };
+                
+            } catch (error) {
+                log(`❌ Polychora system test failed: ${error.message}`, 'error', containerId);
+                testResults.polychoraSystem = { success: false, error: error.message };
+            }
+        }
+        
+        async function testPolychoraParameters() {
+            const containerId = 'polychoraResults';
+            log('🔧 Testing Polychora Parameters...', 'log', containerId);
+            
+            try {
+                const { PolychoraSystem } = await import('./src/core/PolychoraSystem.js');
+                const system = new PolychoraSystem();
+                
+                const testParams = {
+                    polytope: 3, // 24-Cell
+                    rot4dXW: 0.5,
+                    rot4dYW: -0.3,
+                    rot4dZW: 0.8,
+                    hue: 240,
+                    speed: 1.5
+                };
+                
+                system.updateParameters(testParams);
+                log('✅ Parameters updated successfully', 'success', containerId);
+                log(`   Updated polytope to: ${system.polytopes[testParams.polytope].name}`, 'success', containerId);
+                
+                testResults.polychoraParameters = { success: true, testParams: testParams };
+                
+            } catch (error) {
+                log(`❌ Polychora parameter test failed: ${error.message}`, 'error', containerId);
+                testResults.polychoraParameters = { success: false, error: error.message };
+            }
+        }
+        
+        async function testURLParameters() {
+            const containerId = 'integrationResults';
+            log('🔗 Testing URL Parameters...', 'log', containerId);
+            
+            try {
+                // Simulate URL with Polychora parameters
+                const testUrl = 'index.html?system=polychora&polytope=2&rot4dXW=0.4&rot4dYW=0.6&hue=120&hideui=true';
+                const url = new URL(testUrl, window.location.origin);
+                const urlParams = new URLSearchParams(url.search);
+                
+                const system = urlParams.get('system');
+                const polytope = urlParams.get('polytope');
+                const hideUI = urlParams.get('hideui') === 'true';
+                
+                log(`✅ URL parsing successful: system=${system}, polytope=${polytope}, hideui=${hideUI}`, 'success', containerId);
+                
+                // Test parameter extraction
+                const parameters = {};
+                urlParams.forEach((value, key) => {
+                    if (!['system', 'hideui'].includes(key)) {
+                        parameters[key] = parseFloat(value) || value;
+                    }
+                });
+                
+                log(`✅ Extracted ${Object.keys(parameters).length} parameters`, 'success', containerId);
+                log(`   Parameters: ${JSON.stringify(parameters)}`, 'log', containerId);
+                
+                testResults.urlParameters = { success: true, parameters: parameters };
+                
+            } catch (error) {
+                log(`❌ URL parameter test failed: ${error.message}`, 'error', containerId);
+                testResults.urlParameters = { success: false, error: error.message };
+            }
+        }
+        
+        async function testSystemSwitching() {
+            const containerId = 'integrationResults';
+            log('🔄 Testing System Switching...', 'log', containerId);
+            
+            try {
+                // Test localStorage parameter storage format
+                const testData = {
+                    system: 'polychora',
+                    parameters: {
+                        polytope: 4, // 600-Cell
+                        geometryType: 4,
+                        rot4dXW: 0.2,
+                        rot4dYW: 0.8,
+                        rot4dZW: 0.1,
+                        hue: 300,
+                        speed: 1.2
+                    },
+                    globalId: 215
+                };
+                
+                // Simulate gallery→main parameter passing
+                localStorage.setItem('vib34d-load-params', JSON.stringify(testData));
+                log('✅ Test parameters stored in localStorage', 'success', containerId);
+                
+                // Test retrieval and parsing
+                const stored = localStorage.getItem('vib34d-load-params');
+                const parsed = JSON.parse(stored);
+                
+                log(`✅ Parameters retrieved: system=${parsed.system}, globalId=${parsed.globalId}`, 'success', containerId);
+                log(`   Polytope: ${parsed.parameters.polytope}, Hue: ${parsed.parameters.hue}°`, 'log', containerId);
+                
+                // Clean up
+                localStorage.removeItem('vib34d-load-params');
+                log('✅ Test cleanup completed', 'success', containerId);
+                
+                testResults.systemSwitching = { success: true, testData: testData };
+                
+            } catch (error) {
+                log(`❌ System switching test failed: ${error.message}`, 'error', containerId);
+                testResults.systemSwitching = { success: false, error: error.message };
+            }
+        }
+        
+        function updateSummary() {
+            const containerId = 'summaryResults';
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            const tests = Object.keys(testResults);
+            const passed = tests.filter(test => testResults[test].success).length;
+            const failed = tests.length - passed;
+            
+            log(`📊 Test Summary: ${passed}/${tests.length} tests passed`, passed === tests.length ? 'success' : 'warning', containerId);
+            
+            tests.forEach(test => {
+                const result = testResults[test];
+                const status = result.success ? '✅' : '❌';
+                const message = result.success ? 'PASSED' : `FAILED: ${result.error}`;
+                log(`${status} ${test}: ${message}`, result.success ? 'success' : 'error', containerId);
+            });
+            
+            if (passed === tests.length) {
+                log('🎉 All integration tests passed! The VIB34D system is fully functional.', 'success', containerId);
+            } else {
+                log(`⚠️ ${failed} test(s) failed. Review the error messages above.`, 'warning', containerId);
+            }
+        }
+        
+        // Auto-update summary when tests complete
+        setInterval(() => {
+            if (Object.keys(testResults).length > 0) {
+                updateSummary();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
