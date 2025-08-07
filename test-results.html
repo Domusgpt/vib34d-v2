@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D System Test Results</title>
+    <style>
+        body { 
+            font-family: 'Consolas', monospace; 
+            background: #000; 
+            color: #0f0; 
+            padding: 20px; 
+            line-height: 1.5;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .status-passed { color: #0f0; }
+        .status-failed { color: #f00; }
+        .status-warning { color: #ff0; }
+        .system-result {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #0f0;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .error { color: #f00; }
+        .warning { color: #ff0; }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #0f0;
+            margin-top: 20px;
+        }
+        .test-controls {
+            margin: 20px 0;
+        }
+        button {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        button:hover {
+            background: rgba(0, 255, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 VIB34D System Test Results</h1>
+        
+        <div class="test-controls">
+            <button onclick="runTest()">▶️ Run Test</button>
+            <button onclick="runManualChecks()">🔍 Manual Checks</button>
+            <button onclick="checkGallery()">🖼️ Check Gallery</button>
+            <button onclick="showLogs()">📋 Show Logs</button>
+        </div>
+        
+        <div id="testStatus">
+            <p>⏳ Click "Run Test" to start comprehensive system testing...</p>
+        </div>
+        
+        <div id="testResults"></div>
+        
+        <h2>🎮 Live System Test</h2>
+        <p>The iframe below loads the main VIB34D system for real-time testing:</p>
+        <iframe id="testFrame" src="index.html"></iframe>
+        
+        <div id="logs" style="display: none;">
+            <h3>📋 Console Logs</h3>
+            <pre id="logContent"></pre>
+        </div>
+    </div>
+
+    <script>
+        let testFrame = null;
+        let logContent = [];
+
+        // Override console to capture logs
+        const originalLog = console.log;
+        console.log = function(...args) {
+            logContent.push('[LOG] ' + args.join(' '));
+            originalLog(...args);
+        };
+
+        async function runTest() {
+            const statusDiv = document.getElementById('testStatus');
+            const resultsDiv = document.getElementById('testResults');
+            
+            statusDiv.innerHTML = '<p class="status-warning">🧪 Running comprehensive VIB34D system tests...</p>';
+            resultsDiv.innerHTML = '';
+            
+            try {
+                // Get the iframe's window to access the test results
+                testFrame = document.getElementById('testFrame');
+                await waitForFrameLoad();
+                
+                // Inject and run our test script in the iframe
+                const testScript = await fetch('system-test.js').then(r => r.text());
+                const scriptElement = testFrame.contentDocument.createElement('script');
+                scriptElement.textContent = testScript;
+                testFrame.contentDocument.head.appendChild(scriptElement);
+                
+                // Wait for tests to complete (increased timeout)
+                let attempts = 0;
+                let maxAttempts = 30; // 15 seconds
+                
+                while (attempts < maxAttempts) {
+                    await sleep(500);
+                    attempts++;
+                    
+                    try {
+                        const results = testFrame.contentWindow.VIB34DTestResults;
+                        if (results) {
+                            displayResults(results);
+                            return;
+                        }
+                    } catch (e) {
+                        // Frame might not be ready yet
+                    }
+                }
+                
+                throw new Error('Test timeout - results not available after 15 seconds');
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<p class="status-failed">❌ Test failed: ${error.message}</p>`;
+                console.error('Test execution error:', error);
+            }
+        }
+
+        async function waitForFrameLoad() {
+            return new Promise((resolve) => {
+                if (testFrame.contentDocument && testFrame.contentDocument.readyState === 'complete') {
+                    setTimeout(resolve, 2000); // Wait extra 2 seconds for JS initialization
+                } else {
+                    testFrame.onload = () => {
+                        setTimeout(resolve, 2000);
+                    };
+                }
+            });
+        }
+
+        function displayResults(results) {
+            const statusDiv = document.getElementById('testStatus');
+            const resultsDiv = document.getElementById('testResults');
+            
+            let statusClass = 'status-passed';
+            let statusIcon = '✅';
+            
+            if (results.summary.failed > 0) {
+                statusClass = 'status-failed';
+                statusIcon = '❌';
+            } else if (results.summary.totalWarnings > 0) {
+                statusClass = 'status-warning';
+                statusIcon = '⚠️';
+            }
+            
+            statusDiv.innerHTML = `
+                <p class="${statusClass}">${statusIcon} Test completed in ${results.duration}ms</p>
+                <p>✅ Passed: ${results.summary.passed} | ❌ Failed: ${results.summary.failed}</p>
+                <p>🚨 Errors: ${results.summary.totalErrors} | ⚠️ Warnings: ${results.summary.totalWarnings}</p>
+            `;
+            
+            let html = '<h3>📊 Detailed Results</h3>';
+            
+            Object.entries(results.systems).forEach(([system, result]) => {
+                const statusIcon = result.status === 'passed' ? '✅' : 
+                                 result.status === 'failed' ? '❌' : '⚠️';
+                
+                html += `
+                    <div class="system-result">
+                        <h4>${statusIcon} ${system.toUpperCase()} SYSTEM</h4>
+                        <p><strong>Status:</strong> <span class="status-${result.status}">${result.status}</span></p>
+                `;
+                
+                if (result.errors && result.errors.length > 0) {
+                    html += '<p><strong>Errors:</strong></p><ul>';
+                    result.errors.forEach(error => {
+                        html += `<li class="error">${error}</li>`;
+                    });
+                    html += '</ul>';
+                }
+                
+                if (result.warnings && result.warnings.length > 0) {
+                    html += '<p><strong>Warnings:</strong></p><ul>';
+                    result.warnings.forEach(warning => {
+                        html += `<li class="warning">${warning}</li>`;
+                    });
+                    html += '</ul>';
+                }
+                
+                html += '</div>';
+            });
+            
+            resultsDiv.innerHTML = html;
+            
+            // Store results globally
+            window.lastTestResults = results;
+        }
+
+        async function runManualChecks() {
+            alert('🔍 Manual Testing Guide:\n\n' +
+                  '1. Check that all 3 system tabs work (Faceted, Holographic, Polychora)\n' +
+                  '2. Test parameter sliders in each system\n' +
+                  '3. Try geometry selection buttons\n' +
+                  '4. Test randomization buttons\n' +
+                  '5. Open gallery and test hover previews\n' +
+                  '6. Test save/export functionality\n\n' +
+                  'Look for visual rendering and console errors!');
+        }
+
+        async function checkGallery() {
+            window.open('gallery.html', '_blank');
+        }
+
+        function showLogs() {
+            const logsDiv = document.getElementById('logs');
+            const logContentDiv = document.getElementById('logContent');
+            
+            if (logsDiv.style.display === 'none') {
+                logsDiv.style.display = 'block';
+                logContentDiv.textContent = logContent.join('\n');
+            } else {
+                logsDiv.style.display = 'none';
+            }
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Auto-start test after 3 seconds
+        setTimeout(() => {
+            console.log('🚀 Auto-starting VIB34D comprehensive test...');
+            runTest();
+        }, 3000);
+    </script>
+</body>
+</html>

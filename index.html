@@ -493,10 +493,48 @@
         
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
+            // Parse URL parameters for gallery preview mode
+            parseURLParameters();
+            
             setupGeometry('faceted');
             await initializeEngine();
             console.log('🚀 VIB34D Clean Interface Ready');
         });
+        
+        // Parse URL parameters for gallery preview integration
+        function parseURLParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Check if this is a gallery preview
+            if (urlParams.has('system')) {
+                const targetSystem = urlParams.get('system');
+                const hideUI = urlParams.get('hideui') === 'true';
+                
+                // Hide UI for clean preview
+                if (hideUI) {
+                    document.querySelector('.top-bar').style.display = 'none';
+                    document.querySelector('.control-panel').style.display = 'none';
+                    document.querySelector('.canvas-container').style.right = '0';
+                }
+                
+                // Load parameters from URL
+                const parameters = {};
+                urlParams.forEach((value, key) => {
+                    if (!['system', 'hideui'].includes(key)) {
+                        parameters[key] = parseFloat(value) || value;
+                    }
+                });
+                
+                // Store for initialization
+                window.galleryPreviewData = {
+                    system: targetSystem,
+                    parameters: parameters,
+                    hideUI: hideUI
+                };
+                
+                console.log('🎨 Gallery preview mode detected:', window.galleryPreviewData);
+            }
+        }
         
         // Initialize VIB34D Engine
         async function initializeEngine() {
@@ -513,11 +551,51 @@
                 collectionManager = new CollectionManager();
                 console.log('✅ Collection Manager ready');
                 
+                // Apply gallery preview parameters if present
+                if (window.galleryPreviewData) {
+                    await applyGalleryPreviewData();
+                }
+                
                 return true;
             } catch (error) {
                 console.error('❌ Failed to initialize engine:', error);
                 return false;
             }
+        }
+        
+        // Apply gallery preview data after all systems are initialized
+        async function applyGalleryPreviewData() {
+            const previewData = window.galleryPreviewData;
+            if (!previewData) return;
+            
+            console.log('🎯 Applying gallery preview parameters:', previewData);
+            
+            // Switch to the correct system first
+            if (previewData.system !== currentSystem) {
+                await switchSystem(previewData.system);
+                // Wait for system switch to complete
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+            
+            // Apply all parameters from URL
+            Object.entries(previewData.parameters).forEach(([param, value]) => {
+                if (param === 'geometry' || param === 'geometryType' || param === 'polytope') {
+                    // Handle geometry selection
+                    const geometryIndex = parseInt(value);
+                    if (!isNaN(geometryIndex)) {
+                        selectGeometry(geometryIndex);
+                    }
+                } else {
+                    // Handle slider parameters
+                    const slider = document.getElementById(param);
+                    if (slider) {
+                        slider.value = value;
+                        updateParameter(param, value);
+                    }
+                }
+            });
+            
+            console.log('✅ Gallery preview parameters applied successfully');
         }
         
         // Initialize Polychora when needed

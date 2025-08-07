@@ -22,6 +22,7 @@ class PolychoraVisualizer {
         this.gl = null;
         this.program = null;
         this.time = 0;
+        this.vertexBuffer = null;
     }
     
     initialize() {
@@ -31,18 +32,27 @@ class PolychoraVisualizer {
             return false;
         }
         
-        this.gl = this.canvas.getContext('webgl');
+        // Try WebGL 2.0 first, then fall back to WebGL 1.0
+        this.gl = this.canvas.getContext('webgl2') || this.canvas.getContext('webgl');
         if (!this.gl) {
             console.error(`❌ WebGL not supported for ${this.canvasId}`);
             return false;
         }
         
+        console.log(`🎮 WebGL context created for ${this.canvasId}: ${this.gl instanceof WebGL2RenderingContext ? 'WebGL2' : 'WebGL1'}`);
+        
         // Create glassmorphic 4D polytope shader
         if (!this.createPolychoraShader()) {
+            console.error(`❌ Failed to create shader for ${this.canvasId}`);
             return false;
         }
         
         this.setupCanvasSize();
+        
+        // Enable blending for glassmorphic effects
+        this.gl.enable(this.gl.BLEND);
+        this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+        
         return true;
     }
     
@@ -230,7 +240,7 @@ class PolychoraVisualizer {
     }
     
     render(parameters = {}) {
-        if (!this.gl || !this.program) return;
+        if (!this.gl || !this.program || !this.vertexBuffer) return;
         
         this.time += 0.016;
         
@@ -238,11 +248,15 @@ class PolychoraVisualizer {
         this.gl.enable(this.gl.BLEND);
         this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
         
-        // Set uniforms
+        // Clear with transparent background
+        this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+        
+        // Set uniforms with safe parameter access
         const uniforms = {
             u_time: this.time,
             u_resolution: [this.canvas.width, this.canvas.height],
-            u_polytope: parameters.polytope || 0,
+            u_polytope: parameters.polytope !== undefined ? parameters.polytope : 0,
             u_rot4dXW: parameters.rot4dXW || 0,
             u_rot4dYW: parameters.rot4dYW || 0,
             u_rot4dZW: parameters.rot4dZW || 0,
@@ -255,26 +269,32 @@ class PolychoraVisualizer {
             u_blur: this.config.blur * (parameters.glassBlur || 1.0)
         };
         
+        // Safely set uniforms with error checking
         Object.entries(uniforms).forEach(([name, value]) => {
             const location = this.gl.getUniformLocation(this.program, name);
-            if (location) {
-                if (Array.isArray(value)) {
-                    if (value.length === 2) this.gl.uniform2fv(location, value);
-                    else if (value.length === 3) this.gl.uniform3fv(location, value);
-                } else {
-                    this.gl.uniform1f(location, value);
+            if (location !== null) {
+                try {
+                    if (Array.isArray(value)) {
+                        if (value.length === 2) this.gl.uniform2fv(location, new Float32Array(value));
+                        else if (value.length === 3) this.gl.uniform3fv(location, new Float32Array(value));
+                    } else {
+                        this.gl.uniform1f(location, value);
+                    }
+                } catch (error) {
+                    console.warn(`Failed to set uniform ${name}:`, error);
                 }
             }
         });
         
         // Draw quad
         const positionLocation = this.gl.getAttribLocation(this.program, 'a_position');
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
-        this.gl.enableVertexAttribArray(positionLocation);
-        this.gl.vertexAttribPointer(positionLocation, 2, this.gl.FLOAT, false, 0, 0);
-        
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+        if (positionLocation !== -1) {
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+            this.gl.enableVertexAttribArray(positionLocation);
+            this.gl.vertexAttribPointer(positionLocation, 2, this.gl.FLOAT, false, 0, 0);
+            
+            this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+        }
     }
 }
 
@@ -367,28 +387,66 @@ export class PolychoraSystem {
             return false;
         }
         
+        // Ensure all canvas elements exist and are properly sized
+        this.setupCanvasElements();
+        
         // Create visualizers for each layer
         const layers = ['background', 'shadow', 'content', 'highlight', 'accent'];
+        let successfullyInitialized = 0;
         
         layers.forEach(role => {
             const canvasId = `polychora-${role}-canvas`;
-            const visualizer = new PolychoraVisualizer(canvasId, role, this.layerConfigs[role]);
+            const canvas = document.getElementById(canvasId);
             
-            if (visualizer.initialize()) {
-                this.visualizers.push(visualizer);
-                console.log(`✅ Polychora ${role} layer initialized`);
-            } else {
-                console.error(`❌ Failed to initialize Polychora ${role} layer`);
+            if (!canvas) {
+                console.error(`❌ Canvas ${canvasId} not found in DOM`);
+                return;
+            }
+            
+            try {
+                const visualizer = new PolychoraVisualizer(canvasId, role, this.layerConfigs[role]);
+                
+                if (visualizer.initialize()) {
+                    this.visualizers.push(visualizer);
+                    successfullyInitialized++;
+                    console.log(`✅ Polychora ${role} layer initialized`);
+                } else {
+                    console.error(`❌ Failed to initialize Polychora ${role} layer`);
+                }
+            } catch (error) {
+                console.error(`❌ Error creating Polychora ${role} visualizer:`, error);
             }
         });
         
-        if (this.visualizers.length === 0) {
-            console.error('❌ No Polychora visualizers initialized');
+        if (successfullyInitialized === 0) {
+            console.error('❌ No Polychora visualizers initialized successfully');
             return false;
         }
         
-        console.log(`✅ Polychora System initialized with ${this.visualizers.length} layers`);
+        console.log(`✅ Polychora System initialized with ${successfullyInitialized}/${layers.length} layers`);
         return true;
+    }
+    
+    /**
+     * Setup canvas elements with proper dimensions
+     */
+    setupCanvasElements() {
+        const layers = ['background', 'shadow', 'content', 'highlight', 'accent'];
+        const containerRect = this.canvasContainer.getBoundingClientRect();
+        
+        layers.forEach(role => {
+            const canvasId = `polychora-${role}-canvas`;
+            const canvas = document.getElementById(canvasId);
+            
+            if (canvas) {
+                // Set canvas size to match container
+                canvas.width = containerRect.width || window.innerWidth - 300; // Account for control panel
+                canvas.height = containerRect.height || window.innerHeight - 50; // Account for top bar
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+                console.log(`📐 Canvas ${canvasId} sized to ${canvas.width}x${canvas.height}`);
+            }
+        });
     }
     
     /**
