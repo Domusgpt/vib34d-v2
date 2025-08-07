@@ -329,7 +329,7 @@
                     <span>XW Plane</span>
                     <span class="control-value" id="xwValue">0.00</span>
                 </div>
-                <input type="range" class="control-slider" id="xwSlider" 
+                <input type="range" class="control-slider" id="rot4dXW" 
                        min="-6.28" max="6.28" step="0.01" value="0" 
                        oninput="updateParameter('rot4dXW', this.value)">
             </div>
@@ -339,7 +339,7 @@
                     <span>YW Plane</span>
                     <span class="control-value" id="ywValue">0.00</span>
                 </div>
-                <input type="range" class="control-slider" id="ywSlider" 
+                <input type="range" class="control-slider" id="rot4dYW" 
                        min="-6.28" max="6.28" step="0.01" value="0" 
                        oninput="updateParameter('rot4dYW', this.value)">
             </div>
@@ -349,7 +349,7 @@
                     <span>ZW Plane</span>
                     <span class="control-value" id="zwValue">0.00</span>
                 </div>
-                <input type="range" class="control-slider" id="zwSlider" 
+                <input type="range" class="control-slider" id="rot4dZW" 
                        min="-6.28" max="6.28" step="0.01" value="0" 
                        oninput="updateParameter('rot4dZW', this.value)">
             </div>
@@ -364,7 +364,7 @@
                     <span>Density</span>
                     <span class="control-value" id="densityValue">15</span>
                 </div>
-                <input type="range" class="control-slider" id="densitySlider" 
+                <input type="range" class="control-slider" id="gridDensity" 
                        min="5" max="100" value="15" 
                        oninput="updateParameter('gridDensity', this.value)">
             </div>
@@ -374,7 +374,7 @@
                     <span>Morph</span>
                     <span class="control-value" id="morphValue">1.0</span>
                 </div>
-                <input type="range" class="control-slider" id="morphSlider" 
+                <input type="range" class="control-slider" id="morphFactor" 
                        min="0" max="2" step="0.01" value="1" 
                        oninput="updateParameter('morphFactor', this.value)">
             </div>
@@ -384,7 +384,7 @@
                     <span>Chaos</span>
                     <span class="control-value" id="chaosValue">0.2</span>
                 </div>
-                <input type="range" class="control-slider" id="chaosSlider" 
+                <input type="range" class="control-slider" id="chaos" 
                        min="0" max="1" step="0.01" value="0.2" 
                        oninput="updateParameter('chaos', this.value)">
             </div>
@@ -394,7 +394,7 @@
                     <span>Speed</span>
                     <span class="control-value" id="speedValue">1.0</span>
                 </div>
-                <input type="range" class="control-slider" id="speedSlider" 
+                <input type="range" class="control-slider" id="speed" 
                        min="0.1" max="3" step="0.1" value="1" 
                        oninput="updateParameter('speed', this.value)">
             </div>
@@ -404,7 +404,7 @@
                     <span>Hue</span>
                     <span class="control-value" id="hueValue">200°</span>
                 </div>
-                <input type="range" class="control-slider" id="hueSlider" 
+                <input type="range" class="control-slider" id="hue" 
                        min="0" max="360" value="200" 
                        oninput="updateParameter('hue', this.value)">
             </div>
@@ -599,16 +599,15 @@
                 }
             }
             
-            // Update the actual visualization engines
-            const numValue = parseFloat(value);
-            const params = { [param]: numValue };
-            
+            // Update the actual visualization engines using their proper methods
             if (currentSystem === 'faceted' && engine) {
-                engine.updateParameters(params);
+                // For VIB34DIntegratedEngine, update parameter manager and call updateFromControls
+                engine.parameterManager.setParameter(param, parseFloat(value));
+                engine.updateVisualizers();
             } else if (currentSystem === 'holographic' && holographicSystem) {
-                holographicSystem.visualizers.forEach(v => v.updateParameters(params));
+                holographicSystem.visualizers.forEach(v => v.updateParameters({ [param]: parseFloat(value) }));
             } else if (currentSystem === 'polychora' && polychoraSystem) {
-                polychoraSystem.updateParameters(params);
+                polychoraSystem.updateParameters({ [param]: parseFloat(value) });
             }
             
             console.log(`📊 ${param}: ${value}`);
@@ -677,14 +676,14 @@
         window.resetAll = function() {
             // Reset all sliders to defaults
             const defaults = {
-                xwSlider: 0,
-                ywSlider: 0,
-                zwSlider: 0,
-                densitySlider: 15,
-                morphSlider: 1,
-                chaosSlider: 0.2,
-                speedSlider: 1,
-                hueSlider: 200,
+                rot4dXW: 0,
+                rot4dYW: 0,
+                rot4dZW: 0,
+                gridDensity: 15,
+                morphFactor: 1,
+                chaos: 0.2,
+                speed: 1,
+                hue: 200,
                 variationSlider: 0
             };
             
