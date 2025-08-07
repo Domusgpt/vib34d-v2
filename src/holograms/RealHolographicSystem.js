@@ -78,20 +78,23 @@ export class RealHolographicSystem {
         this.isActive = active;
         
         if (active) {
-            // Show holo canvases
-            document.querySelector('.holographic-layers.active-holo').style.display = 'block';
-            // Hide regular canvases
-            document.querySelector('.holographic-layers:not(.active-holo)').style.display = 'none';
+            // Show holographic layers (from clean interface)
+            const holoLayers = document.getElementById('holographicLayers');
+            if (holoLayers) {
+                holoLayers.style.display = 'block';
+            }
+            
             // Start audio if not already started
             if (!this.audioEnabled) {
                 this.initAudio();
             }
             console.log('🌌 REAL Active Holograms ACTIVATED with audio reactivity');
         } else {
-            // Hide holo canvases
-            document.querySelector('.holographic-layers.active-holo').style.display = 'none';
-            // Show regular canvases
-            document.querySelector('.holographic-layers:not(.active-holo)').style.display = 'block';
+            // Hide holographic layers
+            const holoLayers = document.getElementById('holographicLayers');
+            if (holoLayers) {
+                holoLayers.style.display = 'none';
+            }
             console.log('🌌 REAL Active Holograms DEACTIVATED');
         }
     }

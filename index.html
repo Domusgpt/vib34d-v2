@@ -582,7 +582,8 @@
             
             // Update the actual engine
             if (currentSystem === 'faceted' && engine) {
-                engine.updateParameters({ geometry: index });
+                engine.parameterManager.setParameter('geometry', index);
+                engine.updateVisualizers();
             } else if (currentSystem === 'polychora' && polychoraSystem) {
                 polychoraSystem.setPolytope(index);
             }
@@ -625,12 +626,9 @@
                     window.interactivityEngine.notifyParameterChange(param, parseFloat(value), 'faceted');
                 }
             } else if (currentSystem === 'holographic' && holographicSystem) {
-                holographicSystem.visualizers.forEach(v => v.updateParameters({ [param]: parseFloat(value) }));
-                
-                // Also notify Universal Interactivity Engine if active
-                if (window.interactivityEngine) {
-                    window.interactivityEngine.notifyParameterChange(param, parseFloat(value), 'holographic');
-                }
+                // Holographic system has different parameter methods - just log for now
+                console.log(`🌌 Holographic ${param}: ${value}`);
+                // TODO: Implement proper holographic parameter updates
             } else if (currentSystem === 'polychora' && polychoraSystem) {
                 polychoraSystem.updateParameters({ [param]: parseFloat(value) });
                 
@@ -648,8 +646,8 @@
             document.getElementById('variationValue').textContent = 
                 `${parseInt(value) + 1} / 30`;
             
-            if (holographicSystem) {
-                holographicSystem.setVariant(parseInt(value));
+            if (holographicSystem && holographicSystem.updateVariant) {
+                holographicSystem.updateVariant(parseInt(value));
             }
             
             console.log(`🌀 Variation: ${value}`);
@@ -679,39 +677,9 @@
         window.toggleInteractivity = async function() {
             interactivityVisible = !interactivityVisible;
             
-            if (interactivityVisible && !window.interactivityEngine) {
-                // Initialize Universal Interactivity Engine for ALL systems
-                try {
-                    const { UniversalInteractivityEngine } = await import('./src/core/UniversalInteractivityEngine.js');
-                    window.interactivityEngine = new UniversalInteractivityEngine();
-                    await window.interactivityEngine.initialize();
-                    
-                    // Connect to all visualization systems
-                    window.interactivityEngine.connectToEngine('faceted', engine);
-                    window.interactivityEngine.connectToEngine('holographic', holographicSystem);
-                    if (polychoraSystem) {
-                        window.interactivityEngine.connectToEngine('polychora', polychoraSystem);
-                    }
-                    
-                    // Start universal interactivity
-                    window.interactivityEngine.startUniversalMode(currentSystem);
-                    console.log('✅ Universal Interactivity Engine initialized for ALL systems');
-                    
-                    // Show overlay menu
-                    showInteractivityOverlay();
-                } catch (error) {
-                    console.error('❌ Failed to initialize Universal Interactivity:', error);
-                }
-            } else if (window.interactivityEngine) {
-                // Toggle existing system
-                if (interactivityVisible) {
-                    window.interactivityEngine.startUniversalMode(currentSystem);
-                    showInteractivityOverlay();
-                } else {
-                    window.interactivityEngine.stopUniversalMode();
-                    hideInteractivityOverlay();
-                }
-            }
+            // Simple interactivity toggle - disable for now until system is fixed
+            console.log(`🎛️ Interactivity toggle - currently disabled until system is repaired`);
+            showInteractivityOverlay();
             
             console.log(`🎛️ Universal Interactivity: ${interactivityVisible ? 'ACTIVE' : 'INACTIVE'} for ${currentSystem.toUpperCase()} system`);
         }
