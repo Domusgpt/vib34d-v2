@@ -276,7 +276,23 @@
     
     <!-- Canvas Container -->
     <div class="canvas-container" id="canvasContainer">
-        <!-- Canvases will be added here dynamically -->
+        <!-- 5-Layer Canvas System -->
+        <div class="holographic-layers" id="holoLayers">
+            <canvas id="background-canvas" class="visualization-canvas"></canvas>
+            <canvas id="shadow-canvas" class="visualization-canvas"></canvas>
+            <canvas id="content-canvas" class="visualization-canvas"></canvas>
+            <canvas id="highlight-canvas" class="visualization-canvas"></canvas>
+            <canvas id="accent-canvas" class="visualization-canvas"></canvas>
+        </div>
+        
+        <!-- Polychora Layers (hidden by default) -->
+        <div class="holographic-layers" id="polychoraLayers" style="display: none;">
+            <canvas id="polychora-background-canvas" class="visualization-canvas"></canvas>
+            <canvas id="polychora-shadow-canvas" class="visualization-canvas"></canvas>
+            <canvas id="polychora-content-canvas" class="visualization-canvas"></canvas>
+            <canvas id="polychora-highlight-canvas" class="visualization-canvas"></canvas>
+            <canvas id="polychora-accent-canvas" class="visualization-canvas"></canvas>
+        </div>
     </div>
     
     <!-- Control Panel -->
@@ -401,11 +417,18 @@
         </div>
     </div>
     
-    <script>
+    <script type="module">
+        // Import VIB34D modules
+        import { Engine } from './src/core/Engine.js';
+        import { RealHolographicSystem } from './src/holograms/RealHolographicSystem.js';
+        
         // Global state
         let currentSystem = 'faceted';
         let audioEnabled = false;
         let interactivityVisible = false;
+        let engine = null;
+        let holographicSystem = null;
+        let polychoraSystem = null;
         
         // Geometry configurations
         const geometries = {
@@ -421,13 +444,52 @@
         };
         
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             setupGeometry('faceted');
+            await initializeEngine();
             console.log('🚀 VIB34D Clean Interface Ready');
         });
         
+        // Initialize VIB34D Engine
+        async function initializeEngine() {
+            try {
+                // Initialize Faceted engine
+                engine = new Engine();
+                await engine.initialize();
+                engine.start();
+                console.log('✅ VIB34D Engine initialized');
+                
+                // Initialize Holographic system
+                holographicSystem = new RealHolographicSystem();
+                console.log('✅ Holographic System ready');
+                
+                return true;
+            } catch (error) {
+                console.error('❌ Failed to initialize engine:', error);
+                return false;
+            }
+        }
+        
+        // Initialize Polychora when needed
+        async function initializePolychora() {
+            if (polychoraSystem) return true;
+            
+            try {
+                const { PolychoraSystem } = await import('./src/core/PolychoraSystem.js');
+                polychoraSystem = new PolychoraSystem();
+                
+                if (polychoraSystem.initialize()) {
+                    console.log('✅ Polychora System initialized');
+                    return true;
+                }
+            } catch (error) {
+                console.error('❌ Failed to initialize Polychora:', error);
+            }
+            return false;
+        }
+        
         // System switching
-        function switchSystem(system) {
+        window.switchSystem = async function(system) {
             currentSystem = system;
             
             // Update UI
@@ -454,6 +516,33 @@
                 setupGeometry(system);
             }
             
+            // Switch visualization systems
+            if (system === 'faceted') {
+                // Show VIB34D canvases
+                document.getElementById('holoLayers').style.display = 'block';
+                document.getElementById('polychoraLayers').style.display = 'none';
+                if (holographicSystem) holographicSystem.setActive(false);
+                if (polychoraSystem) polychoraSystem.stop();
+                if (engine) engine.start();
+            } else if (system === 'holographic') {
+                // Show Holographic canvases
+                document.getElementById('holoLayers').style.display = 'block';
+                document.getElementById('polychoraLayers').style.display = 'none';
+                if (engine) engine.stop();
+                if (polychoraSystem) polychoraSystem.stop();
+                if (holographicSystem) holographicSystem.setActive(true);
+            } else if (system === 'polychora') {
+                // Show Polychora canvases
+                document.getElementById('holoLayers').style.display = 'none';
+                document.getElementById('polychoraLayers').style.display = 'block';
+                if (engine) engine.stop();
+                if (holographicSystem) holographicSystem.setActive(false);
+                
+                // Initialize Polychora if needed
+                await initializePolychora();
+                if (polychoraSystem) polychoraSystem.start();
+            }
+            
             console.log(`🔄 Switched to ${system} system`);
         }
         
@@ -471,15 +560,23 @@
         }
         
         // Select geometry
-        function selectGeometry(index) {
+        window.selectGeometry = function(index) {
             document.querySelectorAll('.geom-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.index == index);
             });
+            
+            // Update the actual engine
+            if (currentSystem === 'faceted' && engine) {
+                engine.updateParameters({ geometry: index });
+            } else if (currentSystem === 'polychora' && polychoraSystem) {
+                polychoraSystem.setPolytope(index);
+            }
+            
             console.log(`📐 Selected geometry: ${index}`);
         }
         
         // Update parameter
-        function updateParameter(param, value) {
+        window.updateParameter = function(param, value) {
             const displays = {
                 rot4dXW: 'xwValue',
                 rot4dYW: 'ywValue', 
@@ -502,33 +599,70 @@
                 }
             }
             
-            // Here you would update the actual visualization
+            // Update the actual visualization engines
+            const numValue = parseFloat(value);
+            const params = { [param]: numValue };
+            
+            if (currentSystem === 'faceted' && engine) {
+                engine.updateParameters(params);
+            } else if (currentSystem === 'holographic' && holographicSystem) {
+                holographicSystem.visualizers.forEach(v => v.updateParameters(params));
+            } else if (currentSystem === 'polychora' && polychoraSystem) {
+                polychoraSystem.updateParameters(params);
+            }
+            
             console.log(`📊 ${param}: ${value}`);
         }
         
         // Update variation (Holographic only)
-        function updateVariation(value) {
+        window.updateVariation = function(value) {
             document.getElementById('variationValue').textContent = 
                 `${parseInt(value) + 1} / 30`;
+            
+            if (holographicSystem) {
+                holographicSystem.setVariant(parseInt(value));
+            }
+            
             console.log(`🌀 Variation: ${value}`);
         }
         
         // Action functions
-        function openGallery() {
+        window.openGallery = function() {
             console.log('🖼️ Opening gallery...');
+            // TODO: Implement gallery
         }
         
-        function toggleAudio() {
+        window.toggleAudio = async function() {
             audioEnabled = !audioEnabled;
+            
+            if (audioEnabled && holographicSystem) {
+                await holographicSystem.initAudio();
+            }
+            
             console.log(`🎵 Audio: ${audioEnabled ? 'ON' : 'OFF'}`);
         }
         
-        function toggleInteractivity() {
+        window.toggleInteractivity = async function() {
             interactivityVisible = !interactivityVisible;
+            
+            if (interactivityVisible && !window.interactivityMenu) {
+                // Load interactivity system
+                const { UniversalInteractivityEngine } = await import('./src/core/UniversalInteractivityEngine.js');
+                const { InteractivityMenu } = await import('./src/ui/InteractivityMenu.js');
+                
+                window.interactivityEngine = new UniversalInteractivityEngine();
+                await window.interactivityEngine.initialize();
+                
+                window.interactivityMenu = new InteractivityMenu(window.interactivityEngine);
+                window.interactivityMenu.show();
+            } else if (window.interactivityMenu) {
+                window.interactivityMenu.toggle();
+            }
+            
             console.log(`🎛️ Interactivity: ${interactivityVisible ? 'VISIBLE' : 'HIDDEN'}`);
         }
         
-        function randomizeAll() {
+        window.randomizeAll = function() {
             // Randomize all sliders
             document.querySelectorAll('.control-slider').forEach(slider => {
                 const min = parseFloat(slider.min);
@@ -540,7 +674,7 @@
             console.log('🎲 Randomized all parameters');
         }
         
-        function resetAll() {
+        window.resetAll = function() {
             // Reset all sliders to defaults
             const defaults = {
                 xwSlider: 0,
