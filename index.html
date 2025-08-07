@@ -574,16 +574,43 @@
         <button class="action-tab" onclick="openUnifiedGallery()" title="Open gallery">🖼️</button>
     </div>
 
-    <!-- Unified Navigation Bar -->
-    <div class="unified-nav-bar" id="unifiedNavBar">
-        <div class="nav-current-info">
-            <span class="nav-type-indicator" id="navTypeIndicator">🔷 FACETED</span>
-            <span class="nav-visual-number" id="navVisualNumber">#1</span>
+    <!-- NEW Unified Navigation Menu -->
+    <div class="unified-navigation-menu" id="unifiedNavMenu">
+        <div class="nav-header" onclick="toggleNavMenu()">
+            <span class="nav-type-badge" id="navTypeBadge">🔷 FACETED</span>
+            <span class="nav-current-number" id="navCurrentNumber">#1</span>
+            <span class="nav-toggle-arrow" id="navToggleArrow">▼</span>
         </div>
-        <div class="nav-controls">
-            <button class="nav-btn" onclick="previousVisual()" title="Previous visual">‹</button>
-            <button class="nav-btn" onclick="nextVisual()" title="Next visual">›</button>
-            <button class="nav-btn" onclick="randomizeCurrentVisual()" title="Randomize current">🎲</button>
+        <div class="nav-content" id="navContent">
+            <!-- Navigation Controls -->
+            <div class="nav-section">
+                <h4>🎮 Navigation</h4>
+                <div class="nav-button-group">
+                    <button class="nav-button" onclick="previousVisual()">‹ Prev</button>
+                    <button class="nav-button" onclick="nextVisual()">Next ›</button>
+                </div>
+            </div>
+            
+            <!-- Randomization Controls -->
+            <div class="nav-section">
+                <h4>🎲 Randomize</h4>
+                <div class="nav-button-group">
+                    <button class="nav-button" onclick="randomizeParameters()">Params Only</button>
+                    <button class="nav-button" onclick="totalRandomization()">Total + Hue + Geometry</button>
+                </div>
+            </div>
+            
+            <!-- Save & Gallery Controls -->
+            <div class="nav-section">
+                <h4>💾 Actions</h4>
+                <div class="nav-button-group">
+                    <button class="nav-button save-btn" onclick="saveCurrentVariation()">💾 Save</button>
+                    <button class="nav-button gallery-btn" onclick="openUnifiedGallery()">🖼️ Gallery</button>
+                </div>
+                <div class="nav-button-group">
+                    <button class="nav-button delete-btn" onclick="deleteCurrentCustom()" id="deleteCustomBtn" style="display: none;">🗑️ Delete</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -620,24 +647,7 @@
             
             <!-- Navigation section removed - moved to unified navigation bar -->
             
-            <div class="collapsible-section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <span>🔷 Geometries</span>
-                    <span class="toggle-arrow">▼</span>
-                </div>
-                <div class="section-content">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px;">
-                        <button class="btn active" data-geometry="0" style="font-size: 0.6rem; padding: 4px;">Tetra</button>
-                        <button class="btn" data-geometry="1" style="font-size: 0.6rem; padding: 4px;">Hyper</button>
-                        <button class="btn" data-geometry="2" style="font-size: 0.6rem; padding: 4px;">Sphere</button>
-                        <button class="btn" data-geometry="3" style="font-size: 0.6rem; padding: 4px;">Torus</button>
-                        <button class="btn" data-geometry="4" style="font-size: 0.6rem; padding: 4px;">Klein</button>
-                        <button class="btn" data-geometry="5" style="font-size: 0.6rem; padding: 4px;">Fractal</button>
-                        <button class="btn" data-geometry="6" style="font-size: 0.6rem; padding: 4px;">Wave</button>
-                        <button class="btn" data-geometry="7" style="font-size: 0.6rem; padding: 4px;">Crystal</button>
-                    </div>
-                </div>
-            </div>
+            <!-- Geometry selection moved to unified navigation menu -->
         </div>
         
         <!-- 4D Math Tab -->
@@ -690,14 +700,11 @@
                     <span class="toggle-arrow">▼</span>
                 </div>
                 <div class="section-content">
-                    <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                        <button class="btn" onclick="randomizeParameters('VIB34D')" style="flex: 1; font-size: 0.7rem;">🎲 Random</button>
-                        <button class="btn" onclick="engine.resetToDefaults()" style="flex: 1; font-size: 0.7rem;">Reset</button>
-                    </div>
                     <div style="display: flex; gap: 5px;">
+                        <button class="btn" onclick="engine.resetToDefaults()" style="flex: 1; font-size: 0.7rem;">Reset</button>
                         <button class="btn" id="vib34dAudioToggle" onclick="toggleVIB34DAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio</button>
-                        <!-- Save button removed - now in unified navigation -->
                     </div>
+                    <!-- Random and Save buttons moved to unified navigation menu -->
                 </div>
             </div>
         </div>
@@ -757,12 +764,7 @@
                 </div>
             </div>
             
-            <div class="variation-controls">
-                <div class="variation-nav">
-                    <button class="btn" onclick="holoSystem.previousVariant()">← Prev Preset</button>
-                    <button class="btn" onclick="randomizeParameters('Holographic')">🎲 Randomize</button>
-                    <button class="btn" onclick="holoSystem.nextVariant()">Next Preset →</button>
-                </div>
+            <!-- Variation controls moved to unified navigation menu -->
                 
                 <div class="control-group">
                     <label class="control-label">
@@ -2161,45 +2163,191 @@
             }
         };
 
-        // Unified Navigation Functions
+        // NEW Unified Navigation System
         let currentVisualNumber = 1;
+        let isNavMenuCollapsed = false;
+        let customVisualCounter = 100; // Start customs at 101
 
-        window.updateUnifiedNav = function() {
-            const typeIndicator = document.getElementById('navTypeIndicator');
-            const visualNumber = document.getElementById('navVisualNumber');
+        // Toggle navigation menu
+        window.toggleNavMenu = function() {
+            const content = document.getElementById('navContent');
+            const arrow = document.getElementById('navToggleArrow');
             
-            if (unifiedParameters.systemType === 'VIB34D' || !window.realHoloSystem || !window.realHoloSystem.isActive) {
-                typeIndicator.textContent = '🔷 FACETED';
-                typeIndicator.style.color = '#00ffff';
-                typeIndicator.style.borderColor = 'rgba(0,255,255,0.3)';
+            isNavMenuCollapsed = !isNavMenuCollapsed;
+            
+            if (isNavMenuCollapsed) {
+                content.classList.add('collapsed');
+                arrow.classList.add('collapsed');
             } else {
-                typeIndicator.textContent = '🌀 HOLOGRAPHIC';
-                typeIndicator.style.color = '#ff64ff';
-                typeIndicator.style.borderColor = 'rgba(255,100,255,0.3)';
+                content.classList.remove('collapsed');
+                arrow.classList.remove('collapsed');
             }
-            
-            visualNumber.textContent = `#${currentVisualNumber}`;
         };
 
+        // Update navigation display
+        window.updateUnifiedNav = function() {
+            const typeBadge = document.getElementById('navTypeBadge');
+            const currentNumber = document.getElementById('navCurrentNumber');
+            
+            // Update type badge with proper styling
+            if (unifiedParameters.systemType === 'VIB34D' || !window.realHoloSystem || !window.realHoloSystem.isActive) {
+                typeBadge.textContent = '🔷 FACETED';
+                typeBadge.className = 'nav-type-badge faceted';
+            } else {
+                typeBadge.textContent = '🌀 HOLOGRAPHIC';
+                typeBadge.className = 'nav-type-badge holographic';
+            }
+            
+            // Update current number
+            currentNumber.textContent = `#${currentVisualNumber}`;
+            
+            // Show/hide delete button for custom visuals
+            const deleteBtn = document.getElementById('deleteCustomBtn');
+            if (deleteBtn) {
+                deleteBtn.style.display = (currentVisualNumber > 30) ? 'inline-block' : 'none';
+            }
+        };
+
+        // Navigation functions
         window.previousVisual = function() {
-            // Just randomize parameters - don't use broken variation system
             randomizeParameters();
             currentVisualNumber = Math.max(1, currentVisualNumber - 1);
             updateUnifiedNav();
         };
 
         window.nextVisual = function() {
-            // Just randomize parameters - don't use broken variation system
             randomizeParameters();
             currentVisualNumber = currentVisualNumber + 1;
             updateUnifiedNav();
         };
 
-        window.randomizeCurrentVisual = function() {
-            randomizeParameters();
+        // Total randomization including hue and geometry
+        window.totalRandomization = function() {
+            const targetSystem = unifiedParameters.systemType || 'VIB34D';
+            console.log(`🌈 TOTAL RANDOMIZATION for ${targetSystem} - including hue and geometry`);
+            
+            if (targetSystem === 'VIB34D' && window.engine) {
+                const totalRandomParams = {
+                    // 4D Mathematics
+                    rot4dXW: (Math.random() - 0.5) * 4,
+                    rot4dYW: (Math.random() - 0.5) * 4,
+                    rot4dZW: (Math.random() - 0.5) * 4,
+                    dimension: 3.0 + Math.random() * 1.5,
+                    
+                    // Visual Parameters INCLUDING hue and geometry
+                    gridDensity: 4 + Math.random() * 96,
+                    morphFactor: Math.random() * 2,
+                    chaos: Math.random(),
+                    speed: 0.1 + Math.random() * 2.9,
+                    hue: Math.floor(Math.random() * 360), // INCLUDE HUE
+                    geometry: Math.floor(Math.random() * 8) // INCLUDE GEOMETRY
+                };
+                
+                window.engine.parameterManager.setParameters(totalRandomParams);
+                window.engine.updateDisplayValues();
+                window.engine.updateVisualizers();
+                
+                showParameterNotification('🌈 Total Randomization!', 'Everything randomized including hue and geometry!');
+                
+            } else if (targetSystem === 'Holographic' && window.realHoloSystem) {
+                const totalHoloParams = {
+                    geometryType: Math.floor(Math.random() * 8), // INCLUDE GEOMETRY
+                    density: 0.5 + Math.random() * 2.5,
+                    speed: 0.1 + Math.random() * 1.9,
+                    chaos: Math.random(),
+                    morph: Math.random(),
+                    hue: Math.floor(Math.random() * 360), // INCLUDE HUE
+                    saturation: 0.3 + Math.random() * 0.7,
+                    intensity: 0.2 + Math.random() * 0.8,
+                    name: 'TOTAL RANDOMIZED'
+                };
+                
+                window.realHoloSystem.visualizers.forEach(viz => {
+                    viz.variantParams = { ...totalHoloParams };
+                    viz.roleParams = viz.generateRoleParams(viz.role);
+                });
+                
+                updateHoloSliders(totalHoloParams);
+                showParameterNotification('🌈 Total Randomization!', 'Everything randomized including hue and geometry!');
+            }
+            
+            // Update visual number
             currentVisualNumber = Math.floor(Math.random() * 1000) + 1;
             updateUnifiedNav();
         };
+
+        // Smart save function - assigns next highest custom number
+        window.saveCurrentVariation = function() {
+            // Get next custom number
+            const customNumbers = getExistingCustomNumbers();
+            const nextCustomNumber = Math.max(...customNumbers, 30) + 1;
+            currentVisualNumber = nextCustomNumber;
+            
+            // Save the variation
+            if (unifiedParameters.systemType === 'VIB34D' || !window.realHoloSystem || !window.realHoloSystem.isActive) {
+                saveVIB34DToGallery();
+            } else {
+                saveHologramToGallery();
+            }
+            
+            updateUnifiedNav();
+            showParameterNotification('💾 Saved!', `Custom variation saved as #${currentVisualNumber}`);
+        };
+
+        // Delete current custom variation
+        window.deleteCurrentCustom = function() {
+            if (currentVisualNumber <= 30) {
+                showParameterNotification('⚠️ Cannot Delete', 'Default variations cannot be deleted');
+                return;
+            }
+            
+            const confirmed = confirm(`Delete custom variation #${currentVisualNumber}?`);
+            if (confirmed) {
+                // Remove from localStorage
+                deleteCustomVariation(currentVisualNumber);
+                
+                // Move to previous number
+                currentVisualNumber = Math.max(1, currentVisualNumber - 1);
+                updateUnifiedNav();
+                
+                showParameterNotification('🗑️ Deleted', `Custom variation #${currentVisualNumber + 1} deleted`);
+            }
+        };
+
+        // Helper functions
+        function getExistingCustomNumbers() {
+            const vib34dSaves = JSON.parse(localStorage.getItem('vib34d-custom-variations') || '[]');
+            const holoSaves = JSON.parse(localStorage.getItem('vib34d-holo-gallery') || '[]');
+            
+            const customNumbers = [];
+            vib34dSaves.forEach((save, index) => {
+                if (save) customNumbers.push(31 + index);
+            });
+            holoSaves.forEach((save, index) => {
+                if (save) customNumbers.push(31 + index);
+            });
+            
+            return customNumbers;
+        }
+
+        function deleteCustomVariation(number) {
+            const index = number - 31;
+            
+            // Try deleting from VIB34D customs
+            const vib34dSaves = JSON.parse(localStorage.getItem('vib34d-custom-variations') || '[]');
+            if (vib34dSaves[index]) {
+                vib34dSaves[index] = null;
+                localStorage.setItem('vib34d-custom-variations', JSON.stringify(vib34dSaves));
+                return;
+            }
+            
+            // Try deleting from Holographic customs
+            const holoSaves = JSON.parse(localStorage.getItem('vib34d-holo-gallery') || '[]');
+            if (holoSaves[index]) {
+                holoSaves.splice(index, 1);
+                localStorage.setItem('vib34d-holo-gallery', JSON.stringify(holoSaves));
+            }
+        }
 
         window.updateHoloSliders = function(params) {
             // Update all holographic parameter sliders and displays
@@ -2486,28 +2634,178 @@
             box-shadow: 0 0 10px rgba(0,255,255,0.4);
         }
 
-        /* Mobile responsive for unified nav */
+        /* NEW Unified Navigation Menu Styles */
+        .unified-navigation-menu {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.95);
+            border: 1px solid rgba(0,255,255,0.5);
+            border-radius: 10px;
+            backdrop-filter: blur(15px);
+            z-index: 9999;
+            min-width: 280px;
+        }
+
+        .nav-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(0,255,255,0.2);
+        }
+
+        .nav-type-badge {
+            font-weight: bold;
+            font-size: 0.9rem;
+            padding: 4px 10px;
+            border-radius: 5px;
+            border: 1px solid;
+            transition: all 0.3s ease;
+        }
+
+        .nav-type-badge.faceted {
+            color: #00ffff;
+            background: rgba(0,255,255,0.1);
+            border-color: rgba(0,255,255,0.3);
+        }
+
+        .nav-type-badge.holographic {
+            color: #ff64ff;
+            background: rgba(255,100,255,0.1);
+            border-color: rgba(255,100,255,0.3);
+        }
+
+        .nav-current-number {
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 0 10px;
+        }
+
+        .nav-toggle-arrow {
+            color: #00ffff;
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-toggle-arrow.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .nav-content {
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .nav-content.collapsed {
+            max-height: 0;
+            padding: 0 15px;
+            overflow: hidden;
+        }
+
+        .nav-section {
+            margin-bottom: 15px;
+        }
+
+        .nav-section h4 {
+            color: #00ffff;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-button-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .nav-button {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(0,255,255,0.1);
+            border: 1px solid rgba(0,255,255,0.3);
+            color: #00ffff;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .nav-button:hover {
+            background: rgba(0,255,255,0.3);
+            border-color: #00ffff;
+            box-shadow: 0 0 10px rgba(0,255,255,0.4);
+        }
+
+        .nav-button.save-btn {
+            background: rgba(0,255,100,0.2);
+            border-color: rgba(0,255,100,0.4);
+            color: #00ff64;
+        }
+
+        .nav-button.save-btn:hover {
+            background: rgba(0,255,100,0.4);
+            border-color: #00ff64;
+        }
+
+        .nav-button.gallery-btn {
+            background: rgba(100,100,255,0.2);
+            border-color: rgba(100,100,255,0.4);
+            color: #6464ff;
+        }
+
+        .nav-button.gallery-btn:hover {
+            background: rgba(100,100,255,0.4);
+            border-color: #6464ff;
+        }
+
+        .nav-button.delete-btn {
+            background: rgba(255,100,100,0.2);
+            border-color: rgba(255,100,100,0.4);
+            color: #ff6464;
+        }
+
+        .nav-button.delete-btn:hover {
+            background: rgba(255,100,100,0.4);
+            border-color: #ff6464;
+        }
+
+        /* Mobile responsive */
         @media (max-width: 768px) {
-            .unified-nav-bar {
+            .unified-navigation-menu {
                 top: 10px;
                 left: 10px;
-                padding: 8px 12px;
-                gap: 10px;
+                min-width: 260px;
             }
             
-            .nav-type-indicator {
+            .nav-header {
+                padding: 10px 12px;
+            }
+            
+            .nav-type-badge {
                 font-size: 0.8rem;
-                padding: 2px 6px;
+                padding: 3px 8px;
             }
             
-            .nav-visual-number {
+            .nav-current-number {
                 font-size: 1rem;
+                margin: 0 8px;
             }
             
-            .nav-btn {
-                width: 30px;
-                height: 30px;
-                font-size: 0.9rem;
+            .nav-content {
+                padding: 12px;
+            }
+            
+            .nav-button {
+                padding: 6px 8px;
+                font-size: 0.7rem;
             }
         }
     </style>
