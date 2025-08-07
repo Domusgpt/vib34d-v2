@@ -458,6 +458,7 @@
         </div>
         <div class="action-row">
             <button class="panel-btn" onclick="resetAll()">🔄 Reset</button>
+            <button class="panel-btn" onclick="saveToPortfolio()" style="background: rgba(0, 255, 0, 0.1); border-color: rgba(0, 255, 0, 0.3); color: #00ff00;">💾 Save</button>
         </div>
     </div>
     
@@ -465,6 +466,7 @@
         // Import VIB34D modules
         import { VIB34DIntegratedEngine } from './src/core/Engine.js';
         import { RealHolographicSystem } from './src/holograms/RealHolographicSystem.js';
+        import { CollectionManager } from './src/features/CollectionManager.js';
         
         // Global state
         let currentSystem = 'faceted';
@@ -473,6 +475,8 @@
         let engine = null;
         let holographicSystem = null;
         let polychoraSystem = null;
+        let collectionManager = null;
+        let savedVariationsCount = 0;
         
         // Geometry configurations
         const geometries = {
@@ -504,6 +508,10 @@
                 // Initialize Holographic system
                 holographicSystem = new RealHolographicSystem();
                 console.log('✅ Holographic System ready');
+                
+                // Initialize Collection Manager for portfolio
+                collectionManager = new CollectionManager();
+                console.log('✅ Collection Manager ready');
                 
                 return true;
             } catch (error) {
@@ -895,6 +903,176 @@
         
         // Also check when page gains focus (user returns from gallery)
         window.addEventListener('focus', checkGalleryParameters);
+        
+        // SAVE TO PORTFOLIO FUNCTIONALITY
+        window.saveToPortfolio = async function() {
+            try {
+                // Get current system state
+                const currentState = getCurrentSystemState();
+                
+                if (!currentState) {
+                    console.error('❌ Failed to capture current state');
+                    return;
+                }
+                
+                // Generate unique variation name
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const variationName = `${currentSystem.toUpperCase()} ${currentState.geometryName || 'Custom'} ${timestamp.split('T')[0]}`;
+                
+                // Create variation object
+                const variation = {
+                    id: savedVariationsCount,
+                    name: variationName,
+                    isCustom: true,
+                    system: currentSystem,
+                    created: new Date().toISOString(),
+                    parameters: currentState.parameters
+                };
+                
+                // Create or update user collection
+                const collectionName = `User Custom ${new Date().toISOString().split('T')[0]}`;
+                const userCollection = {
+                    name: collectionName,
+                    description: `Custom variations saved from VIB34D Engine`,
+                    version: '1.0',
+                    type: 'holographic-collection',
+                    profileName: 'VIB34D User',
+                    variations: [variation]
+                };
+                
+                // Save to collections folder (will trigger download)
+                const filename = `user-custom-${new Date().toISOString().split('T')[0]}.json`;
+                await collectionManager.saveCollection(userCollection, filename);
+                
+                savedVariationsCount++;
+                
+                console.log(`✅ Saved "${variationName}" to portfolio as ${filename}`);
+                showSaveConfirmation(variationName, filename);
+                
+            } catch (error) {
+                console.error('❌ Failed to save to portfolio:', error);
+                showSaveError(error.message);
+            }
+        }
+        
+        function getCurrentSystemState() {
+            const state = {
+                system: currentSystem,
+                parameters: {},
+                geometryName: ''
+            };
+            
+            if (currentSystem === 'faceted') {
+                // Get VIB34D Faceted parameters
+                state.parameters = {
+                    geometry: getActiveGeometryIndex(),
+                    geometryType: getActiveGeometryIndex(),
+                    rot4dXW: parseFloat(document.getElementById('rot4dXW').value),
+                    rot4dYW: parseFloat(document.getElementById('rot4dYW').value),
+                    rot4dZW: parseFloat(document.getElementById('rot4dZW').value),
+                    gridDensity: parseFloat(document.getElementById('gridDensity').value),
+                    morphFactor: parseFloat(document.getElementById('morphFactor').value),
+                    chaos: parseFloat(document.getElementById('chaos').value),
+                    speed: parseFloat(document.getElementById('speed').value),
+                    hue: parseFloat(document.getElementById('hue').value),
+                    intensity: parseFloat(document.getElementById('intensity').value),
+                    saturation: parseFloat(document.getElementById('saturation').value)
+                };
+                state.geometryName = geometries.faceted[getActiveGeometryIndex()];
+                
+            } else if (currentSystem === 'holographic') {
+                // Get Holographic system parameters
+                const holoInfo = holographicSystem.getCurrentVariantInfo();
+                state.parameters = {
+                    geometryType: holoInfo.geometryType,
+                    density: parseFloat(document.getElementById('gridDensity').value) / 15.0, // Convert for holographic
+                    morph: parseFloat(document.getElementById('morphFactor').value),
+                    speed: parseFloat(document.getElementById('speed').value),
+                    chaos: parseFloat(document.getElementById('chaos').value),
+                    hue: parseFloat(document.getElementById('hue').value),
+                    intensity: parseFloat(document.getElementById('intensity').value),
+                    saturation: parseFloat(document.getElementById('saturation').value),
+                    rot4dXW: parseFloat(document.getElementById('rot4dXW').value),
+                    rot4dYW: parseFloat(document.getElementById('rot4dYW').value),
+                    rot4dZW: parseFloat(document.getElementById('rot4dZW').value)
+                };
+                state.geometryName = holoInfo.name;
+                
+            } else if (currentSystem === 'polychora') {
+                // Get Polychora system parameters
+                state.parameters = {
+                    polytope: getActiveGeometryIndex(),
+                    geometryType: getActiveGeometryIndex(),
+                    gridDensity: parseFloat(document.getElementById('gridDensity').value),
+                    morphFactor: parseFloat(document.getElementById('morphFactor').value),
+                    chaos: parseFloat(document.getElementById('chaos').value),
+                    speed: parseFloat(document.getElementById('speed').value),
+                    hue: parseFloat(document.getElementById('hue').value),
+                    intensity: parseFloat(document.getElementById('intensity').value),
+                    saturation: parseFloat(document.getElementById('saturation').value),
+                    rot4dXW: parseFloat(document.getElementById('rot4dXW').value),
+                    rot4dYW: parseFloat(document.getElementById('rot4dYW').value),
+                    rot4dZW: parseFloat(document.getElementById('rot4dZW').value)
+                };
+                state.geometryName = geometries.polychora ? geometries.polychora[getActiveGeometryIndex()] : 'Polytope';
+            }
+            
+            return state;
+        }
+        
+        function getActiveGeometryIndex() {
+            const activeBtn = document.querySelector('.geom-btn.active');
+            return activeBtn ? parseInt(activeBtn.dataset.index) : 0;
+        }
+        
+        function showSaveConfirmation(variationName, filename) {
+            // Create temporary notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 70px;
+                right: 20px;
+                background: rgba(0, 255, 0, 0.9);
+                color: black;
+                padding: 15px 20px;
+                border-radius: 10px;
+                font-family: 'Orbitron', monospace;
+                font-weight: bold;
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.innerHTML = `
+                ✅ Saved to Portfolio!<br>
+                <small style="opacity: 0.8;">"${variationName}"</small><br>
+                <small style="opacity: 0.6;">Download ${filename} and place in collections/ folder</small>
+            `;
+            
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.remove();
+            }, 4000);
+        }
+        
+        function showSaveError(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 70px;
+                right: 20px;
+                background: rgba(255, 0, 0, 0.9);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                font-family: 'Orbitron', monospace;
+                z-index: 10000;
+            `;
+            notification.innerHTML = `❌ Save Failed: ${message}`;
+            
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
     </script>
 </body>
 </html>

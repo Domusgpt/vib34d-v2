@@ -145,7 +145,7 @@ export class CollectionManager {
     }
     
     /**
-     * Save a new collection to the collections/ folder
+     * Save a new collection or append to existing user collection
      */
     async saveCollection(collection, filename) {
         // Validate filename
@@ -153,17 +153,40 @@ export class CollectionManager {
             filename += '.json';
         }
         
-        // Ensure proper collection format
-        const formattedCollection = {
-            name: collection.name || 'Unnamed Collection',
-            description: collection.description || '',
-            version: '1.0',
-            type: 'holographic-collection',
-            profileName: collection.profileName || 'Active Holographic Systems',
-            totalVariations: collection.variations.length,
-            created: new Date().toISOString(),
-            variations: collection.variations
-        };
+        let formattedCollection;
+        
+        // Check if we're appending to an existing user collection
+        const existingCollection = this.collections.get(filename);
+        if (existingCollection && filename.includes('user-custom-')) {
+            // Append to existing collection
+            const newVariations = [...existingCollection.variations, ...collection.variations];
+            
+            // Update IDs to be sequential
+            newVariations.forEach((variation, index) => {
+                variation.id = index;
+            });
+            
+            formattedCollection = {
+                ...existingCollection,
+                totalVariations: newVariations.length,
+                variations: newVariations,
+                updated: new Date().toISOString()
+            };
+            
+            console.log(`📝 Appending to existing collection: ${existingCollection.name}`);
+        } else {
+            // Create new collection
+            formattedCollection = {
+                name: collection.name || 'Unnamed Collection',
+                description: collection.description || '',
+                version: '1.0',
+                type: 'holographic-collection',
+                profileName: collection.profileName || 'VIB34D System',
+                totalVariations: collection.variations.length,
+                created: new Date().toISOString(),
+                variations: collection.variations
+            };
+        }
         
         // Convert to JSON
         const jsonData = JSON.stringify(formattedCollection, null, 2);
@@ -180,7 +203,12 @@ export class CollectionManager {
         URL.revokeObjectURL(url);
         
         console.log(`💾 Collection saved: ${filename}`);
-        console.log(`📁 To use: Move ${filename} to collections/ folder and refresh`);
+        console.log(`📁 To use: Move ${filename} to collections/ folder and refresh gallery`);
+        
+        // Update our internal collection if it exists
+        if (existingCollection) {
+            this.collections.set(filename, formattedCollection);
+        }
         
         return formattedCollection;
     }
