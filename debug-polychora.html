@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Polychora Debug Test</title>
+    <style>
+        body {
+            background: #000;
+            color: #0ff;
+            font-family: monospace;
+            padding: 20px;
+        }
+        .status { margin: 10px 0; padding: 10px; border: 1px solid #0ff; }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+        button { 
+            background: #303; 
+            color: #f0f; 
+            border: 2px solid #f0f;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        button:hover { background: #505; }
+        #polychoraLayers {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            border: 2px solid #f0f;
+            margin: 20px 0;
+        }
+        .polychora-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔮 Polychora System Debug Test</h1>
+    
+    <div id="status-log"></div>
+    
+    <div>
+        <button onclick="testPolychoraImport()">Test Polychora Import</button>
+        <button onclick="testInteractivityImport()">Test Interactivity Import</button>
+        <button onclick="initializePolychora()">Initialize Polychora</button>
+        <button onclick="initializeInteractivity()">Initialize Interactivity</button>
+        <button onclick="toggleInteractivityMenu()">Toggle Menu (or press I)</button>
+    </div>
+    
+    <div id="polychoraLayers">
+        <canvas id="polychora-background-canvas" class="polychora-canvas"></canvas>
+        <canvas id="polychora-shadow-canvas" class="polychora-canvas"></canvas>
+        <canvas id="polychora-content-canvas" class="polychora-canvas"></canvas>
+        <canvas id="polychora-highlight-canvas" class="polychora-canvas"></canvas>
+        <canvas id="polychora-accent-canvas" class="polychora-canvas"></canvas>
+    </div>
+
+    <script type="module">
+        let polychoraSystem = null;
+        let interactivityEngine = null;
+        let interactivityMenu = null;
+        
+        function log(message, isError = false) {
+            const statusLog = document.getElementById('status-log');
+            const div = document.createElement('div');
+            div.className = 'status ' + (isError ? 'error' : 'success');
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            statusLog.appendChild(div);
+            console.log(message);
+        }
+        
+        window.testPolychoraImport = async function() {
+            try {
+                log('Testing Polychora import...');
+                const { PolychoraSystem } = await import('./src/core/PolychoraSystem.js');
+                log('✅ PolychoraSystem imported successfully');
+                return true;
+            } catch (error) {
+                log(`❌ Failed to import PolychoraSystem: ${error.message}`, true);
+                console.error(error);
+                return false;
+            }
+        }
+        
+        window.testInteractivityImport = async function() {
+            try {
+                log('Testing Interactivity imports...');
+                const { UniversalInteractivityEngine } = await import('./src/core/UniversalInteractivityEngine.js');
+                log('✅ UniversalInteractivityEngine imported');
+                
+                const { InteractivityMenu } = await import('./src/ui/InteractivityMenu.js');
+                log('✅ InteractivityMenu imported');
+                
+                return true;
+            } catch (error) {
+                log(`❌ Failed to import Interactivity: ${error.message}`, true);
+                console.error(error);
+                return false;
+            }
+        }
+        
+        window.initializePolychora = async function() {
+            try {
+                log('Initializing Polychora System...');
+                const { PolychoraSystem } = await import('./src/core/PolychoraSystem.js');
+                polychoraSystem = new PolychoraSystem();
+                
+                if (polychoraSystem.initialize()) {
+                    log('✅ Polychora initialized');
+                    polychoraSystem.start();
+                    log('✅ Polychora rendering started');
+                    
+                    // Test setting polytope
+                    polychoraSystem.setPolytope(0);
+                    log('✅ Set to 5-Cell polytope');
+                } else {
+                    log('❌ Polychora initialization failed', true);
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, true);
+                console.error(error);
+            }
+        }
+        
+        window.initializeInteractivity = async function() {
+            try {
+                log('Initializing Interactivity Engine...');
+                const { UniversalInteractivityEngine } = await import('./src/core/UniversalInteractivityEngine.js');
+                const { InteractivityMenu } = await import('./src/ui/InteractivityMenu.js');
+                
+                interactivityEngine = new UniversalInteractivityEngine();
+                
+                if (await interactivityEngine.initialize()) {
+                    log('✅ Interactivity Engine initialized');
+                    
+                    interactivityMenu = new InteractivityMenu(interactivityEngine);
+                    log('✅ Interactivity Menu created');
+                    log('💡 Press "I" key to toggle menu');
+                    
+                    // Log active inputs
+                    const stats = interactivityEngine.getPerformanceStats();
+                    log(`Active inputs: ${stats.activeInputs.join(', ')}`);
+                } else {
+                    log('❌ Interactivity initialization failed', true);
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, true);
+                console.error(error);
+            }
+        }
+        
+        window.toggleInteractivityMenu = function() {
+            if (interactivityMenu) {
+                interactivityMenu.toggle();
+                log('Toggled interactivity menu');
+            } else {
+                log('❌ Interactivity menu not initialized', true);
+            }
+        }
+        
+        // Auto-test on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            log('🔮 Debug page loaded');
+            log('Testing imports...');
+            
+            const polychoraOk = await testPolychoraImport();
+            const interactivityOk = await testInteractivityImport();
+            
+            if (polychoraOk && interactivityOk) {
+                log('All imports successful! Click buttons to initialize systems.');
+            }
+        });
+    </script>
+</body>
+</html>
