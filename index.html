@@ -578,25 +578,16 @@
     <div class="unified-navigation-menu" id="unifiedNavMenu">
         <div class="nav-header" onclick="toggleNavMenu()">
             <span class="nav-type-badge" id="navTypeBadge">🔷 FACETED</span>
-            <span class="nav-current-number" id="navCurrentNumber">#1</span>
+            <span class="nav-status" id="navStatus">LIVE ENGINE</span>
             <span class="nav-toggle-arrow" id="navToggleArrow">▼</span>
         </div>
         <div class="nav-content" id="navContent">
-            <!-- Navigation Controls -->
+            <!-- Live Controls -->
             <div class="nav-section">
-                <h4>🎮 Navigation</h4>
+                <h4>🎮 Live Controls</h4>
                 <div class="nav-button-group">
-                    <button class="nav-button" onclick="previousVisual()">‹ Prev</button>
-                    <button class="nav-button" onclick="nextVisual()">Next ›</button>
-                </div>
-            </div>
-            
-            <!-- Randomization Controls -->
-            <div class="nav-section">
-                <h4>🎲 Randomize</h4>
-                <div class="nav-button-group">
-                    <button class="nav-button" onclick="randomizeParameters()">Params Only</button>
-                    <button class="nav-button" onclick="totalRandomization()">Total + Hue + Geometry</button>
+                    <button class="nav-button" onclick="randomizeParameters()">🎲 Randomize</button>
+                    <button class="nav-button" onclick="totalRandomization()">🌈 Total Random</button>
                 </div>
             </div>
             
@@ -604,11 +595,8 @@
             <div class="nav-section">
                 <h4>💾 Actions</h4>
                 <div class="nav-button-group">
-                    <button class="nav-button save-btn" onclick="saveCurrentVariation()">💾 Save</button>
-                    <button class="nav-button gallery-btn" onclick="openUnifiedGallery()">🖼️ Gallery</button>
-                </div>
-                <div class="nav-button-group">
-                    <button class="nav-button delete-btn" onclick="deleteCurrentCustom()" id="deleteCustomBtn" style="display: none;">🗑️ Delete</button>
+                    <button class="nav-button save-btn" onclick="saveCurrentToGallery()">💾 Save to Gallery</button>
+                    <button class="nav-button gallery-btn" onclick="openUnifiedGallery()">🖼️ View Gallery</button>
                 </div>
             </div>
         </div>
@@ -2187,7 +2175,7 @@
         // Update navigation display
         window.updateUnifiedNav = function() {
             const typeBadge = document.getElementById('navTypeBadge');
-            const currentNumber = document.getElementById('navCurrentNumber');
+            const status = document.getElementById('navStatus');
             
             // Update type badge with proper styling
             if (unifiedParameters.systemType === 'VIB34D' || !window.realHoloSystem || !window.realHoloSystem.isActive) {
@@ -2198,27 +2186,18 @@
                 typeBadge.className = 'nav-type-badge holographic';
             }
             
-            // Update current number
-            currentNumber.textContent = `#${currentVisualNumber}`;
-            
-            // Show/hide delete button for custom visuals
-            const deleteBtn = document.getElementById('deleteCustomBtn');
-            if (deleteBtn) {
-                deleteBtn.style.display = (currentVisualNumber > 30) ? 'inline-block' : 'none';
+            // Status always shows "LIVE ENGINE" since this is for live parameter manipulation
+            status.textContent = 'LIVE ENGINE';
+        };
+
+        // Save current live parameters to gallery
+        window.saveCurrentToGallery = function() {
+            if (unifiedParameters.systemType === 'VIB34D' || !window.realHoloSystem || !window.realHoloSystem.isActive) {
+                saveVIB34DToGallery();
+            } else {
+                saveHologramToGallery();
             }
-        };
-
-        // Navigation functions
-        window.previousVisual = function() {
-            randomizeParameters();
-            currentVisualNumber = Math.max(1, currentVisualNumber - 1);
-            updateUnifiedNav();
-        };
-
-        window.nextVisual = function() {
-            randomizeParameters();
-            currentVisualNumber = currentVisualNumber + 1;
-            updateUnifiedNav();
+            showParameterNotification('💾 Saved!', 'Live parameters saved to gallery');
         };
 
         // Total randomization including hue and geometry
@@ -2271,83 +2250,10 @@
                 showParameterNotification('🌈 Total Randomization!', 'Everything randomized including hue and geometry!');
             }
             
-            // Update visual number
-            currentVisualNumber = Math.floor(Math.random() * 1000) + 1;
             updateUnifiedNav();
         };
 
-        // Smart save function - assigns next highest custom number
-        window.saveCurrentVariation = function() {
-            // Get next custom number
-            const customNumbers = getExistingCustomNumbers();
-            const nextCustomNumber = Math.max(...customNumbers, 30) + 1;
-            currentVisualNumber = nextCustomNumber;
-            
-            // Save the variation
-            if (unifiedParameters.systemType === 'VIB34D' || !window.realHoloSystem || !window.realHoloSystem.isActive) {
-                saveVIB34DToGallery();
-            } else {
-                saveHologramToGallery();
-            }
-            
-            updateUnifiedNav();
-            showParameterNotification('💾 Saved!', `Custom variation saved as #${currentVisualNumber}`);
-        };
-
-        // Delete current custom variation
-        window.deleteCurrentCustom = function() {
-            if (currentVisualNumber <= 30) {
-                showParameterNotification('⚠️ Cannot Delete', 'Default variations cannot be deleted');
-                return;
-            }
-            
-            const confirmed = confirm(`Delete custom variation #${currentVisualNumber}?`);
-            if (confirmed) {
-                // Remove from localStorage
-                deleteCustomVariation(currentVisualNumber);
-                
-                // Move to previous number
-                currentVisualNumber = Math.max(1, currentVisualNumber - 1);
-                updateUnifiedNav();
-                
-                showParameterNotification('🗑️ Deleted', `Custom variation #${currentVisualNumber + 1} deleted`);
-            }
-        };
-
-        // Helper functions
-        function getExistingCustomNumbers() {
-            const vib34dSaves = JSON.parse(localStorage.getItem('vib34d-custom-variations') || '[]');
-            const holoSaves = JSON.parse(localStorage.getItem('vib34d-holo-gallery') || '[]');
-            
-            const customNumbers = [];
-            vib34dSaves.forEach((save, index) => {
-                if (save) customNumbers.push(31 + index);
-            });
-            holoSaves.forEach((save, index) => {
-                if (save) customNumbers.push(31 + index);
-            });
-            
-            return customNumbers;
-        }
-
-        function deleteCustomVariation(number) {
-            const index = number - 31;
-            
-            // Try deleting from VIB34D customs
-            const vib34dSaves = JSON.parse(localStorage.getItem('vib34d-custom-variations') || '[]');
-            if (vib34dSaves[index]) {
-                vib34dSaves[index] = null;
-                localStorage.setItem('vib34d-custom-variations', JSON.stringify(vib34dSaves));
-                return;
-            }
-            
-            // Try deleting from Holographic customs
-            const holoSaves = JSON.parse(localStorage.getItem('vib34d-holo-gallery') || '[]');
-            if (holoSaves[index]) {
-                holoSaves.splice(index, 1);
-                localStorage.setItem('vib34d-holo-gallery', JSON.stringify(holoSaves));
-            }
-        }
+        // Clean engine - no more confusing numbering or navigation helpers
 
         window.updateHoloSliders = function(params) {
             // Update all holographic parameter sliders and displays
@@ -2677,11 +2583,14 @@
             border-color: rgba(255,100,255,0.3);
         }
 
-        .nav-current-number {
+        .nav-status {
             color: #ffffff;
-            font-size: 1.2rem;
-            font-weight: bold;
+            font-size: 0.7rem;
+            font-weight: normal;
             margin: 0 10px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .nav-toggle-arrow {
@@ -2794,9 +2703,9 @@
                 padding: 3px 8px;
             }
             
-            .nav-current-number {
-                font-size: 1rem;
-                margin: 0 8px;
+            .nav-status {
+                font-size: 0.6rem;
+                margin: 0 6px;
             }
             
             .nav-content {
