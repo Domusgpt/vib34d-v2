@@ -2410,6 +2410,10 @@
         // Import and initialize Polychora system
         let polychoraSystem = null;
         
+        // Universal Interactivity System
+        let interactivityEngine = null;
+        let interactivityMenu = null;
+        
         // Polychora System Functions
         window.setPolychoraGeometry = function(polytopeIndex) {
             console.log(`🔮 Setting Polychora polytope to ${polytopeIndex}`);
@@ -2532,6 +2536,103 @@
             if (polychoraSystem) {
                 polychoraSystem.stop();
             }
+        }
+        
+        // ========== UNIVERSAL INTERACTIVITY SYSTEM ==========
+        
+        async function initializeInteractivityEngine() {
+            if (interactivityEngine) return true;
+            
+            try {
+                console.log('🎛️ Loading Universal Interactivity Engine...');
+                
+                // Dynamic import of interactivity system
+                const { UniversalInteractivityEngine } = await import('./src/core/UniversalInteractivityEngine.js');
+                const { InteractivityMenu } = await import('./src/ui/InteractivityMenu.js');
+                
+                interactivityEngine = new UniversalInteractivityEngine();
+                
+                if (await interactivityEngine.initialize()) {
+                    // Create interactivity menu
+                    interactivityMenu = new InteractivityMenu(interactivityEngine);
+                    console.log('✅ Universal Interactivity Engine loaded successfully');
+                    
+                    // Add keyboard shortcut info to help
+                    console.log('💡 Press "I" key to toggle Interactivity Menu');
+                    
+                    return true;
+                } else {
+                    console.error('❌ Universal Interactivity Engine initialization failed');
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Error loading Universal Interactivity Engine:', error);
+                return false;
+            }
+        }
+        
+        function getInteractiveParameterValue(paramName) {
+            if (interactivityEngine) {
+                return interactivityEngine.getParameterValue(paramName);
+            }
+            return null;
+        }
+        
+        function updateSystemWithInteractivity() {
+            if (!interactivityEngine) return;
+            
+            // Get interactive parameter values
+            const interactiveParams = {
+                rot4dXW: getInteractiveParameterValue('rot4dXW'),
+                rot4dYW: getInteractiveParameterValue('rot4dYW'), 
+                rot4dZW: getInteractiveParameterValue('rot4dZW'),
+                speed: getInteractiveParameterValue('speed'),
+                hue: getInteractiveParameterValue('hue'),
+                gridDensity: getInteractiveParameterValue('gridDensity'),
+                morphFactor: getInteractiveParameterValue('morphFactor'),
+                chaos: getInteractiveParameterValue('chaos')
+            };
+            
+            // Update active systems with interactive parameters
+            if (engine && engine.visualizers) {
+                engine.visualizers.forEach(visualizer => {
+                    const params = {};
+                    Object.entries(interactiveParams).forEach(([key, value]) => {
+                        if (value !== null) params[key] = value;
+                    });
+                    if (Object.keys(params).length > 0) {
+                        visualizer.updateParameters(params);
+                    }
+                });
+            }
+            
+            if (realHolographicSystem && realHolographicSystem.visualizers) {
+                realHolographicSystem.visualizers.forEach(visualizer => {
+                    const audioData = interactivityEngine.reactiveBands.audio;
+                    if (audioData) {
+                        visualizer.updateAudio(audioData);
+                    }
+                });
+            }
+            
+            if (polychoraSystem && polychoraSystem.visualizers) {
+                const params = {};
+                Object.entries(interactiveParams).forEach(([key, value]) => {
+                    if (value !== null) params[key] = value;
+                });
+                if (Object.keys(params).length > 0) {
+                    polychoraSystem.updateParameters(params);
+                }
+            }
+        }
+        
+        // Start interactivity update loop
+        function startInteractivityLoop() {
+            const updateLoop = () => {
+                updateSystemWithInteractivity();
+                requestAnimationFrame(updateLoop);
+            };
+            updateLoop();
         }
         
         // ========== END POLYCHORA SYSTEM INTEGRATION ==========
@@ -2853,6 +2954,14 @@
             setupCollapsibleSections();
             // Initialize smart menu for current system
             updateParameterVisibility(unifiedParameters.systemType || 'VIB34D');
+            
+            // Initialize Universal Interactivity Engine
+            initializeInteractivityEngine().then(success => {
+                if (success) {
+                    startInteractivityLoop();
+                    console.log('🎛️ Universal Interactivity Engine ready - Press "I" to toggle menu');
+                }
+            });
         });
         
         function setupTabSwitching() {
