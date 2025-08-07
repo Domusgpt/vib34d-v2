@@ -15,30 +15,25 @@ export class CollectionManager {
     async autoDiscoverCollections() {
         console.log('🔍 Auto-discovering collections...');
         
-        // List of essential collection files to try loading
+        // Only load essential collection files that we know exist
         const knownCollections = [
             'base-variations.json'
         ];
         
         const loadPromises = knownCollections.map(filename => 
             this.loadCollection(filename).catch(err => {
-                // Silently fail for missing files
                 console.log(`📁 Collection not found: ${filename}`);
                 return null;
             })
         );
         
-        // Try to load current date user-custom file only
-        const currentDate = new Date().toISOString().split('T')[0];
-        const userFilename = `user-custom-${currentDate}.json`;
-        loadPromises.push(
-            this.loadCollection(userFilename).catch(() => null)
-        );
+        // Don't try to load user files that don't exist
+        // Users can add their own files manually to collections/ folder
         
         const results = await Promise.allSettled(loadPromises);
-        const loadedCount = results.filter(r => r.status === 'fulfilled' && r.value).length;
+        const validResults = results.filter(r => r.status === 'fulfilled' && r.value);
         
-        console.log(`✅ Auto-discovery complete: ${loadedCount} collections loaded`);
+        console.log(`✅ Auto-discovery complete: ${validResults.length} collections loaded`);
         return Array.from(this.collections.values());
     }
     
@@ -62,7 +57,7 @@ export class CollectionManager {
             console.log(`📋 Loaded collection: ${collection.name} (${collection.variations.length} variations)`);
             return collection;
         } catch (error) {
-            console.warn(`❌ Failed to load collection ${filename}:`, error.message);
+            console.log(`📁 Collection ${filename} not available (this is normal for user files)`);
             this.loadingPromises.delete(filename);
             throw error;
         }

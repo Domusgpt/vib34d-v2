@@ -276,6 +276,12 @@
                     console.log('📦 Using generated VIB34D system collections (no JSON collections found)');
                 }
                 
+                // Ensure we have at least some collections
+                if (collections.length === 0) {
+                    collections = generateVIB34DCollections();
+                    console.log('🔧 Fallback: Generated default VIB34D collections');
+                }
+                
                 // Update stats
                 updateStats();
                 
