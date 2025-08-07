@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D Visual Card</title>
+    <style>
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #000428, #004e92);
+            color: white;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .visual-card {
+            max-width: 600px;
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #00ffff;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,255,255,0.5);
+            backdrop-filter: blur(20px);
+        }
+
+        .card-header {
+            background: linear-gradient(90deg, rgba(0,255,255,0.2), rgba(255,100,255,0.2));
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(0,255,255,0.3);
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .card-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .visual-preview {
+            width: 100%;
+            height: 300px;
+            background: #111;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid rgba(0,255,255,0.3);
+        }
+
+        .preview-placeholder {
+            font-size: 3rem;
+            color: rgba(255,255,255,0.3);
+        }
+
+        .card-details {
+            padding: 20px;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-section h3 {
+            color: #00ffff;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.8rem;
+        }
+
+        .parameter-item {
+            background: rgba(0,255,255,0.1);
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid rgba(0,255,255,0.2);
+        }
+
+        .parameter-label {
+            color: #00ffff;
+            font-weight: bold;
+        }
+
+        .parameter-value {
+            color: #ffffff;
+            margin-left: 8px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: 1px solid;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .copy-btn {
+            background: rgba(0,255,100,0.2);
+            border-color: #00ff64;
+            color: #00ff64;
+        }
+
+        .copy-btn:hover {
+            background: rgba(0,255,100,0.4);
+            box-shadow: 0 0 15px rgba(0,255,100,0.5);
+        }
+
+        .share-btn {
+            background: rgba(100,100,255,0.2);
+            border-color: #6464ff;
+            color: #6464ff;
+        }
+
+        .share-btn:hover {
+            background: rgba(100,100,255,0.4);
+            box-shadow: 0 0 15px rgba(100,100,255,0.5);
+        }
+
+        .download-btn {
+            background: rgba(255,100,255,0.2);
+            border-color: #ff64ff;
+            color: #ff64ff;
+        }
+
+        .download-btn:hover {
+            background: rgba(255,100,255,0.4);
+            box-shadow: 0 0 15px rgba(255,100,255,0.5);
+        }
+
+        .card-footer {
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 0.7rem;
+            opacity: 0.6;
+            border-top: 1px solid rgba(0,255,255,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .visual-card {
+                max-width: 100%;
+                margin: 10px;
+            }
+            
+            .parameter-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="visual-card">
+        <div class="card-header">
+            <div class="card-title" id="cardTitle">VIB34D Visual #42</div>
+            <div class="card-subtitle" id="cardSubtitle">🔷 Faceted Hypercube</div>
+        </div>
+
+        <div class="visual-preview" id="visualPreview">
+            <div class="preview-placeholder">🔷</div>
+        </div>
+
+        <div class="card-details">
+            <div class="detail-section">
+                <h3>📊 Parameters</h3>
+                <div class="parameter-grid" id="parameterGrid">
+                    <!-- Parameters will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3>🎨 Visual Properties</h3>
+                <div class="parameter-grid">
+                    <div class="parameter-item">
+                        <span class="parameter-label">Created:</span>
+                        <span class="parameter-value" id="createdDate">Today</span>
+                    </div>
+                    <div class="parameter-item">
+                        <span class="parameter-label">Type:</span>
+                        <span class="parameter-value" id="visualType">Faceted</span>
+                    </div>
+                    <div class="parameter-item">
+                        <span class="parameter-label">Geometry:</span>
+                        <span class="parameter-value" id="geometryType">Hypercube</span>
+                    </div>
+                    <div class="parameter-item">
+                        <span class="parameter-label">Complexity:</span>
+                        <span class="parameter-value" id="complexityLevel">High</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-actions">
+                <button class="action-btn copy-btn" onclick="copyToEngine()">
+                    📋 Copy to Engine
+                </button>
+                <button class="action-btn share-btn" onclick="shareVisual()">
+                    🔗 Share Visual
+                </button>
+                <a class="action-btn download-btn" href="https://domusgpt.github.io/vib34d-holographic-engine/" target="_blank">
+                    ⬇️ Get VIB34D
+                </a>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            VIB34D Holographic Engine • Created with 4D mathematics • domusgpt.github.io
+        </div>
+    </div>
+
+    <script>
+        // Get visual data from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const visualData = urlParams.get('data');
+
+        if (visualData) {
+            try {
+                const data = JSON.parse(decodeURIComponent(visualData));
+                loadVisualCard(data);
+            } catch (error) {
+                console.error('Error loading visual data:', error);
+                loadDemoVisual();
+            }
+        } else {
+            loadDemoVisual();
+        }
+
+        function loadVisualCard(data) {
+            // Update card title
+            document.getElementById('cardTitle').textContent = data.name || `VIB34D Visual #${data.id || '??'}`;
+            
+            // Update subtitle
+            const systemType = data.system === 'VIB34D' ? '🔷 Faceted' : '🌀 Holographic';
+            const geometryName = getGeometryName(data.parameters);
+            document.getElementById('cardSubtitle').textContent = `${systemType} ${geometryName}`;
+            
+            // Update visual type
+            document.getElementById('visualType').textContent = data.system === 'VIB34D' ? 'Faceted' : 'Holographic';
+            document.getElementById('geometryType').textContent = geometryName;
+            
+            // Update creation date
+            if (data.created) {
+                document.getElementById('createdDate').textContent = new Date(data.created).toLocaleDateString();
+            }
+            
+            // Calculate complexity
+            const complexity = calculateComplexity(data.parameters);
+            document.getElementById('complexityLevel').textContent = complexity;
+            
+            // Populate parameters
+            populateParameters(data.parameters, data.system);
+            
+            // Store data for copying
+            window.currentVisualData = data;
+        }
+
+        function loadDemoVisual() {
+            const demoData = {
+                id: 42,
+                name: "Hypercube Dreams",
+                system: "VIB34D",
+                parameters: {
+                    geometry: 1,
+                    rot4dXW: 1.2,
+                    rot4dYW: -0.8,
+                    rot4dZW: 0.5,
+                    dimension: 3.8,
+                    gridDensity: 25.5,
+                    morphFactor: 1.2,
+                    chaos: 0.3,
+                    speed: 1.5,
+                    hue: 180
+                },
+                created: Date.now()
+            };
+            
+            loadVisualCard(demoData);
+        }
+
+        function populateParameters(params, system) {
+            const grid = document.getElementById('parameterGrid');
+            grid.innerHTML = '';
+            
+            for (const [key, value] of Object.entries(params)) {
+                const item = document.createElement('div');
+                item.className = 'parameter-item';
+                
+                const label = formatParameterName(key);
+                const formattedValue = typeof value === 'number' ? value.toFixed(2) : value;
+                
+                item.innerHTML = `
+                    <span class="parameter-label">${label}:</span>
+                    <span class="parameter-value">${formattedValue}</span>
+                `;
+                
+                grid.appendChild(item);
+            }
+        }
+
+        function formatParameterName(key) {
+            const nameMap = {
+                'rot4dXW': '4D Rot XW',
+                'rot4dYW': '4D Rot YW', 
+                'rot4dZW': '4D Rot ZW',
+                'gridDensity': 'Grid Density',
+                'morphFactor': 'Morph Factor',
+                'geometryType': 'Geometry',
+                'dimension': 'Dimension'
+            };
+            
+            return nameMap[key] || key.charAt(0).toUpperCase() + key.slice(1);
+        }
+
+        function getGeometryName(params) {
+            const geometryNames = ['Tetrahedron', 'Hypercube', 'Sphere', 'Torus', 'Klein Bottle', 'Fractal', 'Wave', 'Crystal'];
+            const geometryIndex = params.geometry || params.geometryType || 0;
+            return geometryNames[geometryIndex] || 'Unknown';
+        }
+
+        function calculateComplexity(params) {
+            let complexity = 0;
+            
+            // Factor in various parameters
+            if (params.gridDensity) complexity += params.gridDensity / 30;
+            if (params.morphFactor) complexity += params.morphFactor / 2;
+            if (params.chaos) complexity += params.chaos;
+            if (params.dimension) complexity += (params.dimension - 3) * 2;
+            
+            // Categorize
+            if (complexity < 1) return 'Low';
+            if (complexity < 2) return 'Medium';
+            if (complexity < 3) return 'High';
+            return 'Extreme';
+        }
+
+        function copyToEngine() {
+            if (window.currentVisualData) {
+                // Store in localStorage for the main engine to pick up
+                localStorage.setItem('vib34d-load-visual', JSON.stringify(window.currentVisualData));
+                
+                // Open main engine
+                window.open('https://domusgpt.github.io/vib34d-holographic-engine/', '_blank');
+                
+                alert('Visual copied! The main engine will load these parameters.');
+            }
+        }
+
+        function shareVisual() {
+            if (window.currentVisualData) {
+                const shareUrl = window.location.href;
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: window.currentVisualData.name || 'VIB34D Visual',
+                        text: 'Check out this VIB34D holographic visual!',
+                        url: shareUrl
+                    });
+                } else {
+                    // Fallback - copy to clipboard
+                    navigator.clipboard.writeText(shareUrl).then(() => {
+                        alert('Visual link copied to clipboard!');
+                    }).catch(() => {
+                        prompt('Copy this link to share:', shareUrl);
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html>
