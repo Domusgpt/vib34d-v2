@@ -3,13 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>VIB34D Holographic Engine - Alpha v1.0</title>
+    <title>VIB34D Engine - Clean Interface</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        /* VIB34D Refactored CSS */
         * {
             margin: 0;
             padding: 0;
@@ -24,3362 +20,788 @@
             position: relative;
         }
         
-        /* 5-Layer Holographic Canvas System */
-        .holographic-layers {
+        /* ========== TOP BAR ========== */
+        .top-bar {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-        }
-        
-        .holographic-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: auto;
-        }
-        
-        .polychora-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: auto;
-        }
-        
-        #background-canvas { z-index: 1; opacity: 0.6; mix-blend-mode: normal; }
-        #shadow-canvas { z-index: 3; opacity: 0.4; mix-blend-mode: multiply; }
-        #content-canvas { z-index: 5; opacity: 0.9; mix-blend-mode: screen; }
-        #highlight-canvas { z-index: 7; opacity: 0.7; mix-blend-mode: overlay; }
-        #accent-canvas { z-index: 15; opacity: 0.5; mix-blend-mode: color-dodge; }
-        
-        /* Polychora Glassmorphic Layer Styles */
-        #polychora-background-canvas { 
-            z-index: 2; 
-            opacity: 0.3; 
-            mix-blend-mode: normal;
-            backdrop-filter: blur(2px);
-        }
-        #polychora-shadow-canvas { 
-            z-index: 4; 
-            opacity: 0.6; 
-            mix-blend-mode: multiply;
-            backdrop-filter: blur(1px);
-        }
-        #polychora-content-canvas { 
-            z-index: 6; 
-            opacity: 0.85; 
-            mix-blend-mode: screen;
-            backdrop-filter: blur(0.5px);
-        }
-        #polychora-highlight-canvas { 
-            z-index: 8; 
-            opacity: 0.7; 
-            mix-blend-mode: overlay;
-            backdrop-filter: blur(1.5px);
-        }
-        #polychora-accent-canvas { 
-            z-index: 16; 
-            opacity: 0.4; 
-            mix-blend-mode: color-dodge;
-            backdrop-filter: blur(3px);
-        }
-        
-        /* COMPACT FLOATING TAB PANEL DESIGN */
-        .control-panel {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 280px;
-            background: rgba(0, 0, 0, 0.95);
-            border: 1px solid #00ffff;
-            border-radius: 12px;
-            z-index: 1000;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
-            transition: all 0.3s ease;
-            transform: translateX(0);
-            font-size: 12px;
-        }
-        
-        /* Collapsible States - Improved */
-        .control-panel.collapsed {
-            transform: translateX(240px);
-            opacity: 0.7;
-        }
-        
-        .control-panel.collapsed:hover {
-            transform: translateX(220px);
-            opacity: 0.9;
-        }
-        
-        /* Tab System */
-        .tab-header {
-            display: flex;
-            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
-            margin: 0;
-        }
-        
-        .tab-btn {
-            flex: 1;
-            background: rgba(0, 255, 255, 0.1);
-            border: none;
-            color: rgba(255, 255, 255, 0.7);
-            padding: 8px 6px;
-            cursor: pointer;
-            font-family: 'Orbitron', monospace;
-            font-size: 10px;
-            border-radius: 0;
-            transition: all 0.2s ease;
-        }
-        
-        .tab-btn:first-child {
-            border-top-left-radius: 12px;
-        }
-        
-        .tab-btn:last-child {
-            border-top-right-radius: 12px;
-        }
-        
-        .tab-btn.active {
-            background: rgba(0, 255, 255, 0.3);
-            color: #00ffff;
+            right: 0;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.9);
             border-bottom: 2px solid #00ffff;
-        }
-        
-        .tab-btn:hover:not(.active) {
-            background: rgba(0, 255, 255, 0.15);
-            color: rgba(255, 255, 255, 0.9);
-        }
-        
-        /* Tab Content Areas */
-        .tab-content {
-            display: none;
-            padding: 15px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        /* Collapsible Sections */
-        .param-section {
-            margin-bottom: 12px;
-            border: 1px solid rgba(0, 255, 255, 0.2);
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        
-        .section-header {
-            background: rgba(0, 255, 255, 0.1);
-            padding: 8px 10px;
-            cursor: pointer;
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
-            font-size: 11px;
-            font-weight: bold;
-            color: #00ffff;
-        }
-        
-        .section-header:hover {
-            background: rgba(0, 255, 255, 0.15);
-        }
-        
-        .section-content {
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.3);
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .section-content.collapsed {
-            display: none;
-        }
-        
-        /* Compact Parameter Controls */
-        .param-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            gap: 8px;
-        }
-        
-        .param-label {
-            width: 60px;
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.8);
-        }
-        
-        .param-slider {
-            flex: 1;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
-            outline: none;
-        }
-        
-        .param-value {
-            width: 40px;
-            font-size: 10px;
-            color: #00ffff;
-            text-align: right;
-        }
-        
-        /* Quick Action Toolbar */
-        .quick-actions {
-            display: flex;
-            padding: 8px;
-            gap: 4px;
-            border-top: 1px solid rgba(0, 255, 255, 0.3);
-            background: rgba(0, 0, 0, 0.5);
-        }
-        
-        .quick-btn {
-            flex: 1;
-            background: rgba(0, 255, 255, 0.2);
-            border: 1px solid rgba(0, 255, 255, 0.4);
-            color: #00ffff;
-            padding: 6px 4px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: 'Orbitron', monospace;
-            font-size: 9px;
-            transition: all 0.2s ease;
-        }
-        
-        .quick-btn:hover {
-            background: rgba(0, 255, 255, 0.3);
-            box-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
-        }
-        
-        /* Collapse Toggle Button - FIXED POSITIONING */
-        .collapse-toggle {
-            position: absolute;
-            left: -45px; /* Position toggle button to the left of panel */
-            top: 15px;
-            width: 40px;
-            height: 40px;
-            background: rgba(0, 255, 255, 0.3);
-            border: 1px solid #00ffff;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            font-weight: bold;
-            color: #00ffff;
-            transition: all 0.3s ease;
+            padding: 0 20px;
+            z-index: 1000;
             backdrop-filter: blur(10px);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
         
-        .collapse-toggle:hover {
-            background: rgba(0, 255, 255, 0.4);
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-        }
-        
-        /* Hide control panel in preview mode */
-        .preview-mode .control-panel {
-            display: none !important;
-        }
-        
-        /* Hide status in preview mode */
-        .preview-mode .status {
-            display: none !important;
-        }
-        
-        .control-panel h2 {
-            color: #00ffff;
-            margin-bottom: 15px;
-            text-align: center;
+        .logo {
             font-size: 1.2rem;
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            font-weight: 900;
+            color: #00ffff;
+            text-shadow: 0 0 20px #00ffff;
         }
         
-        /* Enhanced Control Header */
-        .control-header {
-            background: linear-gradient(145deg, rgba(0, 255, 255, 0.05), rgba(0, 255, 255, 0.02));
-            border: 1px solid rgba(0, 255, 255, 0.2);
-            border-radius: 8px;
-            padding: 12px;
-            margin: 10px 0 15px 0;
+        .system-selector {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
             gap: 10px;
         }
         
-        .system-status {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        
-        #currentSystemIndicator {
-            font-size: 0.8rem;
-            font-weight: bold;
-            color: #00ffff;
-        }
-        
-        #parameterSyncStatus {
-            font-size: 0.6rem;
-            color: rgba(0, 255, 0, 0.8);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .quick-actions {
-            display: flex;
-            gap: 6px;
-        }
-        
-        .quick-btn {
-            background: rgba(0, 255, 255, 0.15);
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            color: #00ffff;
-            padding: 6px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: 'Orbitron', monospace;
-            font-size: 0.6rem;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .quick-btn:hover {
-            background: rgba(0, 255, 255, 0.25);
-            box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
-            transform: translateY(-1px);
-        }
-        
-        .quick-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 0 4px rgba(0, 255, 255, 0.6);
-        }
-        
-        /* Tabs */
-        .tabs {
-            display: flex;
-            margin-bottom: 15px;
-            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
-        }
-        
-        .tab-btn {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: rgba(255, 255, 255, 0.7);
-            padding: 8px 5px;
-            cursor: pointer;
-            font-family: 'Orbitron', monospace;
-            font-size: 0.7rem;
-            transition: all 0.3s ease;
-            border-bottom: 2px solid transparent;
-        }
-        
-        .tab-btn.active {
-            color: #00ffff;
-            border-bottom-color: #00ffff;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        /* Controls */
-        .control-group {
-            margin-bottom: 15px;
-        }
-        
-        .control-label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.8);
-        }
-        
-        .control-input {
-            width: 100%;
+        .system-btn {
             background: rgba(0, 255, 255, 0.1);
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            border-radius: 5px;
-            padding: 8px;
-            color: #fff;
-            font-family: 'Orbitron', monospace;
-            font-size: 0.8rem;
-        }
-        
-        .control-input:focus {
-            outline: none;
-            border-color: #00ffff;
-            box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
-        }
-        
-        .control-display {
-            display: inline-block;
-            float: right;
-            color: #00ffff;
-            font-weight: bold;
-        }
-        
-        /* Buttons */
-        .btn {
-            background: rgba(0, 255, 255, 0.2);
-            border: 1px solid #00ffff;
+            border: 2px solid rgba(0, 255, 255, 0.3);
             color: #00ffff;
             padding: 8px 16px;
-            border-radius: 5px;
             cursor: pointer;
             font-family: 'Orbitron', monospace;
-            font-size: 0.8rem;
-            transition: all 0.3s ease;
-            margin: 2px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
         }
         
-        .btn:hover {
-            background: rgba(0, 255, 255, 0.3);
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-        }
-        
-        .btn.active {
-            background: rgba(0, 255, 255, 0.5);
-        }
-        
-        /* Geometry Presets */
-        .geometry-presets {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 5px;
-            margin-bottom: 15px;
-        }
-        
-        /* Variation Grid */
-        .variation-controls {
-            margin-bottom: 15px;
-        }
-        
-        .variation-nav {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        
-        .variation-info {
-            margin-bottom: 10px;
-            padding: 10px;
-            background: rgba(0, 255, 255, 0.1);
-            border-radius: 5px;
-            font-size: 0.8rem;
-        }
-        
-        /* Status */
-        .status {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-family: 'Orbitron', monospace;
-            font-size: 0.8rem;
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-        
-        .status.success {
-            background: rgba(0, 255, 0, 0.2);
-            border: 1px solid #00ff00;
-            color: #00ff00;
-        }
-        
-        .status.error {
-            background: rgba(255, 0, 0, 0.2);
-            border: 1px solid #ff0000;
-            color: #ff0000;
-        }
-        
-        .status.warning {
-            background: rgba(255, 255, 0, 0.2);
-            border: 1px solid #ffff00;
-            color: #ffff00;
-        }
-        
-        .status.info {
+        .system-btn:hover {
             background: rgba(0, 255, 255, 0.2);
-            border: 1px solid #00ffff;
-            color: #00ffff;
+            border-color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
         }
         
-        /* Gallery Modal */
-        .modal {
-            display: none;
+        .system-btn.active {
+            background: rgba(0, 255, 255, 0.3);
+            border-color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            background: rgba(255, 0, 255, 0.1);
+            border: 2px solid rgba(255, 0, 255, 0.3);
+            color: #ff00ff;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .action-btn:hover {
+            background: rgba(255, 0, 255, 0.3);
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        /* ========== CANVAS ========== */
+        .canvas-container {
             position: fixed;
+            top: 50px;
+            left: 0;
+            right: 300px;
+            bottom: 0;
+        }
+        
+        .visualization-canvas {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 2000;
         }
         
-        .modal.active {
-            display: block;
-        }
-        
-        .modal-content {
-            position: relative;
-            margin: 2% auto;
-            width: 95%;
-            height: 95%;
+        /* ========== CONTROL PANEL ========== */
+        .control-panel {
+            position: fixed;
+            top: 50px;
+            right: 0;
+            bottom: 0;
+            width: 300px;
             background: rgba(0, 0, 0, 0.95);
-            border: 1px solid #00ffff;
-            border-radius: 10px;
-            overflow: hidden;
+            border-left: 2px solid #00ffff;
+            padding: 20px;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
         }
         
-        /* Start collapsed by default for mobile/previews - FIXED */
-        body.mobile-mode .control-panel,
-        body.start-collapsed .control-panel,
-        .control-panel.start-collapsed {
-            transform: translateX(280px); /* Use same positioning as collapsed state */
-            opacity: 0.8;
+        .panel-header {
+            font-size: 1.1rem;
+            color: #ff00ff;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 0 0 10px #ff00ff;
         }
         
-        /* Mobile specific adjustments */
-        @media (max-width: 768px) {
-            .control-panel {
-                right: 10px;
-                top: 10px;
-                min-width: 280px;
-                max-width: 300px; /* Smaller on mobile */
-            }
-            
-            .control-panel.collapsed,
-            body.start-collapsed .control-panel {
-                transform: translateX(260px); /* Adjust for smaller mobile panel */
-            }
-            
-            .control-panel.collapsed:hover {
-                transform: translateX(220px);
-            }
-            
-            .collapse-toggle {
-                left: -42px; /* Adjust toggle position on mobile */
-                width: 38px;
-                height: 38px;
-            }
-            
-            .geometry-presets {
-                grid-template-columns: 1fr;
-            }
+        .control-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+        
+        .control-section:last-child {
+            border-bottom: none;
+        }
+        
+        .section-title {
+            font-size: 0.9rem;
+            color: #00ffff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        /* Geometry Grid */
+        .geometry-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 5px;
+        }
+        
+        .geom-btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+            padding: 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.3s;
+        }
+        
+        .geom-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+        }
+        
+        .geom-btn.active {
+            background: rgba(0, 255, 255, 0.4);
+            border-color: #00ffff;
+            box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+        }
+        
+        /* Sliders */
+        .control-group {
+            margin-bottom: 12px;
+        }
+        
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 5px;
+        }
+        
+        .control-value {
+            color: #00ffff;
+            font-weight: bold;
+        }
+        
+        .control-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 6px;
+            background: rgba(0, 255, 255, 0.2);
+            outline: none;
+            border-radius: 3px;
+        }
+        
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #00ffff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        /* Action Buttons */
+        .action-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .panel-btn {
+            flex: 1;
+            background: rgba(255, 0, 255, 0.1);
+            border: 1px solid rgba(255, 0, 255, 0.3);
+            color: #ff00ff;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+        
+        .panel-btn:hover {
+            background: rgba(255, 0, 255, 0.3);
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        /* Hide scrollbar but keep scrollable */
+        .control-panel::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        .control-panel::-webkit-scrollbar-track {
+            background: rgba(0, 255, 255, 0.1);
+        }
+        
+        .control-panel::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 255, 0.3);
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
-    <!-- 5-Layer Holographic Canvas System -->
-    <div class="holographic-layers">
-        <canvas id="background-canvas" class="holographic-canvas"></canvas>
-        <canvas id="shadow-canvas" class="holographic-canvas"></canvas>
-        <canvas id="content-canvas" class="holographic-canvas"></canvas>
-        <canvas id="highlight-canvas" class="holographic-canvas"></canvas>
-        <canvas id="accent-canvas" class="holographic-canvas"></canvas>
-    </div>
-    
-    <!-- Active Holographic System Layers -->
-    <div class="holographic-layers active-holo" style="display: none;">
-        <canvas id="holo-background-canvas" class="holographic-canvas"></canvas>
-        <canvas id="holo-shadow-canvas" class="holographic-canvas"></canvas>
-        <canvas id="holo-content-canvas" class="holographic-canvas"></canvas>
-        <canvas id="holo-highlight-canvas" class="holographic-canvas"></canvas>
-        <canvas id="holo-accent-canvas" class="holographic-canvas"></canvas>
-    </div>
-    
-    <!-- Polychora 5-Layer System -->
-    <div class="polychora-layers" id="polychoraLayers" style="display: none;">
-        <canvas id="polychora-background-canvas" class="polychora-canvas"></canvas>
-        <canvas id="polychora-shadow-canvas" class="polychora-canvas"></canvas>
-        <canvas id="polychora-content-canvas" class="polychora-canvas"></canvas>
-        <canvas id="polychora-highlight-canvas" class="polychora-canvas"></canvas>
-        <canvas id="polychora-accent-canvas" class="polychora-canvas"></canvas>
-    </div>
-    
-    <!-- Fixed Action Tabs (Always Visible) -->
-    <div class="fixed-action-tabs" id="fixedActionTabs">
-        <button class="action-tab" onclick="saveCurrentVariation()" title="Save current variation">💾</button>
-        <button class="action-tab" onclick="toggleAudioGlobal()" title="Toggle audio">🎵</button>
-        <button class="action-tab" onclick="openUnifiedGallery()" title="Open gallery">🖼️</button>
-    </div>
-
-    <!-- NEW Unified Navigation Menu -->
-    <div class="unified-navigation-menu" id="unifiedNavMenu">
-        <div class="nav-header" onclick="toggleNavMenu()">
-            <span class="nav-type-badge" id="navTypeBadge">🔷 FACETED</span>
-            <span class="nav-status" id="navStatus">LIVE ENGINE</span>
-            <span class="nav-toggle-arrow" id="navToggleArrow">▼</span>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="logo">VIB34D ENGINE</div>
+        
+        <div class="system-selector">
+            <button class="system-btn active" data-system="faceted" onclick="switchSystem('faceted')">
+                🔷 Faceted
+            </button>
+            <button class="system-btn" data-system="holographic" onclick="switchSystem('holographic')">
+                ✨ Holographic
+            </button>
+            <button class="system-btn" data-system="polychora" onclick="switchSystem('polychora')">
+                🔮 Polychora
+            </button>
         </div>
-        <div class="nav-content" id="navContent">
-            <!-- Live Controls -->
-            <div class="nav-section">
-                <h4>🎮 Live Controls</h4>
-                <div class="nav-button-group">
-                    <button class="nav-button" onclick="randomizeParameters()">🎲 Randomize</button>
-                    <button class="nav-button" onclick="totalRandomization()">🌈 Total Random</button>
-                </div>
-            </div>
-            
-            <!-- Save & Gallery Controls -->
-            <div class="nav-section">
-                <h4>💾 Actions</h4>
-                <div class="nav-button-group">
-                    <button class="nav-button save-btn" onclick="saveCurrentToGallery()">💾 Save to Gallery</button>
-                    <button class="nav-button gallery-btn" onclick="openUnifiedGallery()">🖼️ View Gallery</button>
-                </div>
-            </div>
+        
+        <div class="action-buttons">
+            <button class="action-btn" onclick="openGallery()" title="Gallery">🖼️</button>
+            <button class="action-btn" onclick="toggleAudio()" title="Audio">🎵</button>
+            <button class="action-btn" onclick="toggleInteractivity()" title="Interactivity Menu (Press I)">I</button>
         </div>
     </div>
-
+    
+    <!-- Canvas Container -->
+    <div class="canvas-container" id="canvasContainer">
+        <!-- VIB34D Faceted System Canvases -->
+        <div class="holographic-layers" id="vib34dLayers">
+            <canvas id="background-canvas" class="visualization-canvas"></canvas>
+            <canvas id="shadow-canvas" class="visualization-canvas"></canvas>
+            <canvas id="content-canvas" class="visualization-canvas"></canvas>
+            <canvas id="highlight-canvas" class="visualization-canvas"></canvas>
+            <canvas id="accent-canvas" class="visualization-canvas"></canvas>
+        </div>
+        
+        <!-- Holographic System Canvases -->
+        <div class="holographic-layers" id="holographicLayers" style="display: none;">
+            <canvas id="holo-background-canvas" class="visualization-canvas"></canvas>
+            <canvas id="holo-shadow-canvas" class="visualization-canvas"></canvas>
+            <canvas id="holo-content-canvas" class="visualization-canvas"></canvas>
+            <canvas id="holo-highlight-canvas" class="visualization-canvas"></canvas>
+            <canvas id="holo-accent-canvas" class="visualization-canvas"></canvas>
+        </div>
+        
+        <!-- Polychora System Canvases -->
+        <div class="holographic-layers" id="polychoraLayers" style="display: none;">
+            <canvas id="polychora-background-canvas" class="visualization-canvas"></canvas>
+            <canvas id="polychora-shadow-canvas" class="visualization-canvas"></canvas>
+            <canvas id="polychora-content-canvas" class="visualization-canvas"></canvas>
+            <canvas id="polychora-highlight-canvas" class="visualization-canvas"></canvas>
+            <canvas id="polychora-accent-canvas" class="visualization-canvas"></canvas>
+        </div>
+    </div>
+    
     <!-- Control Panel -->
-    <div class="control-panel" id="controlPanel">
-        <div class="panel-header-clickable" onclick="toggleParameterPanel()">
-            <h2>VIB34D Parameters <span style="font-size: 0.6em; opacity: 0.7;">Alpha v1.0</span></h2>
-            <div class="header-info">
-                <span id="currentSystemIndicator">🔷 VIB34D</span>
-                <span class="panel-toggle-arrow" id="panelToggleArrow">▼</span>
+    <div class="control-panel">
+        <div class="panel-header" id="panelHeader">FACETED SYSTEM</div>
+        
+        <!-- GEOMETRY SECTION (Faceted & Polychora) -->
+        <div class="control-section" id="geometrySection">
+            <div class="section-title">GEOMETRY</div>
+            <div class="geometry-grid" id="geometryGrid">
+                <!-- Will be populated based on system -->
             </div>
         </div>
         
-        <div class="panel-collapsible-content" id="panelContent">
-        <!-- Top Menu Buttons - Keep randomize functions as they are -->
-        <div class="quick-actions">
-            <button class="quick-btn" onclick="quickRandomize()" title="Visual randomize (keeps geometry)">⚡</button>
-            <button class="quick-btn" onclick="randomizeParameters()" title="Full randomize (includes geometry)">🎲</button>
-            <button class="quick-btn" onclick="switchToSystem(unifiedParameters.systemType === 'VIB34D' ? 'Holographic' : 'VIB34D')" title="Switch system">🔄</button>
-        </div>
-        
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab-btn active" data-tab="variations" title="Faceted Variations">🔷 Faceted</button>
-            <button class="tab-btn" data-tab="polytopal" title="4D Mathematics">🧮 4D</button>
-            <button class="tab-btn" data-tab="holographic" title="Holographic Params">🌀 Holo</button>
-            <button class="tab-btn" data-tab="holograms" title="Live Holographic">✨ Holographic</button>
-            <button class="tab-btn" data-tab="polychora" title="4D Polytope Lattice Projections">🔮 Polychora</button>
-            <button class="tab-btn" data-tab="export" title="Export & Import">📤 I/O</button>
-        </div>
-        
-        <!-- Variations Tab -->
-        <div class="tab-content active" id="variations-tab">
-            <!-- Variation slider removed - not needed for Faceted mode -->
-            
-            <!-- Navigation section removed - moved to unified navigation bar -->
-            
-            <!-- Geometry selection moved to unified navigation menu -->
-        </div>
-        
-        <!-- 4D Math Tab -->
-        <div class="tab-content" id="polytopal-tab">
-            <div class="collapsible-section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <span>🧮 4D Rotations</span>
-                    <span class="toggle-arrow">▼</span>
+        <!-- VARIATION SECTION (Holographic only) -->
+        <div class="control-section" id="variationSection" style="display: none;">
+            <div class="section-title">VARIATION</div>
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Preset</span>
+                    <span class="control-value" id="variationValue">1 / 30</span>
                 </div>
-                <div class="section-content">
-                    <div class="control-group">
-                        <label class="control-label">
-                            XW <span class="control-display" id="rot4dXWDisplay">0.00</span>
-                        </label>
-                        <input type="range" id="rot4dXW" class="control-input" min="-2" max="2" step="0.01" value="0" 
-                               oninput="updateVIB34DParameter('rot4dXW', this.value); document.getElementById('rot4dXWDisplay').textContent = parseFloat(this.value).toFixed(2)">
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label">
-                            YW <span class="control-display" id="rot4dYWDisplay">0.00</span>
-                        </label>
-                        <input type="range" id="rot4dYW" class="control-input" min="-2" max="2" step="0.01" value="0"
-                               oninput="updateVIB34DParameter('rot4dYW', this.value); document.getElementById('rot4dYWDisplay').textContent = parseFloat(this.value).toFixed(2)">
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label">
-                            ZW <span class="control-display" id="rot4dZWDisplay">0.00</span>
-                        </label>
-                        <input type="range" id="rot4dZW" class="control-input" min="-2" max="2" step="0.01" value="0"
-                               oninput="updateVIB34DParameter('rot4dZW', this.value); document.getElementById('rot4dZWDisplay').textContent = parseFloat(this.value).toFixed(2)">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="collapsible-section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <span>📐 Dimension</span>
-                    <span class="toggle-arrow">▼</span>
-                </div>
-                <div class="section-content">
-                    <div class="control-group">
-                        <label class="control-label">
-                            Dimension <span class="control-display" id="dimensionDisplay">3.50</span>
-                        </label>
-                        <input type="range" id="dimension" class="control-input" min="3" max="4.5" step="0.01" value="3.5"
-                               oninput="updateVIB34DParameter('dimension', this.value); document.getElementById('dimensionDisplay').textContent = parseFloat(this.value).toFixed(2)">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="collapsible-section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <span>🔷 Geometry Selection</span>
-                    <span class="toggle-arrow">▼</span>
-                </div>
-                <div class="section-content">
-                    <div class="geometry-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px;">
-                        <button class="btn vib34d-geom active" data-geometry="0" onclick="setCurrentGeometry(0)">Tetrahedron</button>
-                        <button class="btn vib34d-geom" data-geometry="1" onclick="setCurrentGeometry(1)">Hypercube</button>
-                        <button class="btn vib34d-geom" data-geometry="2" onclick="setCurrentGeometry(2)">Sphere</button>
-                        <button class="btn vib34d-geom" data-geometry="3" onclick="setCurrentGeometry(3)">Torus</button>
-                        <button class="btn vib34d-geom" data-geometry="4" onclick="setCurrentGeometry(4)">Klein</button>
-                        <button class="btn vib34d-geom" data-geometry="5" onclick="setCurrentGeometry(5)">Fractal</button>
-                        <button class="btn vib34d-geom" data-geometry="6" onclick="setCurrentGeometry(6)">Wave</button>
-                        <button class="btn vib34d-geom" data-geometry="7" onclick="setCurrentGeometry(7)">Crystal</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="collapsible-section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <span>⚙️ Controls</span>
-                    <span class="toggle-arrow">▼</span>
-                </div>
-                <div class="section-content">
-                    <div style="display: flex; gap: 5px;">
-                        <button class="btn" onclick="engine.resetToDefaults()" style="flex: 1; font-size: 0.7rem;">Reset</button>
-                        <button class="btn" id="vib34dAudioToggle" onclick="toggleVIB34DAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio</button>
-                    </div>
-                    <!-- Random and Save buttons moved to unified navigation menu -->
-                </div>
+                <input type="range" class="control-slider" id="variationSlider" 
+                       min="0" max="29" value="0" oninput="updateVariation(this.value)">
             </div>
         </div>
         
-        <!-- Holographic Tab -->
-        <div class="tab-content" id="holographic-tab">
-            <div class="control-group">
-                <label class="control-label">
-                    Grid Density <span class="control-display" id="gridDensityDisplay">15.0</span>
-                </label>
-                <input type="range" id="gridDensity" class="control-input" min="4" max="100" step="0.1" value="15"
-                       oninput="updateUnifiedParameter('gridDensity', this.value); document.getElementById('gridDensityDisplay').textContent = parseFloat(this.value).toFixed(1)">
-            </div>
+        <!-- 4D ROTATION SECTION -->
+        <div class="control-section">
+            <div class="section-title">4D ROTATION</div>
             
             <div class="control-group">
-                <label class="control-label">
-                    Morph Factor <span class="control-display" id="morphFactorDisplay">1.00</span>
-                </label>
-                <input type="range" id="morphFactor" class="control-input" min="0" max="2" step="0.01" value="1"
-                       oninput="updateUnifiedParameter('morphFactor', this.value); document.getElementById('morphFactorDisplay').textContent = parseFloat(this.value).toFixed(2)">
-            </div>
-            
-            <div class="control-group">
-                <label class="control-label">
-                    Chaos <span class="control-display" id="chaosDisplay">0.20</span>
-                </label>
-                <input type="range" id="chaos" class="control-input" min="0" max="1" step="0.01" value="0.2"
-                       oninput="updateUnifiedParameter('chaos', this.value); document.getElementById('chaosDisplay').textContent = parseFloat(this.value).toFixed(2)">
-            </div>
-            
-            <div class="control-group">
-                <label class="control-label">
-                    Speed <span class="control-display" id="speedDisplay">1.00</span>
-                </label>
-                <input type="range" id="speed" class="control-input" min="0.1" max="3" step="0.01" value="1"
-                       oninput="updateUnifiedParameter('speed', this.value); document.getElementById('speedDisplay').textContent = parseFloat(this.value).toFixed(2)">
-            </div>
-            
-            <div class="control-group">
-                <label class="control-label">
-                    Hue <span class="control-display" id="hueDisplay">200°</span>
-                </label>
-                <input type="range" id="hue" class="control-input" min="0" max="360" step="1" value="200"
-                       oninput="updateUnifiedParameter('hue', this.value); document.getElementById('hueDisplay').textContent = this.value + '°'">
-            </div>
-            
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(0,255,255,0.3);">
-                <h4 style="color: #00ffff; margin-bottom: 10px; font-size: 0.9rem;">⚙️ System Controls</h4>
-                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <button class="btn" id="vib34dAudioToggle2" onclick="toggleVIB34DAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio Off</button>
-                    <!-- Save and Gallery buttons removed - now in unified navigation -->
+                <div class="control-label">
+                    <span>XW Plane</span>
+                    <span class="control-value" id="xwValue">0.00</span>
                 </div>
+                <input type="range" class="control-slider" id="rot4dXW" 
+                       min="-6.28" max="6.28" step="0.01" value="0" 
+                       oninput="updateParameter('rot4dXW', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>YW Plane</span>
+                    <span class="control-value" id="ywValue">0.00</span>
+                </div>
+                <input type="range" class="control-slider" id="rot4dYW" 
+                       min="-6.28" max="6.28" step="0.01" value="0" 
+                       oninput="updateParameter('rot4dYW', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>ZW Plane</span>
+                    <span class="control-value" id="zwValue">0.00</span>
+                </div>
+                <input type="range" class="control-slider" id="rot4dZW" 
+                       min="-6.28" max="6.28" step="0.01" value="0" 
+                       oninput="updateParameter('rot4dZW', this.value)">
             </div>
         </div>
         
-        <!-- Active Holograms Tab -->
-        <div class="tab-content" id="holograms-tab">
+        <!-- VISUAL PARAMETERS SECTION -->
+        <div class="control-section">
+            <div class="section-title">VISUAL</div>
+            
             <div class="control-group">
-                <h3 style="color: #00ffff; margin-bottom: 15px;">Active Holographic System</h3>
-                <div style="margin-bottom: 15px;">
-                    <button class="btn" id="toggle-holo" onclick="toggleHolographicSystem()">Activate Holograms</button>
+                <div class="control-label">
+                    <span>Density</span>
+                    <span class="control-value" id="densityValue">15</span>
                 </div>
+                <input type="range" class="control-slider" id="gridDensity" 
+                       min="5" max="100" value="15" 
+                       oninput="updateParameter('gridDensity', this.value)">
             </div>
             
-            <!-- Variation controls moved to unified navigation menu -->
-                
-                <div class="control-group">
-                    <label class="control-label">
-                        Hologram Variant <span class="control-display" id="holoVariationDisplay">1</span>
-                    </label>
-                    <input type="range" id="holoVariationSlider" class="control-input" min="0" max="29" value="0" 
-                           onchange="holoSystem.setVariant(parseInt(this.value)); updateHoloDisplay();">
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Morph</span>
+                    <span class="control-value" id="morphValue">1.0</span>
                 </div>
-                
-                <div class="variation-info">
-                    <div id="currentHoloVariation">1 - TETRAHEDRON LATTICE</div>
-                </div>
+                <input type="range" class="control-slider" id="morphFactor" 
+                       min="0" max="2" step="0.01" value="1" 
+                       oninput="updateParameter('morphFactor', this.value)">
             </div>
             
-            <div class="geometry-presets">
-                <button class="btn holo-geom active" data-holo-geometry="0" onclick="setHoloGeometry(0)">Tetrahedron</button>
-                <button class="btn holo-geom" data-holo-geometry="4" onclick="setHoloGeometry(4)">Hypercube</button>
-                <button class="btn holo-geom" data-holo-geometry="8" onclick="setHoloGeometry(8)">Sphere</button>
-                <button class="btn holo-geom" data-holo-geometry="12" onclick="setHoloGeometry(12)">Torus</button>
-                <button class="btn holo-geom" data-holo-geometry="16" onclick="setHoloGeometry(16)">Klein Bottle</button>
-                <button class="btn holo-geom" data-holo-geometry="20" onclick="setHoloGeometry(20)">Fractal</button>
-                <button class="btn holo-geom" data-holo-geometry="23" onclick="setHoloGeometry(23)">Wave</button>
-                <button class="btn holo-geom" data-holo-geometry="26" onclick="setHoloGeometry(26)">Crystal</button>
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Chaos</span>
+                    <span class="control-value" id="chaosValue">0.2</span>
+                </div>
+                <input type="range" class="control-slider" id="chaos" 
+                       min="0" max="1" step="0.01" value="0.2" 
+                       oninput="updateParameter('chaos', this.value)">
             </div>
             
-            <!-- HOLOGRAPHIC PARAMETER CONTROLS -->
-            <div style="margin-top: 20px; border-top: 1px solid rgba(0,255,255,0.3); padding-top: 15px;">
-                <h4 style="color: #00ffff; margin-bottom: 10px;">🎛️ Holographic Parameters</h4>
-                
-                <div class="control-group">
-                    <label class="control-label">
-                        Density <span class="control-display" id="holoDensityDisplay">1.00</span>
-                    </label>
-                    <input type="range" id="holoDensity" class="control-input" min="0.5" max="3.0" step="0.1" value="1.0" 
-                           oninput="updateHoloParameter('density', this.value); this.nextElementSibling.querySelector('.control-display').textContent = parseFloat(this.value).toFixed(2)">
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Speed</span>
+                    <span class="control-value" id="speedValue">1.0</span>
                 </div>
-                
-                <div class="control-group">
-                    <label class="control-label">
-                        Speed <span class="control-display" id="holoSpeedDisplay">0.50</span>
-                    </label>
-                    <input type="range" id="holoSpeed" class="control-input" min="0.1" max="2.0" step="0.1" value="0.5" 
-                           oninput="updateHoloParameter('speed', this.value); document.getElementById('holoSpeedDisplay').textContent = parseFloat(this.value).toFixed(2)">
-                </div>
-                
-                <div class="control-group">
-                    <label class="control-label">
-                        Chaos <span class="control-display" id="holoChaosDisplay">0.00</span>
-                    </label>
-                    <input type="range" id="holoChaos" class="control-input" min="0" max="1" step="0.05" value="0" 
-                           oninput="updateHoloParameter('chaos', this.value); document.getElementById('holoChaosDisplay').textContent = parseFloat(this.value).toFixed(2)">
-                </div>
-                
-                <div class="control-group">
-                    <label class="control-label">
-                        Morph <span class="control-display" id="holoMorphDisplay">0.00</span>
-                    </label>
-                    <input type="range" id="holoMorph" class="control-input" min="0" max="1" step="0.05" value="0" 
-                           oninput="updateHoloParameter('morph', this.value); document.getElementById('holoMorphDisplay').textContent = parseFloat(this.value).toFixed(2)">
-                </div>
-                
-                <div class="control-group">
-                    <label class="control-label">
-                        Hue <span class="control-display" id="holoHueDisplay">0°</span>
-                    </label>
-                    <input type="range" id="holoHue" class="control-input" min="0" max="360" step="5" value="0" 
-                           oninput="updateHoloParameter('hue', this.value); document.getElementById('holoHueDisplay').textContent = this.value + '°'">
-                </div>
-                
-                <div class="control-group">
-                    <label class="control-label">
-                        Saturation <span class="control-display" id="holoSaturationDisplay">0.80</span>
-                    </label>
-                    <input type="range" id="holoSaturation" class="control-input" min="0" max="1" step="0.05" value="0.8" 
-                           oninput="updateHoloParameter('saturation', this.value); document.getElementById('holoSaturationDisplay').textContent = parseFloat(this.value).toFixed(2)">
-                </div>
-                
-                <div class="control-group">
-                    <label class="control-label">
-                        Intensity <span class="control-display" id="holoIntensityDisplay">0.50</span>
-                    </label>
-                    <input type="range" id="holoIntensity" class="control-input" min="0.1" max="1" step="0.05" value="0.5" 
-                           oninput="updateHoloParameter('intensity', this.value); document.getElementById('holoIntensityDisplay').textContent = parseFloat(this.value).toFixed(2)">
-                </div>
-                
-                <div style="margin-top: 15px;">
-                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                        <button class="btn" id="holoAudioToggle" onclick="toggleHolographicAudio()" style="flex: 1; font-size: 0.7rem;">🎵 Audio On</button>
-                        <!-- Save button removed - now in unified navigation -->
-                    </div>
-                    <!-- Gallery button removed - now in unified navigation -->
-                </div>
+                <input type="range" class="control-slider" id="speed" 
+                       min="0.1" max="3" step="0.1" value="1" 
+                       oninput="updateParameter('speed', this.value)">
             </div>
             
-            <div style="margin-top: 20px; font-size: 0.8rem; color: rgba(255,255,255,0.7);">
-                <p>✨ Multi-layer holographic effects</p>
-                <p>🎨 Audio-reactive visualizations</p>
-                <p>🔮 30 base variants + custom gallery</p>
-                <p>🖱️ Mouse, touch, scroll, audio interactions</p>
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Hue</span>
+                    <span class="control-value" id="hueValue">200°</span>
+                </div>
+                <input type="range" class="control-slider" id="hue" 
+                       min="0" max="360" value="200" 
+                       oninput="updateParameter('hue', this.value)">
             </div>
         </div>
         
-        <!-- Polychora Tab - 4D Polytope Lattice Projections -->
-        <div class="tab-content" id="polychora-tab">
-            <div class="control-group">
-                <h3 style="color: #00ffff; margin-bottom: 15px; text-align: center;">🔮 4D Polytope Lattice Projections</h3>
-                <p style="color: rgba(255,255,255,0.7); font-size: 0.8rem; margin-bottom: 20px; text-align: center;">
-                    Full-screen lattice topology showing 2D projections of 4D polytope rotations
-                </p>
-            </div>
-            
-            <div class="collapsible-section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <span>🔮 Polytope Selection</span>
-                    <span class="toggle-arrow">▼</span>
-                </div>
-                <div class="section-content">
-                    <div class="geometry-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px;">
-                        <button class="btn polychora-geom active" data-polytope="0" onclick="setPolychoraGeometry(0)">5-Cell</button>
-                        <button class="btn polychora-geom" data-polytope="1" onclick="setPolychoraGeometry(1)">Tesseract</button>
-                        <button class="btn polychora-geom" data-polytope="2" onclick="setPolychoraGeometry(2)">16-Cell</button>
-                        <button class="btn polychora-geom" data-polytope="3" onclick="setPolychoraGeometry(3)">24-Cell</button>
-                        <button class="btn polychora-geom" data-polytope="4" onclick="setPolychoraGeometry(4)">600-Cell</button>
-                        <button class="btn polychora-geom" data-polytope="5" onclick="setPolychoraGeometry(5)">120-Cell</button>
-                    </div>
-                    <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); text-align: center;" id="polytope-description">
-                        5-Cell: Simplest 4D polytope (4-simplex) with 5 tetrahedral cells
-                    </div>
-                </div>
-            </div>
-            
-            <div class="collapsible-section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <span>🌐 4D Rotation Controls</span>
-                    <span class="toggle-arrow">▼</span>
-                </div>
-                <div class="section-content">
-                    <div class="control-group">
-                        <label class="control-label">
-                            XW Plane <span class="control-display" id="polychoraXWDisplay">0.00</span>
-                        </label>
-                        <input type="range" id="polychoraXW" class="control-input" min="-6.28" max="6.28" step="0.01" value="0"
-                               oninput="updatePolychoraParameter('rotXW', this.value); document.getElementById('polychoraXWDisplay').textContent = parseFloat(this.value).toFixed(2)">
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label">
-                            YW Plane <span class="control-display" id="polychoraYWDisplay">0.00</span>
-                        </label>
-                        <input type="range" id="polychoraYW" class="control-input" min="-6.28" max="6.28" step="0.01" value="0"
-                               oninput="updatePolychoraParameter('rotYW', this.value); document.getElementById('polychoraYWDisplay').textContent = parseFloat(this.value).toFixed(2)">
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label">
-                            ZW Plane <span class="control-display" id="polychoraZWDisplay">0.00</span>
-                        </label>
-                        <input type="range" id="polychoraZW" class="control-input" min="-6.28" max="6.28" step="0.01" value="0"
-                               oninput="updatePolychoraParameter('rotZW', this.value); document.getElementById('polychoraZWDisplay').textContent = parseFloat(this.value).toFixed(2)">
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label">
-                            XY Plane <span class="control-display" id="polychoraXYDisplay">0.00</span>
-                        </label>
-                        <input type="range" id="polychoraXY" class="control-input" min="-6.28" max="6.28" step="0.01" value="0"
-                               oninput="updatePolychoraParameter('rotXY', this.value); document.getElementById('polychoraXYDisplay').textContent = parseFloat(this.value).toFixed(2)">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="collapsible-section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <span>⚙️ Lattice Parameters</span>
-                    <span class="toggle-arrow">▼</span>
-                </div>
-                <div class="section-content">
-                    <div class="control-group">
-                        <label class="control-label">
-                            Lattice Density <span class="control-display" id="polychoraDensityDisplay">20.0</span>
-                        </label>
-                        <input type="range" id="polychoraDensity" class="control-input" min="5" max="100" step="0.5" value="20"
-                               oninput="updatePolychoraParameter('density', this.value); document.getElementById('polychoraDensityDisplay').textContent = parseFloat(this.value).toFixed(1)">
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label">
-                            Projection Depth <span class="control-display" id="polychoraDepthDisplay">2.0</span>
-                        </label>
-                        <input type="range" id="polychoraDepth" class="control-input" min="0.5" max="5.0" step="0.1" value="2.0"
-                               oninput="updatePolychoraParameter('depth', this.value); document.getElementById('polychoraDepthDisplay').textContent = parseFloat(this.value).toFixed(1)">
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label">
-                            Animation Speed <span class="control-display" id="polychoraSpeedDisplay">1.0</span>
-                        </label>
-                        <input type="range" id="polychoraSpeed" class="control-input" min="0.0" max="3.0" step="0.1" value="1.0"
-                               oninput="updatePolychoraParameter('speed', this.value); document.getElementById('polychoraSpeedDisplay').textContent = parseFloat(this.value).toFixed(1)">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="collapsible-section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <span>🎨 Visual Controls</span>
-                    <span class="toggle-arrow">▼</span>
-                </div>
-                <div class="section-content">
-                    <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                        <button class="btn" onclick="randomizePolychoraRotations()" style="flex: 1; font-size: 0.7rem;">🎲 Random</button>
-                        <button class="btn" onclick="resetPolychoraRotations()" style="flex: 1; font-size: 0.7rem;">Reset</button>
-                        <button class="btn" onclick="togglePolychoraAnimation()" style="flex: 1; font-size: 0.7rem;">⏸️ Pause</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Export Tab -->
-        <div class="tab-content" id="export-tab">
-            <div class="control-group">
-                <h3 style="color: #00ffff; margin-bottom: 10px;">Export</h3>
-                <button class="btn" onclick="engine.exportJSON()" style="width: 100%; margin-bottom: 5px;">Export JSON Config</button>
-                <button class="btn" onclick="engine.exportCSS()" style="width: 100%; margin-bottom: 5px;">Export CSS Theme</button>
-                <button class="btn" onclick="engine.exportHTML()" style="width: 100%; margin-bottom: 5px;">Export HTML Page</button>
-                <button class="btn" onclick="engine.exportPNG()" style="width: 100%; margin-bottom: 15px;">Export PNG Image</button>
-            </div>
-            
-            <div class="control-group">
-                <h3 style="color: #00ffff; margin-bottom: 10px;">Import</h3>
-                <button class="btn" onclick="engine.importJSON()" style="width: 100%; margin-bottom: 5px;">Import JSON Config</button>
-                <button class="btn" onclick="engine.importFolder()" style="width: 100%;">Import Folder</button>
-            </div>
-        </div>
+        <!-- ACTION BUTTONS -->
+        <div class="action-row">
+            <button class="panel-btn" onclick="randomizeAll()">🎲 Random</button>
+            <button class="panel-btn" onclick="resetAll()">🔄 Reset</button>
         </div>
     </div>
     
-    <!-- Status Display -->
-    <div id="status" class="status"></div>
-    
-    <!-- Load ES6 Modules -->
     <script type="module">
-        // Check for preview mode and mobile device
-        const urlParams = new URLSearchParams(window.location.search);
-        const isPreviewMode = urlParams.get('preview') === 'true' || urlParams.get('hideui') === 'true';
-        const isMobileDevice = /iPhone|iPad|iPod|Android|BlackBerry|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        // Import VIB34D modules
+        import { VIB34DIntegratedEngine } from './src/core/Engine.js';
+        import { RealHolographicSystem } from './src/holograms/RealHolographicSystem.js';
         
-        if (isPreviewMode) {
-            document.body.classList.add('preview-mode');
-            console.log('🔍 Preview mode activated - UI hidden');
-        }
-        
-        // Start collapsed on mobile devices and preview mode
-        if (isMobileDevice || isPreviewMode || urlParams.get('startCollapsed') === 'true') {
-            document.body.classList.add('start-collapsed');
-            console.log('📱 Starting with collapsed control panel');
-        }
-        
-        // Load parameters from URL if available
-        if (window.loadParametersFromURL) {
-            loadParametersFromURL(urlParams);
-        }
-        
-        // Add cache busting to prevent old file conflicts
-        const cacheBuster = '?v=' + Date.now();
-        
-        // PARAMETER MAPPING: Gallery ↔ VIB34D Engine
-        function mapGalleryParametersToVIB34D(galleryParams, systemType) {
-            console.log('🔄 Mapping gallery parameters:', { galleryParams, systemType });
-            
-            // Default VIB34D parameters
-            const vib34dParams = {
-                variation: 0,
-                rot4dXW: 0.0,
-                rot4dYW: 0.0,
-                rot4dZW: 0.0,
-                dimension: 3.5,
-                gridDensity: 15,
-                morphFactor: 1.0,
-                chaos: 0.2,
-                speed: 1.0,
-                hue: 200,
-                geometry: 0
-            };
-            
-            if (systemType === 'VIB34D') {
-                // Direct mapping for VIB34D parameters
-                Object.assign(vib34dParams, galleryParams);
-            } else if (systemType === 'Holographic') {
-                // Map Holographic parameters to VIB34D format
-                if (galleryParams.geometryType !== undefined) vib34dParams.geometry = galleryParams.geometryType;
-                if (galleryParams.density !== undefined) vib34dParams.gridDensity = galleryParams.density * 10; // Scale up
-                if (galleryParams.speed !== undefined) vib34dParams.speed = galleryParams.speed * 2; // Scale up
-                if (galleryParams.chaos !== undefined) vib34dParams.chaos = galleryParams.chaos;
-                if (galleryParams.morph !== undefined) vib34dParams.morphFactor = galleryParams.morph;
-                if (galleryParams.hue !== undefined) vib34dParams.hue = galleryParams.hue;
-                
-                // Map intensity and saturation to chaos and morphFactor
-                if (galleryParams.intensity !== undefined) {
-                    vib34dParams.chaos = Math.max(vib34dParams.chaos, galleryParams.intensity * 0.5);
-                }
-                if (galleryParams.saturation !== undefined) {
-                    vib34dParams.morphFactor = Math.max(vib34dParams.morphFactor, galleryParams.saturation);
-                }
-            }
-            
-            console.log('✅ Mapped to VIB34D parameters:', vib34dParams);
-            return vib34dParams;
-        }
-        
-        // Load main VIB34D Engine
-        import('./src/core/Engine.js' + cacheBuster).then(module => {
-            const { VIB34DIntegratedEngine } = module;
-            
-            // Initialize VIB34D Engine
-            window.engine = new VIB34DIntegratedEngine();
-            
-            // OVERRIDE: Use our working inline gallery instead of the module gallery
-            window.engine.openGalleryView = function() {
-                console.log('🖼️ Using inline gallery instead of module gallery');
-                openUnifiedGallery();
-            };
-            
-            // CHECK: Load parameters from gallery if requested
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('load') === 'true') {
-                console.log('🔗 Loading parameters from gallery...');
-                
-                const savedParams = localStorage.getItem('vib34d-load-params');
-                if (savedParams) {
-                    try {
-                        const loadData = JSON.parse(savedParams);
-                        console.log(`📥 Loading ${loadData.system} variation #${loadData.globalId}:`, loadData.parameters);
-                        
-                        // Map parameters from gallery format to VIB34D format
-                        const mappedParams = mapGalleryParametersToVIB34D(loadData.parameters, loadData.system);
-                        
-                        // Apply mapped parameters to engine
-                        window.engine.parameterManager.setParameters(mappedParams);
-                        
-                        // Set variation if specified
-                        if (mappedParams.variation !== undefined) {
-                            window.engine.setVariation(mappedParams.variation);
-                        }
-                        
-                        window.engine.updateDisplayValues();
-                        window.engine.updateVisualizers();
-                        
-                        // Clear the load data
-                        localStorage.removeItem('vib34d-load-params');
-                        
-                        // Update URL to remove load parameter
-                        const cleanUrl = window.location.pathname;
-                        history.replaceState(null, '', cleanUrl);
-                        
-                        // Show success message to user
-                        setTimeout(() => {
-                            if (window.engine && window.engine.statusManager) {
-                                window.engine.statusManager.success(
-                                    `Loaded ${loadData.system} variation #${loadData.globalId} from gallery`, 
-                                    4000
-                                );
-                            }
-                        }, 1000); // Wait for UI to be ready
-                        
-                        console.log('✅ Parameters loaded successfully from gallery');
-                    } catch (error) {
-                        console.error('❌ Failed to load parameters from gallery:', error);
-                        
-                        // Show error message to user
-                        setTimeout(() => {
-                            if (window.engine && window.engine.statusManager) {
-                                window.engine.statusManager.error(
-                                    'Failed to load parameters from gallery: ' + error.message
-                                );
-                            }
-                        }, 1000);
-                    }
-                } else {
-                    console.warn('⚠️ No saved parameters found for gallery load');
-                }
-            }
-            
-            console.log('🌌 VIB34D Holographic Engine - Refactored Version Loaded');
-            console.log('✅ 5-Layer Holographic Rendering Active');
-            console.log('🔮 100 Geometric Variations Available');
-            console.log('🧮 4D Polytopal Mathematics Ready');
-            console.log('🎮 Interactive Controls Enabled');
-            
-            // Initialize unified navigation
-            setTimeout(() => {
-                updateUnifiedNav();
-                checkForVisualToLoad(); // Check if loading from visual card
-            }, 100);
-        }).catch(error => {
-            console.error('❌ Failed to load VIB34D Engine:', error);
-            document.body.innerHTML += '<div style="color: red; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: black; padding: 20px; border: 1px solid red;">VIB34D Loading Error: ' + error.message + '</div>';
-        });
-        
-        // Load REAL Holographic System for Active Holograms tab ONLY
-        import('./src/holograms/RealHolographicSystem.js' + cacheBuster).then(module => {
-            const { RealHolographicSystem } = module;
-            
-            // Initialize REAL Holographic System for the Active Holograms tab
-            window.realHoloSystem = new RealHolographicSystem();
-            
-            // CRITICAL: Initialize with default parameters after creation
-            setTimeout(() => {
-                if (window.realHoloSystem && window.realHoloSystem.visualizers.length > 0) {
-                    console.log('🔧 Initializing holographic default parameters...');
-                    
-                    // Set reasonable default parameters
-                    const defaultParams = {
-                        geometryType: 0,
-                        density: 1.0,
-                        speed: 0.5,
-                        chaos: 0.0,
-                        morph: 0.0,
-                        hue: 200,
-                        saturation: 0.8,
-                        intensity: 0.5,
-                        name: 'DEFAULT TETRAHEDRON'
-                    };
-                    
-                    // Apply to all visualizers
-                    window.realHoloSystem.visualizers.forEach(viz => {
-                        viz.variantParams = { ...defaultParams };
-                        viz.roleParams = viz.generateRoleParams(viz.role);
-                    });
-                    
-                    // Update UI sliders to match
-                    updateHoloSliders(defaultParams);
-                    
-                    console.log('✨ Holographic system initialized with default parameters');
-                }
-            }, 100);
-            
-            console.log('✨ REAL Active Holographic System Loaded for Active Holograms tab');
-            console.log('🔮 30 VIB3 Elaborate Holographic Variants with Complex Shaders');
-        }).catch(error => {
-            console.error('❌ Failed to load REAL Holographic System:', error);
-        });
-        
-        // ================================
-        // UNIFIED PARAMETER SYSTEM
-        // ================================
-        
-        // Global parameter state shared across all systems
-        window.unifiedParameters = {
-            // Visual parameters (shared)
-            density: 1.5,
-            speed: 0.8,
-            chaos: 0.3,
-            morph: 0.5,
-            hue: 200,
-            saturation: 0.8,
-            intensity: 0.6,
-            
-            // System-specific
-            systemType: 'VIB34D', // 'VIB34D' or 'Holographic'
-            variation: 0,
-            geometryType: 0,
-            
-            // 4D Math (VIB34D only)
-            rot4dXW: 0,
-            rot4dYW: 0,
-            rot4dZW: 0,
-            dimension: 3.5,
-            
-            // Audio
-            audioEnabled: false
-        };
-        
-        // RANDOMIZATION SYSTEM - RANDOMIZE ACTUAL PARAMETERS NOT PRESETS!
-        window.randomizeParameters = function(systemType = null) {
-            const targetSystem = systemType || unifiedParameters.systemType;
-            
-            console.log(`🎲 RANDOMIZING ACTUAL PARAMETERS for ${targetSystem} system`);
-            
-            if (targetSystem === 'VIB34D' && window.engine) {
-                // RANDOMIZE ALL VIB34D PARAMETERS - NOT PRESET VARIATIONS!
-                const randomParams = {
-                    // 4D Mathematics - completely random
-                    rot4dXW: (Math.random() - 0.5) * 4,      // -2 to +2  
-                    rot4dYW: (Math.random() - 0.5) * 4,      // -2 to +2
-                    rot4dZW: (Math.random() - 0.5) * 4,      // -2 to +2
-                    dimension: 3.0 + Math.random() * 1.5,    // 3.0 to 4.5
-                    
-                    // Visual Parameters - completely random
-                    gridDensity: 4 + Math.random() * 26,     // 4 to 30
-                    morphFactor: Math.random() * 2,          // 0 to 2
-                    chaos: Math.random(),                    // 0 to 1
-                    speed: 0.1 + Math.random() * 2.9,        // 0.1 to 3
-                    hue: Math.floor(Math.random() * 360),    // 0 to 360
-                    
-                    // Random geometry type
-                    geometry: Math.floor(Math.random() * 8)  // 0 to 7
-                };
-                
-                // Apply randomized parameters
-                window.engine.parameterManager.setParameters(randomParams);
-                window.engine.updateDisplayValues();
-                window.engine.updateVisualizers();
-                
-                // Update geometry button to show active geometry
-                document.querySelectorAll('[data-geometry]').forEach(btn => {
-                    btn.classList.toggle('active', parseInt(btn.dataset.geometry) === randomParams.geometry);
-                });
-                
-                showParameterNotification('🎲 VIB34D Parameters Randomized!', 'Create unique combination - Save if you like it!');
-                
-            } else if (targetSystem === 'Holographic' && window.realHoloSystem) {
-                // RANDOMIZE HOLOGRAPHIC PARAMETERS - DIRECT PARAMETER CONTROL
-                const randomHoloParams = {
-                    geometryType: Math.floor(Math.random() * 8),  // 0-7 geometry types
-                    density: 0.5 + Math.random() * 2.5,          // 0.5 to 3.0
-                    speed: 0.1 + Math.random() * 1.9,            // 0.1 to 2.0
-                    chaos: Math.random(),                        // 0.0 to 1.0
-                    morph: Math.random(),                        // 0.0 to 1.0
-                    hue: Math.floor(Math.random() * 360),        // 0 to 360
-                    saturation: 0.3 + Math.random() * 0.7,       // 0.3 to 1.0
-                    intensity: 0.2 + Math.random() * 0.8,        // 0.2 to 1.0
-                    name: 'CUSTOM RANDOMIZED'
-                };
-                
-                // Apply randomized parameters directly to ALL visualizers  
-                window.realHoloSystem.visualizers.forEach(viz => {
-                    // Override the variant params with our randomized values
-                    viz.variantParams = { ...randomHoloParams };
-                    // CRITICAL: Regenerate role params based on new variant params
-                    viz.roleParams = viz.generateRoleParams(viz.role);
-                    console.log(`🎲 Applied random params to ${viz.role}:`, viz.variantParams);
-                });
-                
-                // Update UI sliders to match randomized values
-                updateHoloSliders(randomHoloParams);
-                
-                // Update geometry buttons to show active geometry
-                document.querySelectorAll('.holo-geom').forEach(btn => btn.classList.remove('active'));
-                const activeGeomBtn = document.querySelector(`[data-holo-geometry="${randomHoloParams.geometryType * 4}"]`);
-                if (activeGeomBtn) activeGeomBtn.classList.add('active');
-                
-                // Update variant display with custom name
-                const nameDisplay = document.getElementById('currentHoloVariation');
-                if (nameDisplay) {
-                    nameDisplay.textContent = `Custom - ${randomHoloParams.name}`;
-                }
-                
-                showParameterNotification('🎲 Holographic Parameters Randomized!', 'Unique combination created - Save if you like it!');
-            }
-            
-            unifiedParameters.systemType = targetSystem;
-        };
-        
-        // QUICK RANDOMIZE - VISUAL PARAMETERS ONLY (NOT PRESETS!)
-        window.quickRandomize = function() {
-            console.log('⚡ Quick randomizing VISUAL parameters only');
-            
-            if (unifiedParameters.systemType === 'VIB34D' && window.engine) {
-                // Quick randomize ONLY visual parameters - keep 4D math and geometry same
-                const currentParams = window.engine.parameterManager.getAllParameters();
-                
-                const visualOnlyParams = {
-                    // Keep current 4D math and geometry - only randomize visual aspects
-                    gridDensity: 4 + Math.random() * 26,     // Visual density
-                    morphFactor: Math.random() * 2,          // Visual morphing
-                    chaos: Math.random(),                    // Visual chaos/noise
-                    speed: 0.1 + Math.random() * 2.9,        // Animation speed
-                    hue: Math.floor(Math.random() * 360)     // Color hue
-                };
-                
-                window.engine.parameterManager.setParameters(visualOnlyParams);
-                window.engine.updateDisplayValues();
-                window.engine.updateVisualizers();
-                
-                showParameterNotification('⚡ Visual Randomized!', 'Colors & effects changed - 4D math kept same');
-                
-            } else if (window.realHoloSystem && (window.realHoloSystem.isActive || unifiedParameters.systemType === 'Holographic')) {
-                // Quick randomize holographic VISUAL parameters only
-                const currentParams = window.realHoloSystem.visualizers[0]?.variantParams || {};
-                
-                const visualParams = {
-                    // Keep geometry and morph - only randomize visual aspects
-                    geometryType: currentParams.geometryType || 0,
-                    morph: currentParams.morph || 0,
-                    
-                    // Randomize visual parameters
-                    density: 0.5 + Math.random() * 2.5,      
-                    speed: 0.1 + Math.random() * 1.9,        
-                    chaos: Math.random(),                    
-                    hue: Math.floor(Math.random() * 360),    
-                    saturation: 0.5 + Math.random() * 0.5,   
-                    intensity: 0.3 + Math.random() * 0.7,
-                    name: currentParams.name || 'CUSTOM VISUAL'    
-                };
-                
-                // Apply visual params by updating variant params (keep geometry/morph)
-                window.realHoloSystem.visualizers.forEach(viz => {
-                    // Merge new visual params with existing params
-                    viz.variantParams = { ...viz.variantParams, ...visualParams };
-                    // CRITICAL: Regenerate role params
-                    viz.roleParams = viz.generateRoleParams(viz.role);
-                    console.log(`⚡ Applied visual params to ${viz.role}:`, visualParams);
-                });
-                
-                updateHoloSliders(visualParams);
-                showParameterNotification('⚡ Visual Randomized!', 'Colors & effects changed - geometry kept same');
-            }
-        };
-        
-        // PARAMETER APPLICATION SYSTEM
-        window.applyUnifiedParameters = function(newParams, targetSystem = null) {
-            const system = targetSystem || unifiedParameters.systemType;
-            
-            // Update global state
-            Object.assign(unifiedParameters, newParams);
-            
-            // Apply to UI sliders
-            updateAllSliders(newParams, system);
-            
-            // Apply to active system
-            if (system === 'VIB34D' && window.engine) {
-                applyToVIB34D(newParams);
-            } else if (system === 'Holographic' && window.realHoloSystem) {
-                applyToHolographic(newParams);
-            }
-            
-            console.log('🔄 Applied unified parameters:', newParams);
-        };
-        
-        // Update all UI sliders
-        function updateAllSliders(params, system) {
-            // Implementation for updating sliders
-            console.log('Updating sliders:', params);
-        }
-        
-        // Apply parameters to VIB34D system  
-        function applyToVIB34D(params) {
-            if (!window.engine) return;
-            console.log('Applying to VIB34D:', params);
-        }
-        
-        // Apply parameters to Holographic system
-        function applyToHolographic(params) {
-            if (!window.realHoloSystem) return;
-            console.log('Applying to Holographic:', params);
-        }
-        
-        // Parameter notification system
-        function showParameterNotification(title, message) {
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 80px;
-                left: 20px;
-                background: linear-gradient(145deg, rgba(0, 255, 255, 0.9), rgba(0, 200, 255, 0.8));
-                color: #000;
-                padding: 12px 20px;
-                border-radius: 8px;
-                font-family: 'Orbitron', monospace;
-                font-size: 0.8rem;
-                font-weight: bold;
-                z-index: 10000;
-                box-shadow: 0 4px 20px rgba(0, 255, 255, 0.3);
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-                max-width: 250px;
-            `;
-            
-            notification.innerHTML = `
-                <div style="margin-bottom: 4px;">${title}</div>
-                <div style="font-size: 0.7rem; opacity: 0.8;">${message}</div>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            // Animate in from left
-            setTimeout(() => {
-                notification.style.transform = 'translateX(0)';
-            }, 100);
-            
-            // Animate out to left and remove
-            setTimeout(() => {
-                notification.style.transform = 'translateX(-100%)';
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 300);
-            }, 3000);
-        }
-        
-        // SMART PARAMETER VISIBILITY SYSTEM
-        function updateParameterVisibility(systemType) {
-            console.log(`🎯 Updating parameter visibility for ${systemType} system`);
-            
-            // Define which parameters are relevant for each system
-            const systemParameters = {
-                'VIB34D': {
-                    // Core VIB34D parameters - ALL parameters available for VIB34D
-                    show: [
-                        'variationSlider', 'rot4dXW', 'rot4dYW', 'rot4dZW', 'dimension',
-                        'gridDensity', 'morphFactor', 'chaos', 'speed', 'hue'
-                    ],
-                    // Tab visibility - VIB34D specific tabs
-                    tabs: ['variations', 'polytopal', 'holographic', 'export'],
-                    hideTabs: ['holograms'], // Hide Live Holographic tab for VIB34D
-                    geometrySection: true
-                },
-                'Holographic': {
-                    // Holographic system parameters - subset of parameters relevant to holographic system
-                    show: [
-                        'gridDensity', 'morphFactor', 'chaos', 'speed', 'hue',
-                        'rot4dXW', 'rot4dYW', 'rot4dZW', 'dimension' // 4D math applies to both
-                    ],
-                    // Tab visibility - Holographic specific tabs
-                    tabs: ['holograms', 'holographic', 'polytopal', 'export'],
-                    hideTabs: ['variations'], // Hide VIB34D variations tab for Holographic
-                    geometrySection: true
-                }
-            };
-            
-            const config = systemParameters[systemType];
-            if (!config) return;
-            
-            // Show/hide parameter control groups
-            const allControlGroups = document.querySelectorAll('.control-group');
-            allControlGroups.forEach(group => {
-                const controlInput = group.querySelector('.control-input');
-                if (controlInput) {
-                    const parameterId = controlInput.id;
-                    const shouldShow = config.show.includes(parameterId);
-                    group.style.display = shouldShow ? 'block' : 'none';
-                }
-            });
-            
-            // Show/hide tabs based on system
-            const tabButtons = document.querySelectorAll('.tab-btn');
-            tabButtons.forEach(btn => {
-                const tabName = btn.getAttribute('data-tab');
-                const shouldHide = config.hideTabs && config.hideTabs.includes(tabName);
-                btn.style.display = shouldHide ? 'none' : 'flex';
-            });
-            
-            // Show/hide geometry section
-            const geometryButtons = document.querySelector('.geometry-presets');
-            if (geometryButtons) {
-                geometryButtons.style.display = config.geometrySection ? 'block' : 'none';
-            }
-            
-            // Update tab text for current system
-            const vib34dTab = document.querySelector('[data-tab="variations"]');
-            const holoTab = document.querySelector('[data-tab="holograms"]');
-            
-            if (systemType === 'VIB34D') {
-                if (vib34dTab) vib34dTab.innerHTML = '🔷 VIB <span style="font-size:0.6em;">[ACTIVE]</span>';
-                if (holoTab) holoTab.innerHTML = '✨ Holo';
-            } else {
-                if (vib34dTab) vib34dTab.innerHTML = '🔷 VIB';
-                if (holoTab) holoTab.innerHTML = '✨ Holo <span style="font-size:0.6em;">[ACTIVE]</span>';
-            }
-            
-            console.log(`✅ Parameter visibility updated for ${systemType}`);
-        }
-        
-        // SYSTEM SWITCHING - ACTUALLY WORKING VERSION
-        window.switchToSystem = function(systemType) {
-            if (unifiedParameters.systemType === systemType) return;
-            
-            console.log(`🔄 Switching to ${systemType} system`);
-            
-            // SMART MENU: Update parameter visibility based on system type
-            updateParameterVisibility(systemType);
-            
-            if (systemType === 'Holographic') {
-                // Activate holographic system
-                if (window.realHoloSystem) {
-                    window.realHoloSystem.setActive(true);
-                    
-                    // Switch to Active Holograms tab
-                    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                    
-                    const holoTab = document.querySelector('[data-tab="holograms"]');
-                    const holoContent = document.getElementById('holograms-tab');
-                    
-                    if (holoTab && holoContent) {
-                        holoTab.classList.add('active');
-                        holoContent.classList.add('active');
-                    }
-                    
-                    // Update toggle button
-                    const toggleBtn = document.getElementById('toggle-holo');
-                    if (toggleBtn) {
-                        toggleBtn.textContent = 'Deactivate Holograms';
-                        toggleBtn.style.background = 'rgba(255, 100, 100, 0.3)';
-                    }
-                }
-                
-            } else if (systemType === 'VIB34D') {
-                // Deactivate holographic system, activate VIB34D
-                if (window.realHoloSystem) {
-                    window.realHoloSystem.setActive(false);
-                    
-                    // Switch to VIB34D tab
-                    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                    
-                    const vib34dTab = document.querySelector('[data-tab="variations"]');
-                    const vib34dContent = document.getElementById('variations-tab');
-                    
-                    if (vib34dTab && vib34dContent) {
-                        vib34dTab.classList.add('active');
-                        vib34dContent.classList.add('active');
-                    }
-                    
-                    // Update toggle button
-                    const toggleBtn = document.getElementById('toggle-holo');
-                    if (toggleBtn) {
-                        toggleBtn.textContent = 'Activate Holograms';
-                        toggleBtn.style.background = 'rgba(0, 255, 255, 0.2)';
-                    }
-                }
-            }
-            
-            unifiedParameters.systemType = systemType;
-            
-            // Update UI indicator
-            const indicator = document.getElementById('currentSystemIndicator');
-            if (indicator) {
-                indicator.textContent = systemType === 'VIB34D' ? '🔷 VIB34D System' : '✨ Holographic System';
-            }
-
-            // Update unified navigation
-            updateUnifiedNav();
-            
-            showParameterNotification(`🔄 Switched to ${systemType}`, 'System active and ready');
-        };
-        
-        // Enhanced URL parameter loading
-        window.loadParametersFromURL = function(urlParams) {
-            console.log('🔗 Loading parameters from URL...');
-            // Implementation for loading URL parameters
-        };
-        
-        // Collapsible Control Panel - FIXED TOGGLE FUNCTION
-        window.toggleControlPanel = function() {
-            const panel = document.getElementById('controlPanel');
-            const toggle = document.getElementById('collapseToggle');
-            
-            // Remove any start-collapsed class and toggle collapsed state
-            document.body.classList.remove('start-collapsed');
-            panel.classList.toggle('collapsed');
-            
-            if (panel.classList.contains('collapsed')) {
-                toggle.textContent = '›'; // Arrow pointing right (expand)
-                toggle.title = 'Expand Control Panel';
-                console.log('📦 Control panel collapsed');
-            } else {
-                toggle.textContent = '‹'; // Arrow pointing left (collapse)  
-                toggle.title = 'Collapse Control Panel';
-                console.log('📖 Control panel expanded');
-            }
-        };
-        
-        // Keyboard shortcut for panel collapse
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Tab' && e.ctrlKey) {
-                e.preventDefault();
-                toggleControlPanel();
-            }
-        });
-        
-        // ACTUAL WORKING FUNCTIONS - NO MORE PLACEHOLDERS!
-        window.toggleHolographicSystem = function() {
-            if (window.realHoloSystem) {
-                const isActive = window.realHoloSystem.isActive;
-                window.realHoloSystem.setActive(!isActive);
-                
-                // Update button text
-                const toggleBtn = document.getElementById('toggle-holo');
-                if (toggleBtn) {
-                    if (!isActive) {
-                        toggleBtn.textContent = 'Deactivate Holograms';
-                        toggleBtn.style.background = 'rgba(255, 100, 100, 0.3)';
-                        switchToSystem('Holographic');
-                    } else {
-                        toggleBtn.textContent = 'Activate Holograms';
-                        toggleBtn.style.background = 'rgba(0, 255, 255, 0.2)';
-                        switchToSystem('VIB34D');
-                    }
-                }
-            }
-        };
-        
-        window.updateHoloParameter = function(param, value) {
-            if (window.realHoloSystem && window.realHoloSystem.visualizers.length > 0) {
-                const numValue = parseFloat(value);
-                console.log(`🎛️ Updating holographic ${param} to ${numValue}`);
-                
-                // Update all visualizers' variant parameters directly
-                window.realHoloSystem.visualizers.forEach(viz => {
-                    if (viz.variantParams) {
-                        // Update the specific parameter
-                        viz.variantParams[param] = numValue;
-                        
-                        // CRITICAL: Regenerate role params based on updated variant params
-                        viz.roleParams = viz.generateRoleParams(viz.role);
-                        
-                        console.log(`Updated visualizer ${viz.role} with ${param}=${numValue}`);
-                    }
-                });
-            }
-        };
-        
-        // VIB34D Parameter Update Function
-        window.updateVIB34DParameter = function(param, value) {
-            if (window.engine && window.engine.parameterManager) {
-                const numValue = parseFloat(value);
-                console.log(`🎛️ Updating VIB34D ${param} to ${numValue}`);
-                
-                // Update the parameter in the engine
-                const paramUpdate = {};
-                paramUpdate[param] = numValue;
-                window.engine.parameterManager.setParameters(paramUpdate);
-                window.engine.updateVisualizers();
-                
-                console.log(`✅ VIB34D ${param} updated to ${numValue}`);
-            } else {
-                console.warn('⚠️ VIB34D engine not available for parameter update');
-            }
-        };
-        
-        // Unified Parameter Update Function (works with both systems)
-        window.updateUnifiedParameter = function(param, value) {
-            const numValue = parseFloat(value);
-            console.log(`🎛️ Updating unified parameter ${param} to ${numValue}`);
-            
-            // Update VIB34D if active
-            if (unifiedParameters.systemType === 'VIB34D' && window.engine && window.engine.parameterManager) {
-                const paramUpdate = {};
-                paramUpdate[param] = numValue;
-                window.engine.parameterManager.setParameters(paramUpdate);
-                window.engine.updateVisualizers();
-                console.log(`✅ VIB34D ${param} updated to ${numValue}`);
-            }
-            
-            // Update Holographic if active  
-            if ((unifiedParameters.systemType === 'Holographic' || window.realHoloSystem?.isActive) && window.realHoloSystem) {
-                window.realHoloSystem.visualizers.forEach(viz => {
-                    if (viz.variantParams) {
-                        // Map parameter names for holographic system
-                        let holoParam = param;
-                        if (param === 'gridDensity') holoParam = 'density';
-                        if (param === 'morphFactor') holoParam = 'morph';
-                        
-                        viz.variantParams[holoParam] = numValue;
-                        viz.roleParams = viz.generateRoleParams(viz.role);
-                        console.log(`✅ Holographic ${viz.role} ${holoParam} updated to ${numValue}`);
-                    }
-                });
-            }
-            
-            // Update global state
-            unifiedParameters[param] = numValue;
-        };
-        
-        window.toggleVIB34DAudio = function() {
-            // Toggle VIB34D audio reactivity
-            unifiedParameters.audioEnabled = !unifiedParameters.audioEnabled;
-            const buttons = document.querySelectorAll('#vib34dAudioToggle, #vib34dAudioToggle2');
-            buttons.forEach(btn => {
-                btn.textContent = unifiedParameters.audioEnabled ? '🎵 Audio On' : '🎵 Audio Off';
-            });
-            console.log('VIB34D audio:', unifiedParameters.audioEnabled ? 'ON' : 'OFF');
-        };
-        
-        window.toggleHolographicAudio = function() {
-            if (window.realHoloSystem) {
-                const wasEnabled = window.realHoloSystem.audioEnabled;
-                if (!wasEnabled) {
-                    window.realHoloSystem.initAudio();
-                } else {
-                    window.realHoloSystem.audioEnabled = false;
-                }
-                
-                const toggleBtn = document.getElementById('holoAudioToggle');
-                if (toggleBtn) {
-                    toggleBtn.textContent = window.realHoloSystem.audioEnabled ? '🎵 Audio On' : '🎵 Audio Off';
-                }
-            }
-        };
-        
-        window.saveVIB34DToGallery = function() {
-            console.log('💾 Attempting to save VIB34D to gallery...');
-            
-            if (window.engine) {
-                console.log('🎛️ Engine found, calling saveAsCustomVariation...');
-                const saved = window.engine.saveAsCustomVariation();
-                console.log('📝 Save result:', saved);
-                
-                if (saved !== -1) {
-                    showParameterNotification('💾 Saved!', `Current parameters saved as custom variation ${saved + 1}`);
-                    
-                    // Debug: Check what's actually in localStorage
-                    const stored = localStorage.getItem('vib34d-custom-variations');
-                    console.log('🗄️ localStorage after save:', stored);
-                } else {
-                    showParameterNotification('⚠ Full!', 'All custom slots are full - delete some old ones first');
-                }
-            } else {
-                console.error('❌ No engine found for saving');
-                showParameterNotification('Error', 'Engine not initialized');
-            }
-        };
-        
-        window.saveHologramToGallery = function() {
-            if (window.realHoloSystem && window.realHoloSystem.visualizers.length > 0) {
-                // Save current holographic parameters (not just variant number)
-                const currentParams = window.realHoloSystem.visualizers[0].variantParams;
-                
-                const holoData = {
-                    type: 'holographic-custom',
-                    timestamp: new Date().toISOString(),
-                    name: `HOLO CUSTOM ${new Date().toLocaleTimeString()}`,
-                    parameters: { ...currentParams }
-                };
-                
-                const saved = localStorage.getItem('vib34d-holo-gallery');
-                let gallery = saved ? JSON.parse(saved) : [];
-                gallery.push(holoData);
-                localStorage.setItem('vib34d-holo-gallery', JSON.stringify(gallery));
-                
-                showParameterNotification('💾 Hologram Saved!', `Custom parameters saved as "${holoData.name}"`);
-            }
-        };
-        
-        window.openUnifiedGallery = function() {
-            // First, let's create a simple inline gallery instead of external file
-            showUnifiedGallery();
-        };
-        
-        window.showUnifiedGallery = function() {
-            console.log('🖼️ Opening unified gallery...');
-            
-            try {
-                // Create unified collections with global numbering - ADVANCED VERSION
-                const vib34dSaves = JSON.parse(localStorage.getItem('vib34d-custom-variations') || '[]').filter(v => v !== null);
-                const holoSaves = JSON.parse(localStorage.getItem('vib34d-holo-gallery') || '[]');
-                
-                console.log('📊 Gallery data:', { vib34dSaves: vib34dSaves.length, holoSaves: holoSaves.length });
-            
-            const collections = [];
-            let globalId = 1; // Start at 1 for user-friendly numbering
-            
-            // VIB34D Default Presets (30 variations) - Global IDs 1-30
-            const vib34dDefaults = {
-                name: 'VIB34D Default Presets',
-                filename: 'vib34d-defaults.json',
-                type: 'vib34d-defaults',
-                variations: []
-            };
-            
-            for (let i = 0; i < 30; i++) {
-                const geometryType = Math.floor(i / 4);
-                const level = (i % 4) + 1;
-                const geometryNames = ['TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'];
-                
-                vib34dDefaults.variations.push({
-                    globalId: globalId++,
-                    name: `${geometryNames[geometryType]} LATTICE ${level}`,
-                    parameters: {
-                        geometry: geometryType,
-                        gridDensity: 8 + geometryType * 2 + level * 1.5,
-                        morphFactor: 0.2 + level * 0.2,
-                        chaos: level * 0.2,
-                        speed: 0.8 + level * 0.2,
-                        hue: (i * 12.27) % 360,
-                        rot4dXW: (level - 1.5) * 0.3,
-                        rot4dYW: (geometryType % 2) * 0.2,
-                        rot4dZW: ((geometryType + level) % 3) * 0.15,
-                        dimension: 3.2 + level * 0.2
-                    },
-                    isCustom: false,
-                    system: 'VIB34D'
-                });
-            }
-            collections.push(vib34dDefaults);
-            
-            // Holographic Default Presets (30 variations) - Global IDs 31-60
-            const holoDefaults = {
-                name: 'Holographic Default Presets',
-                filename: 'holographic-defaults.json', 
-                type: 'holographic-defaults',
-                variations: []
-            };
-            
-            for (let i = 0; i < 30; i++) {
-                const geometryType = Math.floor(i / 4);
-                const level = (i % 4) + 1;
-                const geometryNames = ['TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'];
-                
-                holoDefaults.variations.push({
-                    globalId: globalId++,
-                    name: `${geometryNames[geometryType]} FIELD ${level}`,
-                    parameters: {
-                        geometryType: geometryType,
-                        density: 0.8 + level * 0.3,
-                        speed: 0.3 + level * 0.1,
-                        chaos: level * 0.15,
-                        morph: level * 0.2,
-                        hue: (i * 12.27) % 360,
-                        saturation: 0.8 + (level * 0.05),
-                        intensity: 0.5 + (level * 0.1)
-                    },
-                    isCustom: false,
-                    system: 'Holographic'
-                });
-            }
-            collections.push(holoDefaults);
-            
-            // VIB34D Custom Variations - Global IDs 61+
-            if (vib34dSaves.length > 0) {
-                const vib34dCustoms = {
-                    name: 'VIB34D Custom Variations',
-                    filename: 'vib34d-custom.json',
-                    type: 'vib34d-custom',
-                    variations: vib34dSaves.map(save => ({
-                        globalId: globalId++,
-                        name: save.name || 'Custom VIB34D',
-                        parameters: save.parameters,
-                        timestamp: save.timestamp,
-                        isCustom: true,
-                        system: 'VIB34D'
-                    }))
-                };
-                collections.push(vib34dCustoms);
-            }
-            
-            // Holographic Custom Variations - Continue Global IDs
-            if (holoSaves.length > 0) {
-                const holoCustoms = {
-                    name: 'Holographic Custom Variations',
-                    filename: 'holographic-custom.json',
-                    type: 'holographic-custom', 
-                    variations: holoSaves.map(save => ({
-                        globalId: globalId++,
-                        name: save.name || 'Custom Hologram',
-                        parameters: save.parameters,
-                        timestamp: save.timestamp,
-                        isCustom: true,
-                        system: 'Holographic'
-                    }))
-                };
-                collections.push(holoCustoms);
-            }
-            
-            // Create advanced gallery modal
-            const galleryModal = document.createElement('div');
-            galleryModal.style.cssText = `
-                position: fixed; 
-                top: 0; left: 0; 
-                width: 100%; height: 100%; 
-                background: rgba(0,0,0,0.95); 
-                z-index: 10000; 
-                overflow-y: auto; 
-                font-family: 'Orbitron', monospace;
-            `;
-            
-            galleryModal.innerHTML = `
-                <div style="max-width: 1400px; margin: 0 auto; padding: 20px;">
-                    <!-- Header -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding: 20px; background: rgba(0,0,0,0.8); border: 1px solid #00ffff; border-radius: 10px;">
-                        <div>
-                            <h1 style="color: #00ffff; font-size: 1.8rem; margin-bottom: 10px;">🌌 VIB34D Advanced Gallery System</h1>
-                            <div style="display: flex; gap: 20px; font-size: 0.7rem; color: rgba(255,255,255,0.7);">
-                                <span>Collections: ${collections.length}</span>
-                                <span>Total Variations: ${collections.reduce((sum, c) => sum + c.variations.length, 0)}</span>
-                                <span>Global Sequential Numbering</span>
-                            </div>
-                        </div>
-                        <button onclick="this.closest('div').remove()" style="background: rgba(255,0,0,0.3); border: 1px solid #ff0000; color: #ff0000; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-family: 'Orbitron', monospace;">✕ Close</button>
-                    </div>
-                    
-                    <!-- Collections Container -->
-                    <div id="advancedCollectionsContainer">
-                        ${collections.map(collection => {
-                            try {
-                                return createCollectionSection(collection, collections);
-                            } catch (error) {
-                                console.error('Error creating collection section:', error, collection);
-                                return `<div style="color: #ff0000; padding: 20px; border: 1px solid #ff0000;">Error loading collection: ${collection.name}</div>`;
-                            }
-                        }).join('')}
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(galleryModal);
-            console.log('✅ Gallery modal created and added to DOM');
-            
-        } catch (error) {
-            console.error('❌ Error creating gallery:', error);
-            showParameterNotification('Gallery Error', 'Failed to load gallery - check console');
-        }
-        };
-        
-        function createCollectionSection(collection, allCollections) {
-            return `
-                <div style="margin-bottom: 40px; background: rgba(0,0,0,0.6); border: 1px solid rgba(0,255,255,0.3); border-radius: 15px; padding: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid rgba(0,255,255,0.2);">
-                        <div style="color: #00ffff; font-size: 1.2rem;">${collection.name}</div>
-                        <div style="font-size: 0.7rem; color: rgba(255,255,255,0.6);">${collection.variations.length} variations</div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
-                        ${collection.variations.map(variation => {
-                            try {
-                                return createAdvancedVariationCard(variation);
-                            } catch (error) {
-                                console.error('Error creating variation card:', error, variation);
-                                return `<div style="color: #ff0000; padding: 10px; border: 1px solid #ff0000; border-radius: 5px;">Error loading variation #${variation.globalId || '?'}</div>`;
-                            }
-                        }).join('')}
-                    </div>
-                </div>
-            `;
-        }
-        
-        function createAdvancedVariationCard(variation) {
-            // BULLETPROOF error handling - validate variation object
-            if (!variation) {
-                console.error('❌ createAdvancedVariationCard: variation is null/undefined');
-                return '<div style="color: #ff0000; padding: 10px;">Error: Invalid variation</div>';
-            }
-            
-            const customBadge = variation.isCustom ? '<div style="position: absolute; top: 10px; right: 10px; background: rgba(255,100,255,0.3); color: #ff64ff; padding: 3px 8px; border-radius: 5px; font-size: 0.6rem; border: 1px solid #ff64ff;">CUSTOM</div>' : '';
-            const systemColor = variation.system === 'VIB34D' ? '#00ffff' : '#ff64ff';
-            
-            // ULTRA-SAFE parameter handling
-            let parameters = {};
-            try {
-                parameters = variation.parameters || {};
-                // Ensure it's an object
-                if (typeof parameters !== 'object' || parameters === null) {
-                    console.warn('⚠️ Parameters not an object, using defaults:', parameters);
-                    parameters = {};
-                }
-            } catch (error) {
-                console.error('❌ Error accessing variation.parameters:', error);
-                parameters = {};
-            }
-            
-            const previewHue = parameters.hue || 0;
-            const previewSaturation = (parameters.saturation || 0.8) * 100;
-            
-            return `
-                <div style="background: rgba(0,0,0,0.8); border: 1px solid rgba(0,255,255,0.3); border-radius: 12px; padding: 15px; transition: all 0.3s ease; cursor: pointer; position: relative;"
-                     onmouseenter="previewVariationOnHover(${variation.globalId}, '${variation.system}', ${JSON.stringify(parameters || {}).replace(/"/g, '&quot;')}); this.style.borderColor='#00ffff'; this.style.boxShadow='0 0 20px rgba(0,255,255,0.3)'; this.style.transform='translateY(-3px)'"
-                     onmouseleave="this.style.borderColor='rgba(0,255,255,0.3)'; this.style.boxShadow='none'; this.style.transform='translateY(0px)'"
-                     ontouchstart="previewVariationOnHover(${variation.globalId}, '${variation.system}', ${JSON.stringify(parameters || {}).replace(/"/g, '&quot;')})"
-                     onclick="loadVariationFromGallery(${variation.globalId}, '${variation.system}', ${JSON.stringify(parameters || {}).replace(/"/g, '&quot;')})">
-                    ${customBadge}
-                    
-                    <!-- Preview Area -->
-                    <div style="width: 100%; height: 160px; border-radius: 8px; overflow: hidden; margin-bottom: 10px; background: #111; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(0,255,255,0.2);">
-                        <div style="font-size: 2.5rem; font-weight: bold; color: hsl(${previewHue}, ${previewSaturation}%, 50%); text-shadow: 0 0 20px currentColor; margin-bottom: 10px;">
-                            #${variation.globalId}
-                        </div>
-                        <div style="font-size: 0.8rem; color: ${systemColor}; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">
-                            ${getGeometryName(parameters)}
-                        </div>
-                        <div style="width: 60px; height: 4px; background: hsl(${previewHue}, ${previewSaturation}%, 50%); border-radius: 2px; box-shadow: 0 0 10px currentColor;"></div>
-                        <div style="position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); padding: 3px 6px; border-radius: 3px; font-size: 0.6rem; color: ${systemColor};">
-                            ${variation.system}
-                        </div>
-                        <div style="position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.7); color: #0ff; padding: 3px 6px; border-radius: 3px; font-size: 0.6rem;">
-                            CLICK → LOAD
-                        </div>
-                    </div>
-                    
-                    <!-- Card Info -->
-                    <div>
-                        <h3 style="color: #00ffff; font-size: 0.9rem; margin-bottom: 5px;">
-                            ${variation.name} <span style="color: rgba(255,255,255,0.4); font-size: 0.7em;">#${variation.globalId}</span>
-                        </h3>
-                        <div style="font-size: 0.6rem; color: rgba(255,255,255,0.5); margin-bottom: 10px;">
-                            ${createParameterSummary(parameters, variation.system)}
-                        </div>
-                    </div>
-                    
-                    <!-- Card Controls -->
-                    <div style="display: flex; gap: 6px;">
-                        <button onclick="event.stopPropagation(); copyToEngine(${variation.globalId}, '${variation.system}', ${JSON.stringify(parameters).replace(/"/g, '&quot;')})" 
-                                style="background: rgba(0,255,100,0.2); border: 1px solid #00ff64; color: #00ff64; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 0.6rem; transition: all 0.3s ease;">
-                            📋 Copy
-                        </button>
-                        <button onclick="event.stopPropagation(); openVisualCard(${variation.globalId}, '${variation.system}', ${JSON.stringify(parameters).replace(/"/g, '&quot;')}, '${variation.name || ''}')" 
-                                style="background: rgba(100,100,255,0.2); border: 1px solid #6464ff; color: #6464ff; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 0.6rem; transition: all 0.3s ease;">
-                            🎴 Card
-                        </button>
-                        <button onclick="event.stopPropagation(); loadVariationFromGallery(${variation.globalId}, '${variation.system}', ${JSON.stringify(parameters).replace(/"/g, '&quot;')})" 
-                                style="background: rgba(0,255,255,0.2); border: 1px solid #00ffff; color: #00ffff; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 0.6rem; transition: all 0.3s ease;">
-                            ▶️ Load
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function getGeometryName(params) {
-            const names = ['TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'];
-            
-            // Robust parameter handling
-            if (!params) return 'CUSTOM';
-            
-            // Check for both possible property names
-            let geometryType = params.geometryType;
-            if (geometryType === undefined) {
-                geometryType = params.geometry;
-            }
-            
-            // Ensure valid index
-            if (geometryType === undefined || geometryType < 0 || geometryType >= names.length) {
-                return 'CUSTOM';
-            }
-            
-            return names[geometryType];
-        }
-        
-        function createParameterSummary(params, system) {
-            const geom = getGeometryName(params);
-            if (system === 'VIB34D') {
-                return `Geometry: ${geom} | Density: ${(params.gridDensity || 0).toFixed(1)} | Speed: ${(params.speed || 0).toFixed(1)}`;
-            } else {
-                return `Geometry: ${geom} | Density: ${(params.density || 0).toFixed(1)} | Speed: ${(params.speed || 0).toFixed(1)}`;
-            }
-        }
-        
-        // Advanced variation loading with proper system switching
-        // Gallery hover/touch preview function
-        window.previewVariationOnHover = function(globalId, system, parameters) {
-            console.log(`👁️ Previewing ${system} variation #${globalId} on hover/touch`);
-            
-            if (!parameters || typeof parameters !== 'object') {
-                console.warn('⚠️ Invalid parameters for preview:', parameters);
-                return;
-            }
-
-            // Apply preview temporarily (restore after 2 seconds)
-            if (system === 'VIB34D' && window.engine) {
-                const currentParams = { ...window.engine.parameters };
-                window.engine.updateParameters(parameters);
-                
-                // Restore after preview
-                setTimeout(() => {
-                    if (window.engine) {
-                        window.engine.updateParameters(currentParams);
-                    }
-                }, 2000);
-                
-            } else if (system === 'Holographic' && window.realHoloSystem) {
-                // Preview holographic parameters
-                window.realHoloSystem.visualizers.forEach(viz => {
-                    Object.assign(viz.variantParams, parameters);
-                });
-                
-                setTimeout(() => {
-                    // Restore would need current state saving - for now just log
-                    console.log('🔄 Preview ended for holographic system');
-                }, 2000);
-            }
-        };
-
-        window.loadVariationFromGallery = function(globalId, system, parameters) {
-            console.log(`🔗 Loading ${system} variation #${globalId} from advanced gallery`);
-            
-            if (system === 'VIB34D' && window.engine) {
-                window.engine.parameterManager.setParameters(parameters);
-                window.engine.updateDisplayValues();
-                window.engine.updateVisualizers();
-                switchToSystem('VIB34D');
-                
-                // Update geometry button
-                document.querySelectorAll('[data-geometry]').forEach(btn => {
-                    btn.classList.toggle('active', parseInt(btn.dataset.geometry) === parameters.geometry);
-                });
-                
-                showParameterNotification('💾 Loaded!', `VIB34D variation #${globalId} loaded`);
-                
-            } else if (system === 'Holographic' && window.realHoloSystem) {
-                // Apply loaded parameters to all visualizers
-                window.realHoloSystem.visualizers.forEach(viz => {
-                    viz.variantParams = { ...parameters };
-                    viz.roleParams = viz.generateRoleParams(viz.role);
-                });
-                
-                updateHoloSliders(parameters);
-                switchToSystem('Holographic');
-                
-                // Update geometry buttons
-                document.querySelectorAll('.holo-geom').forEach(btn => btn.classList.remove('active'));
-                const activeGeomBtn = document.querySelector(`[data-holo-geometry="${parameters.geometryType * 4}"]`);
-                if (activeGeomBtn) activeGeomBtn.classList.add('active');
-                
-                showParameterNotification('💾 Loaded!', `Holographic variation #${globalId} loaded`);
-            }
-            
-            // Close gallery modal
-            const modal = document.querySelector('[style*="z-index: 10000"]');
-            if (modal) modal.remove();
-        };
-        
-        window.openVariationFullscreen = function(globalId, system, parameters) {
-            let fullscreenUrl = '';
-            if (system === 'VIB34D') {
-                const urlParams = new URLSearchParams({
-                    geometry: parameters.geometry || 0,
-                    gridDensity: parameters.gridDensity || 10,
-                    morphFactor: parameters.morphFactor || 0.5,
-                    chaos: parameters.chaos || 0,
-                    speed: parameters.speed || 1,
-                    hue: parameters.hue || 0,
-                    autoplay: 'true'
-                });
-                fullscreenUrl = `index.html?${urlParams.toString()}`;
-            } else {
-                const urlParams = new URLSearchParams({
-                    geometryType: parameters.geometryType || 0,
-                    density: parameters.density || 1,
-                    speed: parameters.speed || 0.5,
-                    chaos: parameters.chaos || 0,
-                    morph: parameters.morph || 0,
-                    hue: parameters.hue || 0,
-                    saturation: parameters.saturation || 0.8,
-                    intensity: parameters.intensity || 0.5,
-                    system: 'holographic',
-                    autoplay: 'true'
-                });
-                fullscreenUrl = `index.html?${urlParams.toString()}`;
-            }
-            
-            window.open(fullscreenUrl, '_blank');
-        };
-        
-        window.loadVIB34DParameters = function(index) {
-            const saves = JSON.parse(localStorage.getItem('vib34d-custom-variations') || '[]').filter(v => v !== null);
-            const save = saves[index];
-            if (save && save.parameters && window.engine) {
-                window.engine.parameterManager.setParameters(save.parameters);
-                window.engine.updateDisplayValues();
-                window.engine.updateVisualizers();
-                switchToSystem('VIB34D');
-                showParameterNotification('💾 Loaded!', `VIB34D parameters from "${save.name}"`);
-            }
-        };
-        
-        window.loadHolographicParameters = function(index) {
-            const saves = JSON.parse(localStorage.getItem('vib34d-holo-gallery') || '[]');
-            const save = saves[index];
-            if (save && save.parameters && window.realHoloSystem) {
-                // Apply loaded parameters to all visualizers
-                window.realHoloSystem.visualizers.forEach(viz => {
-                    viz.variantParams = { ...save.parameters };
-                    viz.roleParams = viz.generateRoleParams(viz.role);
-                });
-                
-                // Update UI sliders
-                updateHoloSliders(save.parameters);
-                
-                switchToSystem('Holographic');
-                showParameterNotification('💾 Loaded!', `Holographic parameters from "${save.name}"`);
-            }
-        };
-        
-        // REAL Holographic system interface - ACTUALLY WORKING!
-        window.holoSystem = {
-            setVariant: function(variant) { 
-                if (window.realHoloSystem) {
-                    window.realHoloSystem.setVariant(parseInt(variant));
-                    updateHoloDisplay();
-                }
-            },
-            nextVariant: function() { 
-                if (window.realHoloSystem) {
-                    window.realHoloSystem.nextVariant();
-                    updateHoloDisplay();
-                }
-            },
-            previousVariant: function() { 
-                if (window.realHoloSystem) {
-                    window.realHoloSystem.previousVariant();
-                    updateHoloDisplay();
-                }
-            },
-            randomVariant: function() { 
-                // Use our new parameter randomization instead of preset variants
-                randomizeParameters('Holographic');
-            }
-        };
-        
-        // Helper functions for holographic system
-        window.updateHoloDisplay = function() {
-            if (window.realHoloSystem) {
-                const variantInfo = window.realHoloSystem.getCurrentVariantInfo();
-                
-                // Update slider
-                const slider = document.getElementById('holoVariationSlider');
-                if (slider) {
-                    slider.value = variantInfo.variant;
-                }
-                
-                // Update displays
-                const variantDisplay = document.getElementById('holoVariationDisplay');
-                if (variantDisplay) {
-                    variantDisplay.textContent = variantInfo.variant + 1;
-                }
-                
-                const nameDisplay = document.getElementById('currentHoloVariation');
-                if (nameDisplay) {
-                    nameDisplay.textContent = `${variantInfo.variant + 1} - ${variantInfo.name}`;
-                }
-            }
-        };
-        
-        window.setHoloGeometry = function(geometryIndex) {
-            // Update geometry buttons
-            document.querySelectorAll('.holo-geom').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.querySelector(`[data-holo-geometry="${geometryIndex}"]`);
-            if (activeBtn) activeBtn.classList.add('active');
-            
-            // Set holographic geometry directly in parameters (not preset variants)
-            if (window.realHoloSystem) {
-                const baseGeometry = Math.floor(geometryIndex / 4); // 0,1,2,3,4... -> geometry type
-                
-                // Update all visualizers with new geometry but keep other params
-                window.realHoloSystem.visualizers.forEach(viz => {
-                    if (viz.variantParams) {
-                        viz.variantParams.geometryType = baseGeometry;
-                        // CRITICAL: Regenerate role params with new geometry
-                        viz.roleParams = viz.generateRoleParams(viz.role);
-                        console.log(`🔷 Set geometry ${baseGeometry} on ${viz.role}`);
-                    }
-                });
-                
-                // Update variant display
-                const nameDisplay = document.getElementById('currentHoloVariation');
-                if (nameDisplay) {
-                    const geometryNames = ['TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'];
-                    nameDisplay.textContent = `Custom - ${geometryNames[baseGeometry]} GEOMETRY`;
-                }
-                
-                console.log(`Set holographic geometry to type ${baseGeometry}`);
-            }
-        };
-        
-        // VIB34D Geometry Selection Function
-        window.setCurrentGeometry = function(geometryIndex) {
-            console.log(`🔷 Setting VIB34D geometry to ${geometryIndex}`);
-            
-            // Update geometry buttons
-            document.querySelectorAll('.vib34d-geom').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.querySelector(`[data-geometry="${geometryIndex}"]`);
-            if (activeBtn) activeBtn.classList.add('active');
-            
-            // Apply geometry to VIB34D engine
-            if (window.engine && window.engine.parameterManager) {
-                window.engine.parameterManager.setParameters({ geometry: geometryIndex });
-                window.engine.updateVisualizers();
-                console.log(`✅ VIB34D geometry updated to ${geometryIndex}`);
-                
-                // Show geometry name
-                const geometryNames = ['Tetrahedron', 'Hypercube', 'Sphere', 'Torus', 'Klein Bottle', 'Fractal', 'Wave', 'Crystal'];
-                showParameterNotification('🔷 Geometry Changed', `Now using ${geometryNames[geometryIndex]} geometry`);
-            } else {
-                console.warn('⚠️ VIB34D engine not available for geometry change');
-            }
-        };
-        
-        // ========== POLYCHORA SYSTEM INTEGRATION ==========
-        
-        // Import and initialize Polychora system
+        // Global state
+        let currentSystem = 'faceted';
+        let audioEnabled = false;
+        let interactivityVisible = false;
+        let engine = null;
+        let holographicSystem = null;
         let polychoraSystem = null;
         
-        // Universal Interactivity System
-        let interactivityEngine = null;
-        let interactivityMenu = null;
-        
-        // Polychora System Functions
-        window.setPolychoraGeometry = function(polytopeIndex) {
-            console.log(`🔮 Setting Polychora polytope to ${polytopeIndex}`);
-            
-            // Update polytope buttons
-            document.querySelectorAll('.polychora-geom').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.querySelector(`[data-polytope="${polytopeIndex}"]`);
-            if (activeBtn) activeBtn.classList.add('active');
-            
-            if (polychoraSystem) {
-                const polytope = polychoraSystem.setPolytope(polytopeIndex);
-                if (polytope) {
-                    // Update description display
-                    const descDisplay = document.getElementById('polytope-description');
-                    if (descDisplay) {
-                        descDisplay.textContent = `${polytope.name}: ${polytope.description}`;
-                    }
-                    
-                    showParameterNotification('🔮 Polytope Changed', `Now using ${polytope.name}`);
-                }
-            }
+        // Geometry configurations
+        const geometries = {
+            faceted: [
+                'Tetra', 'Cube', 'Sphere',
+                'Torus', 'Klein', 'Fractal',
+                'Wave', 'Crystal'
+            ],
+            polychora: [
+                '5-Cell', 'Tesseract', '16-Cell',
+                '24-Cell', '600-Cell', '120-Cell'
+            ]
         };
         
-        window.updatePolychoraParameter = function(param, value) {
-            const numValue = parseFloat(value);
-            console.log(`🔮 Updating Polychora ${param} to ${numValue}`);
-            
-            if (polychoraSystem) {
-                const updateObj = {};
-                updateObj[param] = numValue;
-                polychoraSystem.updateParameters(updateObj);
-            }
-        };
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            setupGeometry('faceted');
+            await initializeEngine();
+            console.log('🚀 VIB34D Clean Interface Ready');
+        });
         
-        window.randomizePolychoraRotations = function() {
-            console.log('🎲 Randomizing Polychora rotations');
-            
-            const randomParams = {
-                rot4dXW: (Math.random() - 0.5) * 12.56,
-                rot4dYW: (Math.random() - 0.5) * 12.56, 
-                rot4dZW: (Math.random() - 0.5) * 12.56
-            };
-            
-            if (polychoraSystem) {
-                polychoraSystem.updateParameters(randomParams);
+        // Initialize VIB34D Engine
+        async function initializeEngine() {
+            try {
+                // Initialize Faceted engine (auto-initializes in constructor)
+                engine = new VIB34DIntegratedEngine();
+                console.log('✅ VIB34D Engine initialized');
+                
+                // Initialize Holographic system
+                holographicSystem = new RealHolographicSystem();
+                console.log('✅ Holographic System ready');
+                
+                return true;
+            } catch (error) {
+                console.error('❌ Failed to initialize engine:', error);
+                return false;
             }
-            
-            // Update UI sliders
-            Object.keys(randomParams).forEach(param => {
-                const slider = document.getElementById('polychora' + param.replace('rot4d', '').toUpperCase());
-                if (slider) {
-                    slider.value = randomParams[param];
-                    const display = document.getElementById('polychora' + param.replace('rot4d', '').toUpperCase() + 'Display');
-                    if (display) display.textContent = randomParams[param].toFixed(2);
-                }
-            });
-            
-            showParameterNotification('🎲 Polychora Randomized!', 'Random 4D rotations applied');
-        };
+        }
         
-        window.resetPolychoraRotations = function() {
-            console.log('🔄 Resetting Polychora rotations');
-            
-            const resetParams = {
-                rot4dXW: 0,
-                rot4dYW: 0,
-                rot4dZW: 0
-            };
-            
-            if (polychoraSystem) {
-                polychoraSystem.updateParameters(resetParams);
-            }
-            
-            // Update UI sliders
-            Object.keys(resetParams).forEach(param => {
-                const slider = document.getElementById('polychora' + param.replace('rot4d', '').toUpperCase());
-                if (slider) {
-                    slider.value = 0;
-                    const display = document.getElementById('polychora' + param.replace('rot4d', '').toUpperCase() + 'Display');
-                    if (display) display.textContent = '0.00';
-                }
-            });
-            
-            showParameterNotification('🔄 Polychora Reset', 'All rotations reset to zero');
-        };
-        
-        // Initialize Polychora system when needed
-        async function initializePolychoraSystem() {
+        // Initialize Polychora when needed
+        async function initializePolychora() {
             if (polychoraSystem) return true;
             
             try {
-                console.log('🔮 Loading Polychora System...');
-                
-                // Dynamic import of Polychora system
                 const { PolychoraSystem } = await import('./src/core/PolychoraSystem.js');
                 polychoraSystem = new PolychoraSystem();
                 
                 if (polychoraSystem.initialize()) {
-                    console.log('✅ Polychora System loaded successfully');
+                    console.log('✅ Polychora System initialized');
                     return true;
-                } else {
-                    console.error('❌ Failed to initialize Polychora System');
-                    return false;
                 }
             } catch (error) {
-                console.error('❌ Error loading Polychora System:', error);
-                return false;
+                console.error('❌ Failed to initialize Polychora:', error);
             }
+            return false;
         }
         
-        // Start Polychora system
-        function startPolychoraSystem() {
-            if (polychoraSystem) {
-                polychoraSystem.start();
-            }
-        }
-        
-        // Stop Polychora system  
-        function stopPolychoraSystem() {
-            if (polychoraSystem) {
-                polychoraSystem.stop();
-            }
-        }
-        
-        // ========== UNIVERSAL INTERACTIVITY SYSTEM ==========
-        
-        async function initializeInteractivityEngine() {
-            if (interactivityEngine) return true;
+        // System switching
+        window.switchSystem = async function(system) {
+            currentSystem = system;
             
-            try {
-                console.log('🎛️ Loading Universal Interactivity Engine...');
+            // Update UI
+            document.querySelectorAll('.system-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.system === system);
+            });
+            
+            // Update panel header
+            const headers = {
+                faceted: 'FACETED SYSTEM',
+                holographic: 'HOLOGRAPHIC SYSTEM',
+                polychora: 'POLYCHORA SYSTEM'
+            };
+            document.getElementById('panelHeader').textContent = headers[system];
+            
+            // Show/hide sections
+            document.getElementById('geometrySection').style.display = 
+                system === 'holographic' ? 'none' : 'block';
+            document.getElementById('variationSection').style.display = 
+                system === 'holographic' ? 'block' : 'none';
+            
+            // Setup geometry if needed
+            if (system !== 'holographic') {
+                setupGeometry(system);
+            }
+            
+            // Switch visualization systems
+            if (system === 'faceted') {
+                // Show VIB34D canvases, hide others
+                document.getElementById('vib34dLayers').style.display = 'block';
+                document.getElementById('holographicLayers').style.display = 'none';
+                document.getElementById('polychoraLayers').style.display = 'none';
+                if (holographicSystem) holographicSystem.setActive(false);
+                if (polychoraSystem) polychoraSystem.stop();
+                // VIB34DIntegratedEngine runs automatically, no start() method
+            } else if (system === 'holographic') {
+                // Show Holographic canvases, hide others
+                document.getElementById('vib34dLayers').style.display = 'none';
+                document.getElementById('holographicLayers').style.display = 'block';
+                document.getElementById('polychoraLayers').style.display = 'none';
+                if (polychoraSystem) polychoraSystem.stop();
+                if (holographicSystem) holographicSystem.setActive(true);
+                // VIB34DIntegratedEngine continues running in background
+            } else if (system === 'polychora') {
+                // Show Polychora canvases, hide others
+                document.getElementById('vib34dLayers').style.display = 'none';
+                document.getElementById('holographicLayers').style.display = 'none';
+                document.getElementById('polychoraLayers').style.display = 'block';
+                if (holographicSystem) holographicSystem.setActive(false);
                 
-                // Dynamic import of interactivity system
-                const { UniversalInteractivityEngine } = await import('./src/core/UniversalInteractivityEngine.js');
-                const { InteractivityMenu } = await import('./src/ui/InteractivityMenu.js');
-                
-                interactivityEngine = new UniversalInteractivityEngine();
-                
-                if (await interactivityEngine.initialize()) {
-                    // Create interactivity menu
-                    interactivityMenu = new InteractivityMenu(interactivityEngine);
-                    console.log('✅ Universal Interactivity Engine loaded successfully');
-                    
-                    // Add keyboard shortcut info to help
-                    console.log('💡 Press "I" key to toggle Interactivity Menu');
-                    
-                    return true;
+                // Initialize Polychora if needed
+                await initializePolychora();
+                if (polychoraSystem) polychoraSystem.start();
+            }
+            
+            // Update Universal Interactivity Engine if active
+            if (window.interactivityEngine) {
+                window.interactivityEngine.switchSystem(system);
+                console.log(`🎛️ Universal Interactivity switched to ${system} system`);
+            }
+            
+            console.log(`🔄 Switched to ${system} system`);
+        }
+        
+        // Setup geometry buttons
+        function setupGeometry(system) {
+            const grid = document.getElementById('geometryGrid');
+            const geoList = geometries[system] || geometries.faceted;
+            
+            grid.innerHTML = geoList.map((name, i) => 
+                `<button class="geom-btn ${i === 0 ? 'active' : ''}" 
+                         data-index="${i}" onclick="selectGeometry(${i})">
+                    ${name}
+                </button>`
+            ).join('');
+        }
+        
+        // Select geometry
+        window.selectGeometry = function(index) {
+            document.querySelectorAll('.geom-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.index == index);
+            });
+            
+            // Update the actual engine
+            if (currentSystem === 'faceted' && engine) {
+                engine.updateParameters({ geometry: index });
+            } else if (currentSystem === 'polychora' && polychoraSystem) {
+                polychoraSystem.setPolytope(index);
+            }
+            
+            console.log(`📐 Selected geometry: ${index}`);
+        }
+        
+        // Update parameter
+        window.updateParameter = function(param, value) {
+            const displays = {
+                rot4dXW: 'xwValue',
+                rot4dYW: 'ywValue', 
+                rot4dZW: 'zwValue',
+                gridDensity: 'densityValue',
+                morphFactor: 'morphValue',
+                chaos: 'chaosValue',
+                speed: 'speedValue',
+                hue: 'hueValue'
+            };
+            
+            const display = document.getElementById(displays[param]);
+            if (display) {
+                if (param === 'hue') {
+                    display.textContent = value + '°';
+                } else if (param.startsWith('rot4d')) {
+                    display.textContent = parseFloat(value).toFixed(2);
                 } else {
-                    console.error('❌ Universal Interactivity Engine initialization failed');
-                    return false;
-                }
-            } catch (error) {
-                console.error('❌ Error loading Universal Interactivity Engine:', error);
-                return false;
-            }
-        }
-        
-        function getInteractiveParameterValue(paramName) {
-            if (interactivityEngine) {
-                return interactivityEngine.getParameterValue(paramName);
-            }
-            return null;
-        }
-        
-        function updateSystemWithInteractivity() {
-            if (!interactivityEngine) return;
-            
-            // Get interactive parameter values
-            const interactiveParams = {
-                rot4dXW: getInteractiveParameterValue('rot4dXW'),
-                rot4dYW: getInteractiveParameterValue('rot4dYW'), 
-                rot4dZW: getInteractiveParameterValue('rot4dZW'),
-                speed: getInteractiveParameterValue('speed'),
-                hue: getInteractiveParameterValue('hue'),
-                gridDensity: getInteractiveParameterValue('gridDensity'),
-                morphFactor: getInteractiveParameterValue('morphFactor'),
-                chaos: getInteractiveParameterValue('chaos')
-            };
-            
-            // Update active systems with interactive parameters
-            if (engine && engine.visualizers) {
-                engine.visualizers.forEach(visualizer => {
-                    const params = {};
-                    Object.entries(interactiveParams).forEach(([key, value]) => {
-                        if (value !== null) params[key] = value;
-                    });
-                    if (Object.keys(params).length > 0) {
-                        visualizer.updateParameters(params);
-                    }
-                });
-            }
-            
-            if (realHolographicSystem && realHolographicSystem.visualizers) {
-                realHolographicSystem.visualizers.forEach(visualizer => {
-                    const audioData = interactivityEngine.reactiveBands.audio;
-                    if (audioData) {
-                        visualizer.updateAudio(audioData);
-                    }
-                });
-            }
-            
-            if (polychoraSystem && polychoraSystem.visualizers) {
-                const params = {};
-                Object.entries(interactiveParams).forEach(([key, value]) => {
-                    if (value !== null) params[key] = value;
-                });
-                if (Object.keys(params).length > 0) {
-                    polychoraSystem.updateParameters(params);
-                }
-            }
-        }
-        
-        // Start interactivity update loop
-        function startInteractivityLoop() {
-            const updateLoop = () => {
-                updateSystemWithInteractivity();
-                requestAnimationFrame(updateLoop);
-            };
-            updateLoop();
-        }
-        
-        // ========== END POLYCHORA SYSTEM INTEGRATION ==========
-        
-        // Fixed Action Tab Functions
-        window.saveCurrentVariation = function() {
-            if (unifiedParameters.systemType === 'VIB34D' || !window.realHoloSystem || !window.realHoloSystem.isActive) {
-                saveVIB34DToGallery();
-            } else {
-                saveHologramToGallery();
-            }
-        };
-
-        window.toggleAudioGlobal = function() {
-            if (unifiedParameters.systemType === 'VIB34D' || !window.realHoloSystem || !window.realHoloSystem.isActive) {
-                toggleVIB34DAudio();
-            } else {
-                toggleHolographicAudio();
-            }
-        };
-
-        // NEW Unified Navigation System
-        let currentVisualNumber = 1;
-        let isNavMenuCollapsed = false;
-        let isParameterPanelCollapsed = false;
-
-        // Toggle navigation menu
-        window.toggleNavMenu = function() {
-            const content = document.getElementById('navContent');
-            const arrow = document.getElementById('navToggleArrow');
-            
-            isNavMenuCollapsed = !isNavMenuCollapsed;
-            
-            if (isNavMenuCollapsed) {
-                content.classList.add('collapsed');
-                arrow.classList.add('collapsed');
-            } else {
-                content.classList.remove('collapsed');
-                arrow.classList.remove('collapsed');
-            }
-        };
-
-        // Toggle parameter panel
-        window.toggleParameterPanel = function() {
-            const content = document.getElementById('panelContent');
-            const arrow = document.getElementById('panelToggleArrow');
-            
-            isParameterPanelCollapsed = !isParameterPanelCollapsed;
-            
-            if (isParameterPanelCollapsed) {
-                content.classList.add('collapsed');
-                arrow.classList.add('collapsed');
-            } else {
-                content.classList.remove('collapsed');
-                arrow.classList.remove('collapsed');
-            }
-        };
-
-        // Update navigation display
-        window.updateUnifiedNav = function() {
-            const typeBadge = document.getElementById('navTypeBadge');
-            const status = document.getElementById('navStatus');
-            
-            // Update type badge with proper styling
-            if (unifiedParameters.systemType === 'VIB34D' || !window.realHoloSystem || !window.realHoloSystem.isActive) {
-                typeBadge.textContent = '🔷 FACETED';
-                typeBadge.className = 'nav-type-badge faceted';
-            } else {
-                typeBadge.textContent = '🌀 HOLOGRAPHIC';
-                typeBadge.className = 'nav-type-badge holographic';
-            }
-            
-            // Status always shows "LIVE ENGINE" since this is for live parameter manipulation
-            status.textContent = 'LIVE ENGINE';
-        };
-
-        // Save current live parameters to gallery
-        window.saveCurrentToGallery = function() {
-            if (unifiedParameters.systemType === 'VIB34D' || !window.realHoloSystem || !window.realHoloSystem.isActive) {
-                saveVIB34DToGallery();
-            } else {
-                saveHologramToGallery();
-            }
-            showParameterNotification('💾 Saved!', 'Live parameters saved to gallery');
-        };
-
-        // Total randomization including hue and geometry
-        window.totalRandomization = function() {
-            const targetSystem = unifiedParameters.systemType || 'VIB34D';
-            console.log(`🌈 TOTAL RANDOMIZATION for ${targetSystem} - including hue and geometry`);
-            
-            if (targetSystem === 'VIB34D' && window.engine) {
-                const totalRandomParams = {
-                    // 4D Mathematics
-                    rot4dXW: (Math.random() - 0.5) * 4,
-                    rot4dYW: (Math.random() - 0.5) * 4,
-                    rot4dZW: (Math.random() - 0.5) * 4,
-                    dimension: 3.0 + Math.random() * 1.5,
-                    
-                    // Visual Parameters INCLUDING hue and geometry
-                    gridDensity: 4 + Math.random() * 96,
-                    morphFactor: Math.random() * 2,
-                    chaos: Math.random(),
-                    speed: 0.1 + Math.random() * 2.9,
-                    hue: Math.floor(Math.random() * 360), // INCLUDE HUE
-                    geometry: Math.floor(Math.random() * 8) // INCLUDE GEOMETRY
-                };
-                
-                window.engine.parameterManager.setParameters(totalRandomParams);
-                window.engine.updateDisplayValues();
-                window.engine.updateVisualizers();
-                
-                showParameterNotification('🌈 Total Randomization!', 'Everything randomized including hue and geometry!');
-                
-            } else if (targetSystem === 'Holographic' && window.realHoloSystem) {
-                const totalHoloParams = {
-                    geometryType: Math.floor(Math.random() * 8), // INCLUDE GEOMETRY
-                    density: 0.5 + Math.random() * 2.5,
-                    speed: 0.1 + Math.random() * 1.9,
-                    chaos: Math.random(),
-                    morph: Math.random(),
-                    hue: Math.floor(Math.random() * 360), // INCLUDE HUE
-                    saturation: 0.3 + Math.random() * 0.7,
-                    intensity: 0.2 + Math.random() * 0.8,
-                    name: 'TOTAL RANDOMIZED'
-                };
-                
-                window.realHoloSystem.visualizers.forEach(viz => {
-                    viz.variantParams = { ...totalHoloParams };
-                    viz.roleParams = viz.generateRoleParams(viz.role);
-                });
-                
-                updateHoloSliders(totalHoloParams);
-                showParameterNotification('🌈 Total Randomization!', 'Everything randomized including hue and geometry!');
-            }
-            
-            updateUnifiedNav();
-        };
-
-        // Visual Card and Copy to Engine Functions
-        window.copyToEngine = function(globalId, system, parameters) {
-            console.log(`📋 Copying ${system} visual #${globalId} to engine`);
-            
-            if (!parameters || typeof parameters !== 'object') {
-                showParameterNotification('❌ Copy Failed', 'Invalid parameters');
-                return;
-            }
-
-            // Apply parameters to current engine
-            if (system === 'VIB34D' && window.engine) {
-                window.engine.parameterManager.setParameters(parameters);
-                window.engine.updateDisplayValues();
-                window.engine.updateVisualizers();
-                
-                // Switch to VIB34D system if needed
-                if (unifiedParameters.systemType !== 'VIB34D') {
-                    switchToSystem('VIB34D');
-                }
-                
-            } else if (system === 'Holographic' && window.realHoloSystem) {
-                // Apply holographic parameters
-                window.realHoloSystem.visualizers.forEach(viz => {
-                    Object.assign(viz.variantParams, parameters);
-                    viz.roleParams = viz.generateRoleParams(viz.role);
-                });
-                
-                updateHoloSliders(parameters);
-                
-                // Switch to Holographic system if needed
-                if (unifiedParameters.systemType !== 'Holographic') {
-                    switchToSystem('Holographic');
+                    display.textContent = parseFloat(value).toFixed(1);
                 }
             }
             
-            showParameterNotification('📋 Copied to Engine!', `Visual #${globalId} loaded in live engine`);
-        };
-
-        window.openVisualCard = function(globalId, system, parameters, name) {
-            console.log(`🎴 Opening visual card for ${system} visual #${globalId}`);
+            // Update the actual visualization engines using their proper methods
+            if (currentSystem === 'faceted' && engine) {
+                // For VIB34DIntegratedEngine, update parameter manager and call updateFromControls
+                engine.parameterManager.setParameter(param, parseFloat(value));
+                engine.updateVisualizers();
+                
+                // Also notify Universal Interactivity Engine if active
+                if (window.interactivityEngine) {
+                    window.interactivityEngine.notifyParameterChange(param, parseFloat(value), 'faceted');
+                }
+            } else if (currentSystem === 'holographic' && holographicSystem) {
+                holographicSystem.visualizers.forEach(v => v.updateParameters({ [param]: parseFloat(value) }));
+                
+                // Also notify Universal Interactivity Engine if active
+                if (window.interactivityEngine) {
+                    window.interactivityEngine.notifyParameterChange(param, parseFloat(value), 'holographic');
+                }
+            } else if (currentSystem === 'polychora' && polychoraSystem) {
+                polychoraSystem.updateParameters({ [param]: parseFloat(value) });
+                
+                // Also notify Universal Interactivity Engine if active
+                if (window.interactivityEngine) {
+                    window.interactivityEngine.notifyParameterChange(param, parseFloat(value), 'polychora');
+                }
+            }
             
-            const visualData = {
-                id: globalId,
-                name: name || `Visual #${globalId}`,
-                system: system,
-                parameters: parameters,
-                created: Date.now()
-            };
+            console.log(`📊 ${param}: ${value}`);
+        }
+        
+        // Update variation (Holographic only)
+        window.updateVariation = function(value) {
+            document.getElementById('variationValue').textContent = 
+                `${parseInt(value) + 1} / 30`;
             
-            const encodedData = encodeURIComponent(JSON.stringify(visualData));
-            const cardUrl = `visual-card.html?data=${encodedData}`;
+            if (holographicSystem) {
+                holographicSystem.setVariant(parseInt(value));
+            }
             
-            window.open(cardUrl, '_blank');
-        };
-
-        // Check for visual to load on startup
-        function checkForVisualToLoad() {
-            const visualToLoad = localStorage.getItem('vib34d-load-visual');
-            if (visualToLoad) {
+            console.log(`🌀 Variation: ${value}`);
+        }
+        
+        // Action functions
+        window.openGallery = function() {
+            console.log('🖼️ Opening gallery...');
+            if (engine && engine.openGalleryView) {
+                engine.openGalleryView();
+            } else {
+                // Fallback: open advanced gallery
+                window.open('./advanced-gallery.html', 'vib34d-gallery', 'width=1200,height=800');
+            }
+        }
+        
+        window.toggleAudio = async function() {
+            audioEnabled = !audioEnabled;
+            
+            if (audioEnabled && holographicSystem) {
+                await holographicSystem.initAudio();
+            }
+            
+            console.log(`🎵 Audio: ${audioEnabled ? 'ON' : 'OFF'}`);
+        }
+        
+        window.toggleInteractivity = async function() {
+            interactivityVisible = !interactivityVisible;
+            
+            if (interactivityVisible && !window.interactivityEngine) {
+                // Initialize Universal Interactivity Engine for ALL systems
                 try {
-                    const data = JSON.parse(visualToLoad);
-                    console.log('🔗 Loading visual from card:', data);
+                    const { UniversalInteractivityEngine } = await import('./src/core/UniversalInteractivityEngine.js');
+                    window.interactivityEngine = new UniversalInteractivityEngine();
+                    await window.interactivityEngine.initialize();
                     
-                    // Clear the load request
-                    localStorage.removeItem('vib34d-load-visual');
+                    // Connect to all visualization systems
+                    window.interactivityEngine.connectToEngine('faceted', engine);
+                    window.interactivityEngine.connectToEngine('holographic', holographicSystem);
+                    if (polychoraSystem) {
+                        window.interactivityEngine.connectToEngine('polychora', polychoraSystem);
+                    }
                     
-                    // Apply the parameters
-                    setTimeout(() => {
-                        copyToEngine(data.id, data.system, data.parameters);
-                    }, 1000);
+                    // Start universal interactivity
+                    window.interactivityEngine.startUniversalMode(currentSystem);
+                    console.log('✅ Universal Interactivity Engine initialized for ALL systems');
                     
+                    // Show overlay menu
+                    showInteractivityOverlay();
                 } catch (error) {
-                    console.error('Error loading visual from card:', error);
-                    localStorage.removeItem('vib34d-load-visual');
+                    console.error('❌ Failed to initialize Universal Interactivity:', error);
+                }
+            } else if (window.interactivityEngine) {
+                // Toggle existing system
+                if (interactivityVisible) {
+                    window.interactivityEngine.startUniversalMode(currentSystem);
+                    showInteractivityOverlay();
+                } else {
+                    window.interactivityEngine.stopUniversalMode();
+                    hideInteractivityOverlay();
                 }
             }
+            
+            console.log(`🎛️ Universal Interactivity: ${interactivityVisible ? 'ACTIVE' : 'INACTIVE'} for ${currentSystem.toUpperCase()} system`);
         }
-
-        window.updateHoloSliders = function(params) {
-            // Update all holographic parameter sliders and displays
-            const paramMap = {
-                density: 'holoDensity',
-                speed: 'holoSpeed', 
-                chaos: 'holoChaos',
-                morph: 'holoMorph',
-                hue: 'holoHue',
-                saturation: 'holoSaturation',
-                intensity: 'holoIntensity'
+        
+        function showInteractivityOverlay() {
+            // Create floating overlay for interactivity status
+            if (!document.getElementById('interactivity-overlay')) {
+                const overlay = document.createElement('div');
+                overlay.id = 'interactivity-overlay';
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 60px;
+                    left: 20px;
+                    background: rgba(0, 255, 255, 0.1);
+                    border: 2px solid rgba(0, 255, 255, 0.5);
+                    padding: 15px;
+                    border-radius: 10px;
+                    backdrop-filter: blur(10px);
+                    color: #00ffff;
+                    font-family: 'Orbitron', monospace;
+                    font-size: 0.9rem;
+                    z-index: 999;
+                    max-width: 250px;
+                `;
+                overlay.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 8px;">🎛️ UNIVERSAL INTERACTIVITY</div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;">
+                        Active for ALL systems<br>
+                        Audio: <span id="audio-status">OFF</span><br>
+                        Mouse: <span id="mouse-status">TRACKED</span><br>
+                        Gamepad: <span id="gamepad-status">OFF</span><br>
+                        Wearable: <span id="wearable-status">OFF</span>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 0.7rem; opacity: 0.6;">
+                        Press I to toggle
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+            }
+        }
+        
+        function hideInteractivityOverlay() {
+            const overlay = document.getElementById('interactivity-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+        }
+        
+        window.randomizeAll = function() {
+            // Randomize all sliders
+            document.querySelectorAll('.control-slider').forEach(slider => {
+                const min = parseFloat(slider.min);
+                const max = parseFloat(slider.max);
+                const value = Math.random() * (max - min) + min;
+                slider.value = value;
+                slider.oninput();
+            });
+            console.log('🎲 Randomized all parameters');
+        }
+        
+        window.resetAll = function() {
+            // Reset all sliders to defaults
+            const defaults = {
+                rot4dXW: 0,
+                rot4dYW: 0,
+                rot4dZW: 0,
+                gridDensity: 15,
+                morphFactor: 1,
+                chaos: 0.2,
+                speed: 1,
+                hue: 200,
+                variationSlider: 0
             };
             
-            Object.keys(params).forEach(param => {
-                const sliderId = paramMap[param];
-                if (sliderId) {
-                    const slider = document.getElementById(sliderId);
-                    const display = document.getElementById(sliderId + 'Display');
-                    
-                    if (slider) {
-                        slider.value = params[param];
-                    }
-                    
-                    if (display) {
-                        display.textContent = param === 'hue' ? params[param] + '°' : parseFloat(params[param]).toFixed(2);
-                    }
+            Object.entries(defaults).forEach(([id, value]) => {
+                const slider = document.getElementById(id);
+                if (slider) {
+                    slider.value = value;
+                    slider.oninput();
                 }
             });
-            
-            console.log('🎛️ Updated holographic sliders:', params);
-            
-            // DEBUG: Let's also verify the visualizers actually have these parameters
-            if (window.realHoloSystem && window.realHoloSystem.visualizers.length > 0) {
-                const firstViz = window.realHoloSystem.visualizers[0];
-                console.log('🔍 First visualizer params after slider update:', firstViz.variantParams);
-            }
-        };
+            console.log('🔄 Reset all parameters');
+        }
         
-        // DEBUG: Test function to verify parameter system is working
-        window.testHoloParameters = function() {
-            if (!window.realHoloSystem || window.realHoloSystem.visualizers.length === 0) {
-                console.error('❌ Holographic system not ready');
-                return;
-            }
-            
-            console.log('🧪 Testing holographic parameter system...');
-            
-            // Test sequence: Change hue dramatically
-            let hue = 0;
-            const testInterval = setInterval(() => {
-                hue = (hue + 60) % 360;
-                updateHoloParameter('hue', hue);
-                
-                // Also test intensity
-                const intensity = 0.2 + Math.random() * 0.6;
-                updateHoloParameter('intensity', intensity);
-                
-                console.log(`🌈 Test: Hue=${hue}°, Intensity=${intensity.toFixed(2)}`);
-                
-                if (hue === 0) {
-                    clearInterval(testInterval);
-                    console.log('✅ Parameter test complete');
-                }
-            }, 500);
-        };
-        
-        // Add a debug function to inspect current holographic state
-        window.debugHoloSystem = function() {
-            if (!window.realHoloSystem) {
-                console.log('❌ No holographic system loaded');
-                return;
-            }
-            
-            console.log('🔍 HOLOGRAPHIC SYSTEM DEBUG:');
-            console.log('Active:', window.realHoloSystem.isActive);
-            console.log('Visualizers:', window.realHoloSystem.visualizers.length);
-            
-            window.realHoloSystem.visualizers.forEach((viz, i) => {
-                console.log(`Visualizer ${i} (${viz.role}):`);
-                console.log('  Variant Params:', viz.variantParams);
-                console.log('  Role Params:', viz.roleParams);
-            });
-        };
-        
-        // Add keyboard shortcuts for debugging
+        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            // Skip if user is focused on input elements
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
-            
-            if (e.ctrlKey && e.key === 't') {
-                e.preventDefault();
-                testHoloParameters();
-            }
-            if (e.ctrlKey && e.key === 'd') {
-                e.preventDefault();
-                debugHoloSystem();
+            if (e.key === 'i' || e.key === 'I') {
+                toggleInteractivity();
             }
         });
-        
-        // Tab switching functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            setupTabSwitching();
-            setupCollapsibleSections();
-            // Initialize smart menu for current system
-            updateParameterVisibility(unifiedParameters.systemType || 'VIB34D');
-            
-            // Initialize Universal Interactivity Engine
-            initializeInteractivityEngine().then(success => {
-                if (success) {
-                    startInteractivityLoop();
-                    console.log('🎛️ Universal Interactivity Engine ready - Press "I" to toggle menu');
-                }
-            });
-        });
-        
-        function setupTabSwitching() {
-            const tabButtons = document.querySelectorAll('.tab-btn');
-            const tabContents = document.querySelectorAll('.tab-content');
-            
-            tabButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const targetTab = button.getAttribute('data-tab');
-                    
-                    // Remove active class from all tabs
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
-                    tabContents.forEach(content => content.classList.remove('active'));
-                    
-                    // Add active class to clicked tab
-                    button.classList.add('active');
-                    document.getElementById(`${targetTab}-tab`).classList.add('active');
-                    
-                    // Handle system switching
-                    if (targetTab === 'polychora') {
-                        // Initialize and start Polychora system
-                        initializePolychoraSystem().then(success => {
-                            if (success) {
-                                startPolychoraSystem();
-                                console.log('🔮 Polychora system started');
-                            }
-                        });
-                    } else {
-                        // Stop Polychora system when switching away
-                        stopPolychoraSystem();
-                    }
-                });
-            });
-        }
-        
-        function setupCollapsibleSections() {
-            // Auto-collapse all sections by default except first ones
-            const sections = document.querySelectorAll('.section-content');
-            sections.forEach((section, index) => {
-                if (index % 3 !== 0) { // Keep first section of each tab open
-                    section.style.display = 'none';
-                    const arrow = section.previousElementSibling.querySelector('.toggle-arrow');
-                    if (arrow) arrow.textContent = '▶';
-                }
-            });
-        }
-        
-        window.toggleSection = function(header) {
-            const content = header.nextElementSibling;
-            const arrow = header.querySelector('.toggle-arrow');
-            
-            if (content.style.display === 'none') {
-                content.style.display = 'block';
-                arrow.textContent = '▼';
-            } else {
-                content.style.display = 'none';
-                arrow.textContent = '▶';
-            }
-        };
-        
     </script>
-    
-    <style>
-        /* Advanced Gallery Styles */
-        .variation-card:hover {
-            border-color: #00ffff !important;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3) !important;
-            transform: translateY(-3px) !important;
-        }
-        
-        .variation-card button:hover {
-            background: rgba(0, 255, 255, 0.4) !important;
-            box-shadow: 0 0 8px rgba(0, 255, 255, 0.5) !important;
-        }
-        
-        /* Gallery scroll optimization */
-        .gallery-overlay {
-            scroll-behavior: smooth;
-        }
-        
-        .variations-grid {
-            scroll-behavior: smooth;
-        }
-
-        /* Fixed Action Tabs - Always visible */
-        .fixed-action-tabs {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 5px;
-            z-index: 10000;
-        }
-
-        .action-tab {
-            width: 45px;
-            height: 45px;
-            border: 1px solid rgba(0,255,255,0.5);
-            background: rgba(0,0,0,0.8);
-            color: #00ffff;
-            font-size: 1.2rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .action-tab:hover {
-            background: rgba(0,255,255,0.2);
-            border-color: #00ffff;
-            box-shadow: 0 0 15px rgba(0,255,255,0.4);
-            transform: translateY(-2px);
-        }
-
-        /* Mobile responsive for fixed tabs */
-        @media (max-width: 768px) {
-            .fixed-action-tabs {
-                top: 10px;
-                right: 10px;
-                gap: 3px;
-            }
-            
-            .action-tab {
-                width: 40px;
-                height: 40px;
-                font-size: 1rem;
-            }
-        }
-
-        /* Unified Navigation Bar */
-        .unified-nav-bar {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background: rgba(0,0,0,0.9);
-            border: 1px solid rgba(0,255,255,0.5);
-            border-radius: 10px;
-            padding: 10px 15px;
-            backdrop-filter: blur(15px);
-            z-index: 9999;
-        }
-
-        .nav-current-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .nav-type-indicator {
-            color: #00ffff;
-            font-weight: bold;
-            font-size: 0.9rem;
-            padding: 3px 8px;
-            background: rgba(0,255,255,0.1);
-            border: 1px solid rgba(0,255,255,0.3);
-            border-radius: 5px;
-        }
-
-        .nav-visual-number {
-            color: #ffffff;
-            font-size: 1.1rem;
-            font-weight: bold;
-            min-width: 30px;
-            text-align: center;
-        }
-
-        .nav-controls {
-            display: flex;
-            gap: 5px;
-        }
-
-        .nav-btn {
-            width: 35px;
-            height: 35px;
-            border: 1px solid rgba(0,255,255,0.4);
-            background: rgba(0,255,255,0.1);
-            color: #00ffff;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .nav-btn:hover {
-            background: rgba(0,255,255,0.3);
-            border-color: #00ffff;
-            box-shadow: 0 0 10px rgba(0,255,255,0.4);
-        }
-
-        /* NEW Unified Navigation Menu Styles */
-        .unified-navigation-menu {
-            position: fixed;
-            top: 320px;
-            left: 20px;
-            background: rgba(0,0,0,0.95);
-            border: 1px solid rgba(0,255,255,0.5);
-            border-radius: 10px;
-            backdrop-filter: blur(15px);
-            z-index: 9999;
-            min-width: 280px;
-        }
-
-        .nav-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 15px;
-            cursor: pointer;
-            border-bottom: 1px solid rgba(0,255,255,0.2);
-        }
-
-        .nav-type-badge {
-            font-weight: bold;
-            font-size: 0.9rem;
-            padding: 4px 10px;
-            border-radius: 5px;
-            border: 1px solid;
-            transition: all 0.3s ease;
-        }
-
-        .nav-type-badge.faceted {
-            color: #00ffff;
-            background: rgba(0,255,255,0.1);
-            border-color: rgba(0,255,255,0.3);
-        }
-
-        .nav-type-badge.holographic {
-            color: #ff64ff;
-            background: rgba(255,100,255,0.1);
-            border-color: rgba(255,100,255,0.3);
-        }
-
-        .nav-status {
-            color: #ffffff;
-            font-size: 0.7rem;
-            font-weight: normal;
-            margin: 0 10px;
-            opacity: 0.8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .nav-toggle-arrow {
-            color: #00ffff;
-            font-size: 0.8rem;
-            transition: transform 0.3s ease;
-        }
-
-        .nav-toggle-arrow.collapsed {
-            transform: rotate(-90deg);
-        }
-
-        .nav-content {
-            padding: 15px;
-            max-height: 400px;
-            overflow-y: auto;
-            transition: all 0.3s ease;
-        }
-
-        .nav-content.collapsed {
-            max-height: 0;
-            padding: 0 15px;
-            overflow: hidden;
-        }
-
-        .nav-section {
-            margin-bottom: 15px;
-        }
-
-        .nav-section h4 {
-            color: #00ffff;
-            font-size: 0.8rem;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .nav-button-group {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        .nav-button {
-            flex: 1;
-            padding: 8px 12px;
-            background: rgba(0,255,255,0.1);
-            border: 1px solid rgba(0,255,255,0.3);
-            color: #00ffff;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.75rem;
-            transition: all 0.3s ease;
-            font-family: inherit;
-        }
-
-        .nav-button:hover {
-            background: rgba(0,255,255,0.3);
-            border-color: #00ffff;
-            box-shadow: 0 0 10px rgba(0,255,255,0.4);
-        }
-
-        .nav-button.save-btn {
-            background: rgba(0,255,100,0.2);
-            border-color: rgba(0,255,100,0.4);
-            color: #00ff64;
-        }
-
-        .nav-button.save-btn:hover {
-            background: rgba(0,255,100,0.4);
-            border-color: #00ff64;
-        }
-
-        .nav-button.gallery-btn {
-            background: rgba(100,100,255,0.2);
-            border-color: rgba(100,100,255,0.4);
-            color: #6464ff;
-        }
-
-        .nav-button.gallery-btn:hover {
-            background: rgba(100,100,255,0.4);
-            border-color: #6464ff;
-        }
-
-        .nav-button.delete-btn {
-            background: rgba(255,100,100,0.2);
-            border-color: rgba(255,100,100,0.4);
-            color: #ff6464;
-        }
-
-        .nav-button.delete-btn:hover {
-            background: rgba(255,100,100,0.4);
-            border-color: #ff6464;
-        }
-
-        /* Collapsible Parameter Panel */
-        .panel-header-clickable {
-            cursor: pointer;
-            padding: 15px;
-            border-bottom: 1px solid rgba(0,255,255,0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .panel-header-clickable:hover {
-            background: rgba(0,255,255,0.05);
-        }
-
-        .panel-header-clickable h2 {
-            margin: 0;
-            color: #00ffff;
-        }
-
-        .header-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .panel-toggle-arrow {
-            color: #00ffff;
-            font-size: 0.8rem;
-            transition: transform 0.3s ease;
-        }
-
-        .panel-toggle-arrow.collapsed {
-            transform: rotate(-90deg);
-        }
-
-        .panel-collapsible-content {
-            transition: all 0.3s ease;
-            overflow: hidden;
-            max-height: 2000px;
-        }
-
-        .panel-collapsible-content.collapsed {
-            max-height: 0;
-            opacity: 0;
-        }
-
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-            .unified-navigation-menu {
-                top: 280px;
-                left: 10px;
-                min-width: 260px;
-            }
-            
-            .nav-header {
-                padding: 10px 12px;
-            }
-            
-            .nav-type-badge {
-                font-size: 0.8rem;
-                padding: 3px 8px;
-            }
-            
-            .nav-status {
-                font-size: 0.6rem;
-                margin: 0 6px;
-            }
-            
-            .nav-content {
-                padding: 12px;
-            }
-            
-            .nav-button {
-                padding: 6px 8px;
-                font-size: 0.7rem;
-            }
-        }
-    </style>
 </body>
 </html>
