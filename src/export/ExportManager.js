@@ -107,12 +107,13 @@ export class ExportManager {
         
         // Show detailed instructions
         this.engine.statusManager.success(
-            `🎯 Saved to Gallery!<br><br>` +
+            `🎯 Saved for Gallery!<br><br>` +
             `<strong>File:</strong> ${filename}<br>` +
-            `<strong>Instructions:</strong><br>` +
-            `1. Move downloaded file to <code>collections/</code> folder<br>` +
-            `2. Refresh gallery to see your variation<br><br>` +
-            `<small>Gallery automatically scans collections/ folder</small>`
+            `<strong>Next Steps:</strong><br>` +
+            `1. Find downloaded file in your Downloads folder<br>` +
+            `2. Move it to the <code>collections/</code> folder in your VIB34D directory<br>` +
+            `3. Refresh gallery to see your variation<br><br>` +
+            `<small>The gallery only shows collections from the collections/ folder</small>`
         );
         
         console.log('🎯 Gallery collection saved:', filename);

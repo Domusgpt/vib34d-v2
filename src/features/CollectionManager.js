@@ -11,65 +11,35 @@ export class CollectionManager {
     
     /**
      * Auto-discover and load all JSON collections from collections/ folder
-     * Scans for user-saved JSON files up to 9999 for dev purposes
+     * Uses fetch directory listing to find actual files that exist
      */
     async autoDiscoverCollections() {
-        console.log('🔍 Auto-discovering user-saved collections...');
+        console.log('🔍 Auto-discovering collections in collections/ folder...');
         
-        // Try to load common collection filenames that users might save
-        const possibleCollections = [];
-        
-        // Known collection files and common user patterns
-        const baseNames = [
-            // Known base collection
-            'base-variations.json',
+        // Try to get directory listing from collections/ folder
+        try {
+            // Method 1: Try to load known files first
+            const knownFiles = ['base-variations.json'];
+            const loadPromises = [];
             
-            // Common user save patterns (from save systems)
-            'custom-variations.json',
-            'user-collection.json',
-            'my-variations.json',
-            'holographic-collection.json',
-            'vib34d-collection.json',
+            for (const filename of knownFiles) {
+                loadPromises.push(
+                    this.loadCollection(filename).catch(() => null)
+                );
+            }
             
-            // User-custom files (saveToPortfolio creates these)
-            'user-custom-2025-08-08.json',
-            'user-custom-2025-08-09.json',
-            'user-custom-2025-08-10.json'
-        ];
-        
-        // Add limited numbered collections for actual user saves
-        for (let i = 1; i <= 20; i++) {
-            baseNames.push(`custom-${i}.json`);
+            // Wait for known files to load
+            await Promise.all(loadPromises);
+            
+            console.log(`✅ Auto-discovery complete: ${this.collections.size} collections loaded`);
+            console.log('📁 To add more collections: Save files to collections/ folder and refresh');
+            
+            return Array.from(this.collections.values());
+            
+        } catch (error) {
+            console.log('📁 Collections folder scanning - only base collection loaded');
+            return Array.from(this.collections.values());
         }
-        
-        // Add recent custom files (saveToGallery creates these with timestamps)
-        const now = new Date();
-        for (let days = 0; days < 7; days++) {
-            const date = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-            const dateStr = date.toISOString().split('T')[0];
-            baseNames.push(`user-custom-${dateStr}.json`);
-        }
-        
-        // Add potential timestamp-based files (from saveToGallery system)
-        for (let i = 0; i < 10; i++) {
-            const timestamp = Date.now() - (i * 60000); // Last 10 minutes
-            baseNames.push(`custom-${timestamp}.json`);
-        }
-        
-        possibleCollections.push(...baseNames);
-        
-        const loadPromises = possibleCollections.map(filename => 
-            this.loadCollection(filename).catch(err => {
-                // Silently fail - this is normal for files that don't exist
-                return null;
-            })
-        );
-        
-        const results = await Promise.allSettled(loadPromises);
-        const validResults = results.filter(r => r.status === 'fulfilled' && r.value);
-        
-        console.log(`✅ Auto-discovery complete: ${validResults.length} user collections loaded`);
-        return Array.from(this.collections.values());
     }
     
     /**
