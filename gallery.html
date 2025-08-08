@@ -487,7 +487,7 @@
                     <div class="card-info">
                         <h3>${escapeHtml(variation.name)} <span style="color: rgba(255,255,255,0.4); font-size: 0.7em;">#${variation.globalId}</span></h3>
                         <div class="card-params">
-                            System: ${variation.system.toUpperCase()} | 
+                            System: ${(variation.system || 'HOLOGRAPHIC').toUpperCase()} | 
                             Geometry: ${getGeometryName(variation.parameters)} | 
                             Hue: ${Math.round(previewHue)}°
                         </div>
