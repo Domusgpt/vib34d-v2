@@ -121,6 +121,47 @@
             padding: 20px;
             overflow-y: auto;
             backdrop-filter: blur(10px);
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .control-panel {
+                width: 100vw;
+                height: 40vh;
+                top: auto;
+                bottom: 0;
+                right: 0;
+                left: 0;
+                border-left: none;
+                border-top: 2px solid #00ffff;
+                transform: translateY(0);
+            }
+            
+            .control-panel.collapsed {
+                transform: translateY(calc(40vh - 60px));
+            }
+            
+            .canvas-container {
+                right: 0;
+                bottom: 60px;
+            }
+            
+            .top-bar {
+                position: relative;
+                z-index: 200;
+            }
+            
+            .system-selector {
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+            
+            .system-btn {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
         }
         
         .panel-header {
@@ -129,6 +170,56 @@
             margin-bottom: 20px;
             text-align: center;
             text-shadow: 0 0 10px #ff00ff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .mobile-collapse-btn {
+            background: rgba(255, 0, 255, 0.2);
+            border: 1px solid #ff00ff;
+            color: #ff00ff;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-collapse-btn:hover {
+            background: rgba(255, 0, 255, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-collapse-btn {
+                display: block !important;
+            }
+            
+            .panel-header {
+                text-align: left;
+            }
+            
+            .system-btn, .action-btn, .geom-btn, .panel-btn {
+                min-height: 44px;
+                font-size: 0.9rem;
+                touch-action: manipulation;
+            }
+            
+            .control-slider {
+                height: 8px;
+                min-height: 44px;
+            }
+            
+            .control-slider::-webkit-slider-thumb {
+                width: 24px;
+                height: 24px;
+            }
+            
+            /* Touch feedback */
+            .touch-active {
+                opacity: 0.7;
+                transform: scale(0.95);
+            }
         }
         
         .control-section {
@@ -321,8 +412,11 @@
     </div>
     
     <!-- Control Panel -->
-    <div class="control-panel">
-        <div class="panel-header" id="panelHeader">FACETED SYSTEM</div>
+    <div class="control-panel" id="controlPanel">
+        <div class="panel-header" id="panelHeader">
+            <span>FACETED SYSTEM</span>
+            <button class="mobile-collapse-btn" id="mobileCollapseBtn" onclick="toggleMobilePanel()" style="display: none;">▼</button>
+        </div>
         
         <!-- GEOMETRY SECTION (Faceted & Polychora) -->
         <div class="control-section" id="geometrySection">
@@ -913,6 +1007,45 @@
             });
             console.log('🔄 Reset all parameters');
         }
+        
+        // Mobile panel toggle
+        window.toggleMobilePanel = function() {
+            const panel = document.getElementById('controlPanel');
+            const btn = document.getElementById('mobileCollapseBtn');
+            
+            panel.classList.toggle('collapsed');
+            btn.textContent = panel.classList.contains('collapsed') ? '▲' : '▼';
+        }
+        
+        // Mobile detection and setup
+        function setupMobileInterface() {
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            if (isMobile) {
+                // Start with panel collapsed on mobile
+                const panel = document.getElementById('controlPanel');
+                const btn = document.getElementById('mobileCollapseBtn');
+                panel.classList.add('collapsed');
+                btn.textContent = '▲';
+                btn.style.display = 'block';
+                
+                // Add touch-friendly event listeners
+                document.addEventListener('touchstart', function(e) {
+                    // Improve touch responsiveness
+                    e.target.classList.add('touch-active');
+                }, { passive: true });
+                
+                document.addEventListener('touchend', function(e) {
+                    setTimeout(() => {
+                        e.target.classList.remove('touch-active');
+                    }, 150);
+                }, { passive: true });
+            }
+        }
+        
+        // Initialize mobile interface on load
+        document.addEventListener('DOMContentLoaded', () => {
+            setupMobileInterface();
+        });
         
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {

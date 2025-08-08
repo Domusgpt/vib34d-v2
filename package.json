@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/domusgpt/vib34d-holographic-engine.git"
+    "url": "git+https://github.com/domusgpt/vib34d-holographic-engine.git"
   },
   "keywords": [
     "holographic",
@@ -26,7 +26,7 @@
     "portfolio",
     "gallery"
   ],
-  "author": "Paul Phillips (domusgpt) <phillips.paul.email@gmail.com>",
+  "author": "Paul Phillips <phillips.paul.email@gmail.com> (domusgpt)",
   "license": "MIT",
   "homepage": "https://domusgpt.github.io/vib34d-holographic-engine",
   "devDependencies": {
@@ -40,5 +40,12 @@
     "last 2 Firefox versions",
     "last 2 Safari versions",
     "last 2 Edge versions"
-  ]
+  ],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/domusgpt/vib34d-holographic-engine/issues"
+  },
+  "dependencies": {
+    "playwright": "^1.54.2"
+  }
 }
