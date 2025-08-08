@@ -19,21 +19,41 @@ export class CollectionManager {
         // Try to load common collection filenames that users might save
         const possibleCollections = [];
         
-        // Common user collection patterns
+        // Known collection files and common user patterns
         const baseNames = [
+            // Known base collection
             'base-variations.json',
+            
+            // Common user save patterns (from save systems)
             'custom-variations.json',
             'user-collection.json',
             'my-variations.json',
             'holographic-collection.json',
-            'vib34d-collection.json'
+            'vib34d-collection.json',
+            
+            // User-custom files (saveToPortfolio creates these)
+            'user-custom-2025-08-08.json',
+            'user-custom-2025-08-09.json',
+            'user-custom-2025-08-10.json'
         ];
         
-        // Add numbered collections for dev (up to 100 for reasonable scanning)
-        for (let i = 1; i <= 100; i++) {
-            baseNames.push(`collection-${i}.json`);
-            baseNames.push(`variations-${i}.json`);
+        // Add limited numbered collections for actual user saves
+        for (let i = 1; i <= 20; i++) {
             baseNames.push(`custom-${i}.json`);
+        }
+        
+        // Add recent custom files (saveToGallery creates these with timestamps)
+        const now = new Date();
+        for (let days = 0; days < 7; days++) {
+            const date = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+            const dateStr = date.toISOString().split('T')[0];
+            baseNames.push(`user-custom-${dateStr}.json`);
+        }
+        
+        // Add potential timestamp-based files (from saveToGallery system)
+        for (let i = 0; i < 10; i++) {
+            const timestamp = Date.now() - (i * 60000); // Last 10 minutes
+            baseNames.push(`custom-${timestamp}.json`);
         }
         
         possibleCollections.push(...baseNames);

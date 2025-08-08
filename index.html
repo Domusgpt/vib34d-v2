@@ -554,6 +554,9 @@
             <button class="panel-btn" onclick="resetAll()">🔄 Reset</button>
             <button class="panel-btn" onclick="saveToPortfolio()" style="background: rgba(0, 255, 0, 0.1); border-color: rgba(0, 255, 0, 0.3); color: #00ff00;">💾 Save</button>
         </div>
+        <div class="action-row">
+            <button class="panel-btn" onclick="saveToGallery()" style="background: rgba(0, 255, 255, 0.1); border-color: rgba(0, 255, 255, 0.3); color: #00ffff;">🎯 Save to Gallery</button>
+        </div>
     </div>
     
     <script type="module">
@@ -1296,6 +1299,21 @@
             setTimeout(() => {
                 notification.remove();
             }, 3000);
+        }
+        
+        // Save to Gallery function - uses ExportManager's new saveToGallery method
+        window.saveToGallery = async function() {
+            try {
+                if (engine && engine.exportManager && engine.exportManager.saveToGallery) {
+                    // Use the ExportManager's saveToGallery method
+                    engine.exportManager.saveToGallery();
+                } else {
+                    throw new Error('Export system not available');
+                }
+            } catch (error) {
+                console.error('❌ Failed to save to gallery:', error);
+                showSaveError(error.message || 'Gallery save failed');
+            }
         }
     </script>
 </body>

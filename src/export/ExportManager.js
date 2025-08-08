@@ -57,6 +57,69 @@ export class ExportManager {
     }
     
     /**
+     * Save to Gallery - Creates properly formatted collection for gallery system
+     */
+    saveToGallery(customName = null) {
+        // Get current state
+        const params = this.engine.parameterManager.getAllParameters();
+        const variationName = customName || this.engine.variationManager.getVariationName(this.engine.currentVariation);
+        const timestamp = new Date().toISOString();
+        
+        // Format as holographic-collection (gallery format)
+        const collection = {
+            name: `Custom Gallery Collection - ${new Date().toLocaleDateString()}`,
+            description: `User-saved variation: ${variationName}`,
+            version: "1.0",
+            type: "holographic-collection", // Required by gallery system
+            profileName: "VIB34D System",
+            totalVariations: 1,
+            created: timestamp,
+            variations: [{
+                id: 0,
+                name: variationName,
+                isCustom: true,
+                globalId: Date.now(), // Unique identifier
+                system: "faceted", // System type for gallery
+                parameters: {
+                    // Map VIB34D parameters to gallery format
+                    geometryType: params.geometry || 0,
+                    density: params.gridDensity || 10,
+                    speed: params.speed || 1.0,
+                    chaos: params.chaos || 0.0,
+                    morph: params.morphFactor || 0.0,
+                    hue: params.hue || 200,
+                    saturation: 0.8,
+                    intensity: 0.5,
+                    // Include 4D parameters
+                    rot4dXW: params.rot4dXW || 0,
+                    rot4dYW: params.rot4dYW || 0,
+                    rot4dZW: params.rot4dZW || 0,
+                    dimension: params.dimension || 3.8
+                }
+            }]
+        };
+        
+        const json = JSON.stringify(collection, null, 2);
+        const filename = `custom-${Date.now()}.json`;
+        
+        // Download with instructions
+        this.downloadFile(json, filename, 'application/json');
+        
+        // Show detailed instructions
+        this.engine.statusManager.success(
+            `🎯 Saved to Gallery!<br><br>` +
+            `<strong>File:</strong> ${filename}<br>` +
+            `<strong>Instructions:</strong><br>` +
+            `1. Move downloaded file to <code>collections/</code> folder<br>` +
+            `2. Refresh gallery to see your variation<br><br>` +
+            `<small>Gallery automatically scans collections/ folder</small>`
+        );
+        
+        console.log('🎯 Gallery collection saved:', filename);
+        return filename;
+    }
+    
+    /**
      * Export current configuration as CSS theme
      */
     exportCSS() {

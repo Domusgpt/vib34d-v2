@@ -650,7 +650,8 @@
         window.openVariation = function(card) {
             const params = card.getAttribute('data-params');
             const system = card.getAttribute('data-system');
-            window.open(`index.html?${params}&system=${system}`, '_blank');
+            // Use same tab instead of new tab to avoid WebGL context issues
+            window.location.href = `index.html?${params}&system=${system}`;
         };
         
         window.loadIntoEngine = function(card, event) {
@@ -676,7 +677,8 @@
             event.stopPropagation();
             const params = card.getAttribute('data-params');
             const system = card.getAttribute('data-system');
-            window.open(`index.html?${params}&system=${system}&hideui=true`, '_blank');
+            // Use same tab for fullscreen too
+            window.location.href = `index.html?${params}&system=${system}&hideui=true`;
         };
         
         window.downloadEngine = function() {
