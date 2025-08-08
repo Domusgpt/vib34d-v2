@@ -395,12 +395,6 @@
         let collectionManager = null;
         let collections = [];
         
-        // Global ID tracking for proper sequential numbering
-        const SYSTEM_ID_RANGES = {
-            faceted: { start: 1, count: 32 },
-            holographic: { start: 33, count: 30 }, 
-            polychora: { start: 63, count: 18 }
-        };
         
         // Initialize gallery
         window.addEventListener('load', async () => {
@@ -413,14 +407,8 @@
                 // Initialize collection manager
                 collectionManager = new CollectionManager();
                 
-                // Auto-discover collections - if none found, create default multi-system collections
+                // Auto-discover user-saved collections from collections/ folder
                 collections = await collectionManager.autoDiscoverCollections();
-                
-                // If no collections found, generate the three VIB34D system collections
-                if (collections.length === 0) {
-                    collections = generateVIB34DSystemCollections();
-                    console.log('📦 Generated VIB34D system collections (no JSON found)');
-                }
                 
                 // Update stats
                 updateStats();
@@ -439,125 +427,6 @@
             }
         }
         
-        function generateVIB34DSystemCollections() {
-            return [
-                {
-                    name: "VIB34D Faceted System",
-                    description: "Solid 4D geometric forms with crystalline precision",
-                    variations: generateFacetedVariations(),
-                    filename: "vib34d-faceted-system"
-                },
-                {
-                    name: "VIB34D Holographic System", 
-                    description: "Audio-reactive holographic layers with 5-layer rendering",
-                    variations: generateHolographicVariations(),
-                    filename: "vib34d-holographic-system"
-                },
-                {
-                    name: "VIB34D Polychora System",
-                    description: "Glassmorphic 4D polytopes with mathematical precision",
-                    variations: generatePolychoraVariations(),
-                    filename: "vib34d-polychora-system"
-                }
-            ];
-        }
-        
-        function generateFacetedVariations() {
-            const geometries = ['TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'];
-            const variations = [];
-            let globalId = SYSTEM_ID_RANGES.faceted.start;
-            
-            geometries.forEach((geom, geomIndex) => {
-                for (let level = 1; level <= 4; level++) {
-                    variations.push({
-                        id: globalId,
-                        name: `${geom} Level ${level}`,
-                        system: 'faceted',
-                        parameters: {
-                            geometry: geomIndex,
-                            geometryType: geomIndex,
-                            gridDensity: 8 + (level * 4) + (geomIndex * 2),
-                            morphFactor: 0.3 + (level * 0.2),
-                            chaos: level * 0.12,
-                            speed: 0.6 + (level * 0.3),
-                            hue: (geomIndex * 45 + level * 15) % 360,
-                            rot4dXW: (level - 2) * 0.25,
-                            rot4dYW: (geomIndex % 2) * 0.35,
-                            rot4dZW: ((geomIndex + level) % 3) * 0.15
-                        },
-                        globalId: globalId
-                    });
-                    globalId++;
-                }
-            });
-            
-            return variations;
-        }
-        
-        function generateHolographicVariations() {
-            const geometries = ['TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'];
-            const variations = [];
-            let globalId = SYSTEM_ID_RANGES.holographic.start;
-            
-            geometries.forEach((geom, geomIndex) => {
-                // Holographic has 30 total: TETRAHEDRON(4), HYPERCUBE(4), SPHERE(4), TORUS(4), KLEIN(4), FRACTAL(3), WAVE(3), CRYSTAL(4)
-                const levels = (geomIndex === 5 || geomIndex === 6) ? 3 : 4; // FRACTAL and WAVE have 3, others have 4
-                
-                for (let level = 1; level <= levels; level++) {
-                    variations.push({
-                        id: globalId,
-                        name: `${geom} ${['LATTICE', 'FIELD', 'MATRIX', 'QUANTUM'][level-1] || 'RESONANCE'}`,
-                        system: 'holographic',
-                        parameters: {
-                            geometryType: geomIndex,
-                            density: 0.8 + (level * 0.3),
-                            speed: 0.5 + (level * 0.25),
-                            chaos: level * 0.15,
-                            morph: 0.4 + (level * 0.2),
-                            hue: (geomIndex * 45 + level * 20) % 360,
-                            saturation: 0.7 + (level * 0.08),
-                            intensity: 0.4 + (level * 0.15)
-                        },
-                        globalId: globalId
-                    });
-                    globalId++;
-                }
-            });
-            
-            return variations;
-        }
-        
-        function generatePolychoraVariations() {
-            const polytopes = ['5-CELL', 'TESSERACT', '16-CELL', '24-CELL', '600-CELL', '120-CELL'];
-            const variations = [];
-            let globalId = SYSTEM_ID_RANGES.polychora.start;
-            
-            polytopes.forEach((polytope, polyIndex) => {
-                for (let level = 1; level <= 3; level++) {
-                    variations.push({
-                        id: globalId,
-                        name: `${polytope} Glass ${level}`,
-                        system: 'polychora',
-                        parameters: {
-                            polytope: polyIndex,
-                            geometryType: polyIndex,
-                            gridDensity: 12 + (level * 6),
-                            morphFactor: 0.2 + (level * 0.3),
-                            chaos: level * 0.08,
-                            speed: 0.5 + (level * 0.4),
-                            hue: (polyIndex * 60 + level * 25) % 360,
-                            rot4dXW: (level - 1.5) * 0.35,
-                            rot4dYW: (polyIndex % 2) * 0.45,
-                            rot4dZW: ((polyIndex + level) % 4) * 0.12
-                        },
-                        globalId: globalId
-                    });
-                    globalId++;
-                }
-            });
-            
-            return variations;
-        }
         
         function updateStats() {
             let totalCollections = collections.length;

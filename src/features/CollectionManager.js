@@ -11,29 +11,44 @@ export class CollectionManager {
     
     /**
      * Auto-discover and load all JSON collections from collections/ folder
+     * Scans for user-saved JSON files up to 9999 for dev purposes
      */
     async autoDiscoverCollections() {
-        console.log('🔍 Auto-discovering collections...');
+        console.log('🔍 Auto-discovering user-saved collections...');
         
-        // Only load essential collection files that we know exist
-        const knownCollections = [
-            'base-variations.json'
+        // Try to load common collection filenames that users might save
+        const possibleCollections = [];
+        
+        // Common user collection patterns
+        const baseNames = [
+            'base-variations.json',
+            'custom-variations.json',
+            'user-collection.json',
+            'my-variations.json',
+            'holographic-collection.json',
+            'vib34d-collection.json'
         ];
         
-        const loadPromises = knownCollections.map(filename => 
+        // Add numbered collections for dev (up to 100 for reasonable scanning)
+        for (let i = 1; i <= 100; i++) {
+            baseNames.push(`collection-${i}.json`);
+            baseNames.push(`variations-${i}.json`);
+            baseNames.push(`custom-${i}.json`);
+        }
+        
+        possibleCollections.push(...baseNames);
+        
+        const loadPromises = possibleCollections.map(filename => 
             this.loadCollection(filename).catch(err => {
-                console.log(`📁 Collection not found: ${filename}`);
+                // Silently fail - this is normal for files that don't exist
                 return null;
             })
         );
         
-        // Don't try to load user files that don't exist
-        // Users can add their own files manually to collections/ folder
-        
         const results = await Promise.allSettled(loadPromises);
         const validResults = results.filter(r => r.status === 'fulfilled' && r.value);
         
-        console.log(`✅ Auto-discovery complete: ${validResults.length} collections loaded`);
+        console.log(`✅ Auto-discovery complete: ${validResults.length} user collections loaded`);
         return Array.from(this.collections.values());
     }
     
