@@ -57,10 +57,27 @@ class PolychoraVisualizer {
     }
     
     setupCanvasSize() {
+        // Force parent to be visible for measurement
+        const container = document.getElementById('polychoraLayers');
+        const tempDisplay = container ? container.style.display : null;
+        
+        if (container && tempDisplay === 'none') {
+            container.style.display = 'block';
+        }
+        
         const rect = this.canvas.parentElement.getBoundingClientRect();
-        this.canvas.width = rect.width;
-        this.canvas.height = rect.height;
+        
+        // Restore original display state
+        if (container && tempDisplay === 'none') {
+            container.style.display = tempDisplay;
+        }
+        
+        // Use measured dimensions or fallbacks
+        this.canvas.width = rect.width > 0 ? rect.width : window.innerWidth - 300;
+        this.canvas.height = rect.height > 0 ? rect.height : window.innerHeight - 50;
+        
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        console.log(`🎮 Canvas ${this.canvasId} WebGL viewport: ${this.canvas.width}x${this.canvas.height}`);
     }
     
     createPolychoraShader() {
@@ -432,18 +449,27 @@ export class PolychoraSystem {
      */
     setupCanvasElements() {
         const layers = ['background', 'shadow', 'content', 'highlight', 'accent'];
-        const containerRect = this.canvasContainer.getBoundingClientRect();
         
         layers.forEach(role => {
             const canvasId = `polychora-${role}-canvas`;
             const canvas = document.getElementById(canvasId);
             
             if (canvas) {
-                // Set canvas size to match container
-                canvas.width = containerRect.width || window.innerWidth - 300; // Account for control panel
-                canvas.height = containerRect.height || window.innerHeight - 50; // Account for top bar
+                // Force canvas to be visible for measurement or use fallback dimensions
+                const tempDisplay = this.canvasContainer.style.display;
+                this.canvasContainer.style.display = 'block';
+                
+                const containerRect = this.canvasContainer.getBoundingClientRect();
+                
+                // Restore original display state
+                this.canvasContainer.style.display = tempDisplay;
+                
+                // Use container dimensions or intelligent fallbacks
+                canvas.width = containerRect.width > 0 ? containerRect.width : window.innerWidth - 300;
+                canvas.height = containerRect.height > 0 ? containerRect.height : window.innerHeight - 50;
                 canvas.style.width = '100%';
                 canvas.style.height = '100%';
+                
                 console.log(`📐 Canvas ${canvasId} sized to ${canvas.width}x${canvas.height}`);
             }
         });
@@ -458,7 +484,22 @@ export class PolychoraSystem {
         console.log('🔮 Starting Polychora System');
         this.isActive = true;
         this.canvasContainer.style.display = 'block';
+        
+        // ✅ CRITICAL: Resize canvases after container becomes visible
+        this.resizeAllCanvases();
+        
         this.startRenderLoop();
+    }
+    
+    /**
+     * Resize all canvases after container becomes visible
+     */
+    resizeAllCanvases() {
+        this.setupCanvasElements();
+        this.visualizers.forEach(visualizer => {
+            visualizer.setupCanvasSize();
+        });
+        console.log('🔮 All Polychora canvases resized after becoming visible');
     }
     
     startRenderLoop() {
