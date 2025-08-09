@@ -1266,27 +1266,69 @@
         
         // Save to Gallery function - uses UnifiedSaveManager
         window.saveToGallery = async function() {
+            console.log('🔵 Save to Gallery button clicked');
+            
             try {
-                if (unifiedSaveManager) {
-                    // Use the UnifiedSaveManager for all saves
-                    const result = await unifiedSaveManager.save({ target: 'gallery' });
+                // Check if engine is initialized
+                if (!engine) {
+                    throw new Error('Engine not initialized yet - please wait a moment');
+                }
+                
+                // Check if UnifiedSaveManager is available
+                if (!unifiedSaveManager) {
+                    throw new Error('Save system not initialized yet - please wait a moment');
+                }
+                
+                console.log('🔵 Starting save process...');
+                
+                // Use the UnifiedSaveManager for all saves
+                const result = await unifiedSaveManager.save({ target: 'gallery' });
+                
+                console.log('🔵 Save result:', result);
+                
+                if (result && result.success) {
+                    console.log('✅ Saved to gallery:', result.id);
                     
-                    if (result.success) {
-                        console.log('✅ Saved to gallery:', result.id);
-                        
-                        // Real-time gallery update event
-                        const event = new CustomEvent('gallery-refresh-needed');
-                        window.dispatchEvent(event);
-                    } else {
-                        throw new Error(result.error || 'Save failed');
-                    }
+                    // Show success message
+                    showSaveConfirmation('Variation saved to gallery!', result.id);
+                    
+                    // Real-time gallery update event
+                    const event = new CustomEvent('gallery-refresh-needed');
+                    window.dispatchEvent(event);
                 } else {
-                    throw new Error('Save system not available');
+                    throw new Error(result?.error || 'Save failed - no result returned');
                 }
             } catch (error) {
                 console.error('❌ Failed to save to gallery:', error);
                 showSaveError(error.message || 'Gallery save failed');
             }
+        }
+        
+        function showSaveConfirmation(message, id) {
+            // Create temporary notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 70px;
+                right: 20px;
+                background: rgba(0, 255, 0, 0.9);
+                color: black;
+                padding: 15px 20px;
+                border-radius: 10px;
+                font-family: 'Orbitron', monospace;
+                font-weight: bold;
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.innerHTML = `
+                ✅ ${message}<br>
+                <small style="opacity: 0.8;">ID: ${id}</small>
+            `;
+            
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.remove();
+            }, 4000);
         }
     </script>
 </body>

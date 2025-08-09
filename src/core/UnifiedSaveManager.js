@@ -54,22 +54,47 @@ export class UnifiedSaveManager {
      * Capture current engine state as variation
      */
     captureCurrentState() {
+        // Use window.currentSystem as primary source since it's managed by main interface
+        const currentSys = window.currentSystem || 'faceted';
+        
+        console.log('🔵 UnifiedSaveManager capturing state for system:', currentSys);
+        
         const state = {
-            system: window.currentSystem || this.engine.currentSystem || 'faceted',
+            system: currentSys,
             name: this.generateVariationName(),
             parameters: {},
             metadata: {}
         };
         
         // Get parameters based on current system
-        const currentSys = window.currentSystem || this.engine.currentSystem;
-        
         if (currentSys === 'faceted') {
-            state.parameters = this.engine.parameterManager?.getAllParameters() || {};
+            // Get parameters from VIB34D engine
+            if (this.engine?.parameterManager) {
+                state.parameters = this.engine.parameterManager.getAllParameters() || {};
+                console.log('🔵 Captured faceted parameters:', state.parameters);
+            } else {
+                console.warn('⚠️ VIB34D engine or parameterManager not available');
+                // Fallback to manual parameter capture
+                state.parameters = this.captureManualParameters();
+            }
         } else if (currentSys === 'holographic') {
-            state.parameters = window.holographicSystem?.getParameters?.() || {};
+            // Get parameters from holographic system
+            if (window.holographicSystem?.getParameters) {
+                state.parameters = window.holographicSystem.getParameters();
+                console.log('🔵 Captured holographic parameters:', state.parameters);
+            } else {
+                console.warn('⚠️ Holographic system not available');
+                state.parameters = this.captureManualParameters();
+            }
         } else if (currentSys === 'polychora') {
-            state.parameters = window.polychoraSystem?.parameters || {};
+            // Get parameters from polychora system
+            if (window.polychoraSystem?.parameters) {
+                state.parameters = { ...window.polychoraSystem.parameters };
+                console.log('🔵 Captured polychora parameters:', state.parameters);
+            } else {
+                console.warn('⚠️ Polychora system not available');
+                state.parameters = this.captureManualParameters();
+            }
         }
         
         // Add metadata
@@ -80,7 +105,39 @@ export class UnifiedSaveManager {
             device: navigator.userAgent
         };
         
+        console.log('🔵 Final captured state:', state);
         return state;
+    }
+    
+    /**
+     * Fallback method to capture parameters manually from UI elements
+     */
+    captureManualParameters() {
+        const params = {};
+        
+        // Get geometry selection
+        const activeGeomBtn = document.querySelector('.geom-btn.active');
+        if (activeGeomBtn) {
+            params.geometry = parseInt(activeGeomBtn.dataset.index);
+            params.geometryType = params.geometry;
+        }
+        
+        // Get all slider parameters
+        const sliderIds = [
+            'rot4dXW', 'rot4dYW', 'rot4dZW', 'rot4dXY', 'rot4dXZ', 'rot4dYZ',
+            'gridDensity', 'morphFactor', 'chaos', 'speed', 'hue', 'intensity', 'saturation',
+            'dimension'
+        ];
+        
+        sliderIds.forEach(id => {
+            const slider = document.getElementById(id);
+            if (slider) {
+                params[id] = parseFloat(slider.value);
+            }
+        });
+        
+        console.log('🔵 Manual parameter capture:', params);
+        return params;
     }
     
     /**
@@ -380,11 +437,12 @@ export class UnifiedSaveManager {
     generateVariationName() {
         const systems = {
             faceted: 'FACETED',
-            holographic: 'HOLO',
+            holographic: 'HOLO', 
             polychora: 'POLY'
         };
         
-        const system = systems[this.engine.currentSystem] || 'CUSTOM';
+        const currentSys = window.currentSystem || 'faceted';
+        const system = systems[currentSys] || 'CUSTOM';
         const timestamp = new Date().toTimeString().split(' ')[0].replace(/:/g, '');
         
         return `${system}-${timestamp}`;
