@@ -564,8 +564,9 @@
         import { UnifiedSaveManager } from './src/core/UnifiedSaveManager.js';
         import { ParameterMapper } from './src/core/ParameterMapper.js';
         
-        // Global state
+        // Global state - CRITICAL FIX: Ensure window.currentSystem is properly set
         let currentSystem = 'faceted';
+        window.currentSystem = currentSystem; // Make available to UnifiedSaveManager
         let audioEnabled = false;
         let interactivityVisible = false;
         let engine = null;
@@ -742,9 +743,12 @@
             return false;
         }
         
-        // System switching
+        // System switching - CRITICAL FIX: Keep window.currentSystem synchronized
         window.switchSystem = async function(system) {
             currentSystem = system;
+            window.currentSystem = system; // Make available to UnifiedSaveManager
+            
+            console.log('🔄 System switched to:', system);
             
             // Update UI
             document.querySelectorAll('.system-btn').forEach(btn => {
@@ -887,8 +891,19 @@
         // Action functions
         window.openGallery = function() {
             console.log('🖼️ Opening gallery...');
-            // Always open the new unified gallery instead of engine modal
-            window.open('./gallery.html', 'vib34d-gallery', 'width=1200,height=800');
+            // CRITICAL FIX: Store reference to gallery window for cross-window communication
+            window.galleryWindow = window.open('./gallery.html', 'vib34d-gallery', 'width=1200,height=800');
+            
+            // Listen for gallery window close
+            if (window.galleryWindow) {
+                const checkClosed = setInterval(() => {
+                    if (window.galleryWindow.closed) {
+                        window.galleryWindow = null;
+                        clearInterval(checkClosed);
+                        console.log('🖼️ Gallery window closed');
+                    }
+                }, 1000);
+            }
         }
         
         window.toggleAudio = async function() {
@@ -1286,9 +1301,16 @@
                     throw new Error('Engine not initialized yet - please wait a moment');
                 }
                 
-                // Check if UnifiedSaveManager is available
+                // CRITICAL FIX: Initialize UnifiedSaveManager if needed
                 if (!unifiedSaveManager) {
-                    throw new Error('Save system not initialized yet - please wait a moment');
+                    console.log('🔧 Initializing UnifiedSaveManager...');
+                    unifiedSaveManager = new UnifiedSaveManager(engine);
+                }
+                
+                // Ensure currentSystem is properly set
+                if (!window.currentSystem) {
+                    window.currentSystem = currentSystem || 'faceted';
+                    console.log('🔧 Fixed window.currentSystem:', window.currentSystem);
                 }
                 
                 console.log('🔵 Starting save process...');
@@ -1304,9 +1326,30 @@
                     // Show success message
                     showSaveConfirmation('Variation saved to gallery!', result.id);
                     
-                    // Real-time gallery update event
+                    // CRITICAL FIX: Multiple real-time gallery update methods
+                    
+                    // Method 1: Local event (same window)
                     const event = new CustomEvent('gallery-refresh-needed');
                     window.dispatchEvent(event);
+                    
+                    // Method 2: Cross-window message (for gallery in new window)
+                    try {
+                        // Try to find gallery window and send message
+                        if (window.galleryWindow && !window.galleryWindow.closed) {
+                            window.galleryWindow.postMessage({
+                                type: 'vib34d-variation-saved',
+                                variationId: result.id,
+                                timestamp: Date.now()
+                            }, '*');
+                            console.log('📤 Sent gallery update message to gallery window');
+                        }
+                    } catch (e) {
+                        console.log('📤 No gallery window to notify');
+                    }
+                    
+                    // Method 3: Force localStorage event (for cross-tab communication)
+                    // This triggers storage event listeners in other tabs/windows
+                    localStorage.setItem('vib34d-gallery-update-trigger', Date.now().toString());
                 } else {
                     throw new Error(result?.error || 'Save failed - no result returned');
                 }

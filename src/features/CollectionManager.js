@@ -10,15 +10,14 @@ export class CollectionManager {
     }
     
     /**
-     * Auto-discover and load all JSON collections from collections/ folder
-     * Uses fetch directory listing to find actual files that exist
+     * Auto-discover and load all JSON collections from collections/ folder AND localStorage
+     * FIXED: Now checks both file-based and localStorage saved variations
      */
     async autoDiscoverCollections() {
-        console.log('🔍 Auto-discovering collections in collections/ folder...');
+        console.log('🔍 Auto-discovering collections in collections/ folder AND localStorage...');
         
-        // Try to get directory listing from collections/ folder
         try {
-            // Method 1: Try to load known files first
+            // Method 1: Load known files first
             const knownFiles = ['base-variations.json'];
             const loadPromises = [];
             
@@ -31,13 +30,18 @@ export class CollectionManager {
             // Wait for known files to load
             await Promise.all(loadPromises);
             
+            // Method 2: CRITICAL FIX - Load user-saved variations from localStorage
+            await this.loadUserSavedVariations();
+            
             console.log(`✅ Auto-discovery complete: ${this.collections.size} collections loaded`);
-            console.log('📁 To add more collections: Save files to collections/ folder and refresh');
+            console.log('📁 Includes both file-based and localStorage user variations');
             
             return Array.from(this.collections.values());
             
         } catch (error) {
-            console.log('📁 Collections folder scanning - only base collection loaded');
+            console.error('❌ Collections auto-discovery error:', error);
+            // Still try to load localStorage variations even if file loading fails
+            await this.loadUserSavedVariations();
             return Array.from(this.collections.values());
         }
     }
@@ -233,6 +237,110 @@ export class CollectionManager {
     }
     
     /**
+     * CRITICAL FIX: Load user-saved variations from localStorage (UnifiedSaveManager storage)
+     * This bridges the gap between save system and gallery system
+     */
+    async loadUserSavedVariations() {
+        try {
+            // Check UnifiedSaveManager storage keys
+            const unifiedVariationsKey = 'vib34d-unified-variations';
+            const unifiedCollectionsKey = 'vib34d-unified-collections';
+            
+            // Load unified variations
+            const storedVariations = localStorage.getItem(unifiedVariationsKey);
+            if (storedVariations) {
+                const variations = JSON.parse(storedVariations);
+                console.log(`🔵 Found ${variations.length} user-saved variations in localStorage`);
+                
+                if (variations.length > 0) {
+                    // Create a collection from user-saved variations
+                    const userCollection = {
+                        name: `User Saved Variations (${variations.length})`,
+                        description: `Custom variations saved by user using Save to Gallery`,
+                        version: '1.0',
+                        type: 'holographic-collection',
+                        profileName: 'VIB34D User',
+                        totalVariations: variations.length,
+                        created: new Date().toISOString(),
+                        filename: 'user-saved-localStorage.json',
+                        loadedAt: new Date().toISOString(),
+                        variations: variations.map((variation, index) => ({
+                            id: index + 100, // Start user variations at ID 100+
+                            name: variation.name || `User Variation ${index + 1}`,
+                            isCustom: true,
+                            globalId: variation.id,
+                            system: variation.system || 'faceted',
+                            parameters: this.normalizeParameters(variation.parameters || {})
+                        }))
+                    };
+                    
+                    // Add to collections
+                    this.collections.set('user-saved-localStorage.json', userCollection);
+                    console.log(`✅ Added user collection: ${userCollection.name}`);
+                }
+            }
+            
+            // Load unified collections
+            const storedCollections = localStorage.getItem(unifiedCollectionsKey);
+            if (storedCollections) {
+                try {
+                    const collectionsArray = JSON.parse(storedCollections);
+                    console.log(`🔵 Found ${collectionsArray.length} user collections in localStorage`);
+                    
+                    collectionsArray.forEach(([filename, collection]) => {
+                        if (collection && collection.variations) {
+                            // Ensure proper formatting
+                            collection.filename = filename;
+                            collection.loadedAt = new Date().toISOString();
+                            
+                            // Normalize variation IDs to avoid conflicts
+                            collection.variations.forEach((variation, index) => {
+                                if (!variation.globalId) {
+                                    variation.globalId = `USER-${Date.now()}-${index}`;
+                                }
+                            });
+                            
+                            this.collections.set(filename, collection);
+                            console.log(`✅ Added localStorage collection: ${collection.name}`);
+                        }
+                    });
+                } catch (collectionsError) {
+                    console.warn('⚠️ Error parsing stored collections:', collectionsError);
+                }
+            }
+            
+            console.log(`📊 Total collections after localStorage load: ${this.collections.size}`);
+            
+        } catch (error) {
+            console.error('❌ Error loading user-saved variations from localStorage:', error);
+        }
+    }
+    
+    /**
+     * Normalize parameters to match expected gallery format
+     */
+    normalizeParameters(params) {
+        // Convert between different parameter formats
+        const normalized = {
+            geometryType: params.geometry || params.geometryType || 0,
+            density: params.gridDensity || params.density || 10,
+            speed: params.speed || 1.0,
+            chaos: params.chaos || 0,
+            morph: params.morphFactor || params.morph || 0,
+            hue: params.hue || 200,
+            saturation: params.saturation || 0.8,
+            intensity: params.intensity || 0.5,
+            // 4D rotation parameters
+            rot4dXW: params.rot4dXW || 0,
+            rot4dYW: params.rot4dYW || 0,
+            rot4dZW: params.rot4dZW || 0,
+            dimension: params.dimension || 3.8
+        };
+        
+        return normalized;
+    }
+
+    /**
      * Get collection statistics
      */
     getStatistics() {
@@ -240,7 +348,7 @@ export class CollectionManager {
         const stats = {
             totalCollections: collections.length,
             totalVariations: collections.reduce((sum, c) => sum + c.variations.length, 0),
-            customCollections: collections.filter(c => c.name.includes('Custom')).length,
+            customCollections: collections.filter(c => c.name.includes('User') || c.name.includes('Custom')).length,
             baseCollections: collections.filter(c => c.name.includes('Base')).length,
             collections: collections.map(c => ({
                 name: c.name,

@@ -693,6 +693,32 @@
             document.getElementById('statusText').textContent = 'Refreshing...';
             await initializeGallery();
         };
+        
+        // CRITICAL FIX: Real-time gallery updates - listen for save events
+        window.addEventListener('gallery-refresh-needed', async function() {
+            console.log('🔄 Gallery refresh event received - updating collections...');
+            await refreshCollections();
+        });
+        
+        // CRITICAL FIX: Listen for storage events from other windows/tabs
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'vib34d-unified-variations' || 
+                e.key === 'vib34d-unified-collections' ||
+                e.key === 'vib34d-gallery-update-trigger') {
+                console.log('🔄 localStorage change detected - refreshing gallery...');
+                setTimeout(async () => {
+                    await refreshCollections();
+                }, 500); // Small delay to ensure data is fully written
+            }
+        });
+        
+        // CRITICAL FIX: Cross-window communication for real-time updates
+        window.addEventListener('message', async function(event) {
+            if (event.data && event.data.type === 'vib34d-variation-saved') {
+                console.log('🔄 New variation saved - refreshing gallery...');
+                await refreshCollections();
+            }
+        });
     </script>
 </body>
 </html>

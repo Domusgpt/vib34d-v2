@@ -91,10 +91,17 @@ export class UnifiedSaveManager {
             if (window.polychoraSystem?.parameters) {
                 state.parameters = { ...window.polychoraSystem.parameters };
                 console.log('🔵 Captured polychora parameters:', state.parameters);
+            } else if (window.polychoraSystem?.getParameters) {
+                state.parameters = window.polychoraSystem.getParameters();
+                console.log('🔵 Captured polychora parameters via getParameters:', state.parameters);
             } else {
                 console.warn('⚠️ Polychora system not available');
                 state.parameters = this.captureManualParameters();
             }
+        } else {
+            // Unknown system - try manual capture
+            console.warn('⚠️ Unknown system:', currentSys, '- using manual parameter capture');
+            state.parameters = this.captureManualParameters();
         }
         
         // Add metadata
