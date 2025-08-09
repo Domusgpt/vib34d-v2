@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D Shared Visualization</title>
+    
+    <!-- Open Graph Tags for Social Sharing -->
+    <meta property="og:title" content="VIB34D 4D Visualization">
+    <meta property="og:description" content="Interactive 4D polytope visualization">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="preview.png">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Full screen visualization */
+        .share-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Minimal header */
+        .share-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, transparent 100%);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .share-title {
+            font-size: 1.2rem;
+            color: #00ffff;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+        
+        .share-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .share-btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .share-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        .share-btn.primary {
+            background: rgba(255, 150, 0, 0.2);
+            border-color: #ff9600;
+            color: #ff9600;
+        }
+        
+        .share-btn.primary:hover {
+            background: rgba(255, 150, 0, 0.3);
+            box-shadow: 0 0 10px rgba(255, 150, 0, 0.5);
+        }
+        
+        /* Canvas container */
+        .visualization-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        
+        .visualization-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Info panel (hidden by default) */
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            max-width: 300px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .info-panel.visible {
+            opacity: 1;
+        }
+        
+        .info-title {
+            color: #00ffff;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .info-params {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.4;
+        }
+        
+        /* Loading state */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00ffff;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .share-header {
+                padding: 10px;
+            }
+            
+            .share-title {
+                font-size: 1rem;
+            }
+            
+            .share-btn {
+                padding: 6px 10px;
+                font-size: 0.7rem;
+            }
+            
+            .info-panel {
+                max-width: 200px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="share-container">
+        <!-- Minimal header -->
+        <div class="share-header">
+            <div class="share-title" id="shareTitle">VIB34D Visualization</div>
+            <div class="share-controls">
+                <button class="share-btn" onclick="toggleInfo()">ℹ️ Info</button>
+                <button class="share-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+                <button class="share-btn" onclick="copyShareLink()">🔗 Share</button>
+                <a href="index.html" class="share-btn primary" id="openInEngine">🎛️ Open in Engine</a>
+            </div>
+        </div>
+        
+        <!-- Visualization canvases -->
+        <div class="visualization-container" id="vizContainer">
+            <div class="loading" id="loadingMsg">Loading visualization...</div>
+            <!-- Canvases will be added dynamically based on system -->
+        </div>
+        
+        <!-- Info panel -->
+        <div class="info-panel" id="infoPanel">
+            <div class="info-title" id="infoTitle">Variation Info</div>
+            <div class="info-params" id="infoParams">Loading...</div>
+        </div>
+    </div>
+    
+    <script type="module">
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const variationId = urlParams.get('id');
+        const system = urlParams.get('system') || 'faceted';
+        
+        let visualizer = null;
+        let parameters = {};
+        let variationData = null;
+        
+        // Initialize share visualization
+        async function initializeShareVisualization() {
+            try {
+                console.log('🚀 Initializing share visualization...');
+                
+                // Parse parameters from URL
+                urlParams.forEach((value, key) => {
+                    if (key !== 'id' && key !== 'system') {
+                        parameters[key] = isNaN(value) ? value : parseFloat(value);
+                    }
+                });
+                
+                // Try to load variation from localStorage if ID provided
+                if (variationId) {
+                    await loadVariationById(variationId);
+                }
+                
+                // Set up visualization based on system
+                await setupVisualization(system, parameters);
+                
+                // Update UI
+                updateShareUI();
+                
+                // Hide loading message
+                document.getElementById('loadingMsg').style.display = 'none';
+                
+            } catch (error) {
+                console.error('❌ Failed to initialize share visualization:', error);
+                showError('Failed to load visualization');
+            }
+        }
+        
+        // Load variation from localStorage by ID
+        async function loadVariationById(id) {
+            try {
+                // Check unified storage
+                const stored = localStorage.getItem('vib34d-unified-variations');
+                if (stored) {
+                    const variations = JSON.parse(stored);
+                    variationData = variations.find(v => v.id === id);
+                    
+                    if (variationData) {
+                        parameters = variationData.parameters;
+                        document.getElementById('shareTitle').textContent = variationData.name || 'VIB34D Visualization';
+                        return;
+                    }
+                }
+                
+                // Check other storage locations
+                const storageKeys = [
+                    'vib34d-custom-variations',
+                    'customHolographicVariations',
+                    'vib34d-holo-portfolio'
+                ];
+                
+                for (const key of storageKeys) {
+                    const data = localStorage.getItem(key);
+                    if (data) {
+                        const items = JSON.parse(data);
+                        const found = Array.isArray(items) ? 
+                            items.find(v => v && (v.id === id || v.globalId === id)) :
+                            null;
+                        
+                        if (found) {
+                            variationData = found;
+                            parameters = found.parameters || found.params || {};
+                            document.getElementById('shareTitle').textContent = found.name || 'VIB34D Visualization';
+                            return;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.warn('Could not load variation from storage:', error);
+            }
+        }
+        
+        // Set up visualization based on system type
+        async function setupVisualization(systemType, params) {
+            const container = document.getElementById('vizContainer');
+            
+            // Clear existing content except loading message
+            const loading = document.getElementById('loadingMsg');
+            container.innerHTML = '';
+            container.appendChild(loading);
+            
+            if (systemType === 'faceted') {
+                // Import and setup VIB34D faceted system
+                const { VIB34DIntegratedEngine } = await import('./src/core/Engine.js');
+                
+                // Create canvases
+                const layers = ['background', 'shadow', 'content', 'highlight', 'accent'];
+                layers.forEach(layer => {
+                    const canvas = document.createElement('canvas');
+                    canvas.id = `${layer}-canvas`;
+                    canvas.className = 'visualization-canvas';
+                    container.appendChild(canvas);
+                });
+                
+                // Initialize engine
+                const engine = new VIB34DIntegratedEngine();
+                
+                // Apply parameters
+                if (params) {
+                    Object.entries(params).forEach(([key, value]) => {
+                        if (engine.parameterManager && engine.parameterManager.setParameter) {
+                            engine.parameterManager.setParameter(key, value);
+                        }
+                    });
+                }
+                
+                visualizer = engine;
+                
+            } else if (systemType === 'holographic') {
+                // Import and setup holographic system
+                const { RealHolographicSystem } = await import('./src/holograms/RealHolographicSystem.js');
+                
+                // Create canvases
+                const layers = ['background', 'shadow', 'content', 'highlight', 'accent'];
+                layers.forEach(layer => {
+                    const canvas = document.createElement('canvas');
+                    canvas.id = `holo-${layer}-canvas`;
+                    canvas.className = 'visualization-canvas';
+                    container.appendChild(canvas);
+                });
+                
+                // Initialize system
+                const holoSystem = new RealHolographicSystem();
+                
+                // Apply parameters
+                if (params) {
+                    holoSystem.setParameters(params);
+                }
+                
+                visualizer = holoSystem;
+                
+            } else if (systemType === 'polychora') {
+                // Import and setup Polychora system
+                const { PolychoraSystem } = await import('./src/core/PolychoraSystem.js');
+                
+                // Create canvases
+                const layers = ['background', 'shadow', 'content', 'highlight', 'accent'];
+                layers.forEach(layer => {
+                    const canvas = document.createElement('canvas');
+                    canvas.id = `polychora-${layer}-canvas`;
+                    canvas.className = 'visualization-canvas';
+                    container.appendChild(canvas);
+                });
+                
+                // Create container div
+                const polychoraContainer = document.createElement('div');
+                polychoraContainer.id = 'polychoraLayers';
+                polychoraContainer.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0;';
+                
+                // Move canvases into container
+                container.querySelectorAll('canvas[id^="polychora-"]').forEach(canvas => {
+                    polychoraContainer.appendChild(canvas);
+                });
+                container.appendChild(polychoraContainer);
+                
+                // Initialize system
+                const polySystem = new PolychoraSystem();
+                polySystem.initialize();
+                
+                // Apply parameters
+                if (params) {
+                    polySystem.updateParameters(params);
+                }
+                
+                // Start system
+                polySystem.start();
+                
+                visualizer = polySystem;
+            }
+        }
+        
+        // Update share UI with variation info
+        function updateShareUI() {
+            // Update Open in Engine link with parameters
+            const engineLink = document.getElementById('openInEngine');
+            const params = new URLSearchParams();
+            params.set('system', system);
+            Object.entries(parameters).forEach(([key, value]) => {
+                params.set(key, value);
+            });
+            engineLink.href = `index.html?${params.toString()}`;
+            
+            // Update info panel
+            const infoParams = document.getElementById('infoParams');
+            const paramInfo = [];
+            
+            if (parameters.geometryType !== undefined || parameters.geometry !== undefined) {
+                const geomNames = ['Tetrahedron', 'Hypercube', 'Sphere', 'Torus', 'Klein Bottle', 'Fractal', 'Wave', 'Crystal'];
+                const geomIndex = parameters.geometryType || parameters.geometry || 0;
+                paramInfo.push(`Geometry: ${geomNames[geomIndex] || 'Unknown'}`);
+            }
+            
+            if (parameters.hue !== undefined) {
+                paramInfo.push(`Hue: ${Math.round(parameters.hue)}°`);
+            }
+            
+            if (parameters.speed !== undefined) {
+                paramInfo.push(`Speed: ${parameters.speed.toFixed(1)}x`);
+            }
+            
+            if (parameters.chaos !== undefined) {
+                paramInfo.push(`Chaos: ${Math.round(parameters.chaos * 100)}%`);
+            }
+            
+            paramInfo.push(`System: ${system.toUpperCase()}`);
+            
+            if (variationData) {
+                paramInfo.push(`ID: ${variationData.id}`);
+            }
+            
+            infoParams.innerHTML = paramInfo.join('<br>');
+        }
+        
+        // Toggle info panel visibility
+        window.toggleInfo = function() {
+            const panel = document.getElementById('infoPanel');
+            panel.classList.toggle('visible');
+        }
+        
+        // Toggle fullscreen
+        window.toggleFullscreen = function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+        
+        // Copy share link to clipboard
+        window.copyShareLink = function() {
+            const url = window.location.href;
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(url).then(() => {
+                    // Show temporary success message
+                    const btn = event.target;
+                    const originalText = btn.textContent;
+                    btn.textContent = '✅ Copied!';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                    }, 2000);
+                });
+            } else {
+                // Fallback for older browsers
+                const input = document.createElement('input');
+                input.value = url;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+            }
+        }
+        
+        // Show error message
+        function showError(message) {
+            const container = document.getElementById('vizContainer');
+            container.innerHTML = `
+                <div class="loading" style="color: #ff6b6b;">
+                    ❌ ${message}<br>
+                    <small style="font-size: 0.8rem; margin-top: 10px;">
+                        <a href="index.html" style="color: #00ffff;">Open VIB34D Engine</a>
+                    </small>
+                </div>
+            `;
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', initializeShareVisualization);
+    </script>
+</body>
+</html>

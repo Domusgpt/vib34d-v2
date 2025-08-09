@@ -89,13 +89,19 @@ class PolychoraVisualizer {
         `;
         
         const fragmentShader = `
-            precision mediump float;
+            precision highp float;
             uniform float u_time;
             uniform vec2 u_resolution;
             uniform float u_polytope;
+            
+            // COMPLETE 6D 4D rotation uniforms
             uniform float u_rot4dXW;
             uniform float u_rot4dYW;
             uniform float u_rot4dZW;
+            uniform float u_rot4dXY;
+            uniform float u_rot4dXZ;
+            uniform float u_rot4dYZ;
+            
             uniform float u_dimension;
             uniform float u_hue;
             uniform vec3 u_layerColor;
@@ -104,7 +110,16 @@ class PolychoraVisualizer {
             uniform float u_lineWidth;
             uniform float u_blur;
             
-            // 4D rotation matrices
+            // ADVANCED: Glass effect uniforms
+            uniform float u_refractionIndex;
+            uniform float u_chromaticAberration;
+            uniform float u_noiseAmplitude;
+            uniform float u_flowDirection;
+            uniform float u_faceTransparency;
+            uniform float u_edgeThickness;
+            uniform float u_projectionDistance;
+            
+            // COMPLETE 4D rotation matrices - All 6 possible rotations
             mat4 rotateXW(float angle) {
                 float c = cos(angle);
                 float s = sin(angle);
@@ -135,6 +150,40 @@ class PolychoraVisualizer {
                     0, 1, 0, 0,
                     0, 0, c, -s,
                     0, 0, s, c
+                );
+            }
+            
+            // NEW: Missing 4D rotations for complete 6D rotational freedom
+            mat4 rotateXY(float angle) {
+                float c = cos(angle);
+                float s = sin(angle);
+                return mat4(
+                    c, -s, 0, 0,
+                    s, c, 0, 0,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1
+                );
+            }
+            
+            mat4 rotateXZ(float angle) {
+                float c = cos(angle);
+                float s = sin(angle);
+                return mat4(
+                    c, 0, -s, 0,
+                    0, 1, 0, 0,
+                    s, 0, c, 0,
+                    0, 0, 0, 1
+                );
+            }
+            
+            mat4 rotateYZ(float angle) {
+                float c = cos(angle);
+                float s = sin(angle);
+                return mat4(
+                    1, 0, 0, 0,
+                    0, c, -s, 0,
+                    0, s, c, 0,
+                    0, 0, 0, 1
                 );
             }
             
@@ -176,35 +225,104 @@ class PolychoraVisualizer {
                 }
             }
             
+            // Perlin noise function for surface effects
+            float noise(vec4 p) {
+                return fract(sin(dot(p, vec4(127.1, 311.7, 269.5, 183.3))) * 43758.5);
+            }
+            
+            // Advanced 4D rotation application - Complete 6D freedom
+            vec4 apply6DRotation(vec4 pos) {
+                // Apply all 6 possible 4D rotations in mathematically correct order
+                pos = rotateXY(u_rot4dXY + u_time * 0.08) * pos;
+                pos = rotateXZ(u_rot4dXZ + u_time * 0.09) * pos;
+                pos = rotateYZ(u_rot4dYZ + u_time * 0.07) * pos;
+                pos = rotateXW(u_rot4dXW + u_time * 0.10) * pos;
+                pos = rotateYW(u_rot4dYW + u_time * 0.11) * pos;
+                pos = rotateZW(u_rot4dZW + u_time * 0.12) * pos;
+                return pos;
+            }
+            
+            // Cinema-quality glass effects
+            vec3 calculateGlassEffects(vec2 uv, float dist, vec3 baseColor) {
+                vec3 color = baseColor;
+                
+                // Chromatic aberration effect
+                if (u_chromaticAberration > 0.0) {
+                    vec2 offset = normalize(uv) * u_chromaticAberration * 0.01;
+                    color.r *= 1.0 + sin(dist * 10.0 + u_time) * u_chromaticAberration;
+                    color.g *= 1.0 + sin(dist * 10.0 + u_time + 2.09) * u_chromaticAberration;
+                    color.b *= 1.0 + sin(dist * 10.0 + u_time + 4.18) * u_chromaticAberration;
+                }
+                
+                // Refraction distortion
+                if (u_refractionIndex > 1.0) {
+                    vec2 refract_uv = uv * (1.0 + (u_refractionIndex - 1.0) * 0.1 * sin(dist * 20.0));
+                    float refraction_intensity = (u_refractionIndex - 1.0) * 0.3;
+                    color = mix(color, color * 1.2, refraction_intensity);
+                }
+                
+                return color;
+            }
+            
             void main() {
                 vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
                 uv *= u_layerScale;
                 
-                // Create 4D point
-                vec4 pos = vec4(uv, sin(u_time * 0.3) * 0.5, cos(u_time * 0.2) * 0.5);
+                // Create 4D point with enhanced projection distance
+                vec4 pos = vec4(uv, 
+                    sin(u_time * 0.3) * 0.5, 
+                    cos(u_time * 0.2) * 0.5 * u_projectionDistance * 0.1
+                );
                 
-                // Apply 4D rotations
-                pos = rotateXW(u_rot4dXW + u_time * 0.1) * pos;
-                pos = rotateYW(u_rot4dYW + u_time * 0.15) * pos;
-                pos = rotateZW(u_rot4dZW + u_time * 0.12) * pos;
+                // Apply complete 6D 4D rotation
+                pos = apply6DRotation(pos);
                 
                 // Get polytope distance
                 float dist = polytope4D(pos, u_polytope);
                 
-                // Create glassmorphic line effect
-                float lineCore = smoothstep(0.0, u_lineWidth * 0.01, abs(dist));
-                float lineOutline = smoothstep(0.0, u_lineWidth * 0.02, abs(dist + 0.05));
+                // Enhanced glassmorphic line rendering
+                float edgeCore = u_edgeThickness * 0.01;
+                float faceAlpha = u_faceTransparency;
                 
-                // Combine core and outline for glassmorphic effect
-                float alpha = (1.0 - lineCore) * 0.8 + (1.0 - lineOutline) * 0.2;
+                // Multi-layer line effect for cinema quality
+                float lineCore = smoothstep(0.0, edgeCore, abs(dist));
+                float lineOutline = smoothstep(0.0, edgeCore * 1.5, abs(dist + 0.05));
+                float lineFine = smoothstep(0.0, edgeCore * 0.5, abs(dist));
+                
+                // Combine multiple line effects
+                float alpha = (1.0 - lineCore) * 0.6 + (1.0 - lineOutline) * 0.3 + (1.0 - lineFine) * 0.1;
                 alpha *= u_layerOpacity;
                 
-                // Apply blur effect
-                alpha *= exp(-length(uv) * u_blur * 0.5);
+                // Add face transparency effect
+                if (abs(dist) > edgeCore * 2.0) {
+                    alpha *= faceAlpha;
+                }
                 
-                // Color based on layer configuration and hue
+                // Apply procedural surface noise
+                if (u_noiseAmplitude > 0.0) {
+                    float noise_val = noise(pos * 10.0 + u_time * 0.1);
+                    alpha *= 1.0 + (noise_val - 0.5) * u_noiseAmplitude;
+                }
+                
+                // Apply blur with flow direction
+                vec2 flow = vec2(cos(u_flowDirection * 3.14159 / 180.0), sin(u_flowDirection * 3.14159 / 180.0));
+                float blur_dist = length(uv - flow * u_time * 0.1);
+                alpha *= exp(-blur_dist * u_blur * 0.5);
+                
+                // Base color from layer configuration and hue
                 vec3 color = u_layerColor;
-                color = mix(color, vec3(sin(u_hue/360.0*6.28), cos(u_hue/360.0*6.28), 0.8), 0.3);
+                color = mix(color, vec3(
+                    sin(u_hue/360.0*6.28), 
+                    cos(u_hue/360.0*6.28), 
+                    0.8
+                ), 0.4);
+                
+                // Apply cinema-quality glass effects
+                color = calculateGlassEffects(uv, dist, color);
+                
+                // Add subtle iridescence based on viewing angle
+                float iridescence = sin(length(uv) * 10.0 + u_time) * 0.1;
+                color += iridescence * vec3(0.3, 0.5, 0.7);
                 
                 gl_FragColor = vec4(color, alpha);
             }
@@ -269,21 +387,36 @@ class PolychoraVisualizer {
         this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
         
-        // Set uniforms with safe parameter access
+        // Set uniforms with complete 6D rotation and advanced glass effects
         const uniforms = {
             u_time: this.time,
             u_resolution: [this.canvas.width, this.canvas.height],
             u_polytope: parameters.polytope !== undefined ? parameters.polytope : 0,
+            
+            // COMPLETE 6D 4D rotations
             u_rot4dXW: parameters.rot4dXW || 0,
             u_rot4dYW: parameters.rot4dYW || 0,
             u_rot4dZW: parameters.rot4dZW || 0,
+            u_rot4dXY: parameters.rot4dXY || 0,
+            u_rot4dXZ: parameters.rot4dXZ || 0,
+            u_rot4dYZ: parameters.rot4dYZ || 0,
+            
             u_dimension: parameters.dimension || 3.8,
             u_hue: parameters.hue || 280,
             u_layerColor: this.config.color,
             u_layerScale: this.config.scale * (parameters.layerScale || 1.0),
             u_layerOpacity: this.config.opacity * (parameters.translucency || 1.0),
             u_lineWidth: this.config.lineWidth * (parameters.lineThickness || 1.0),
-            u_blur: this.config.blur * (parameters.glassBlur || 1.0)
+            u_blur: this.config.blur * (parameters.glassBlur || 1.0),
+            
+            // ADVANCED: Glass effects
+            u_refractionIndex: parameters.refractionIndex || 1.5,
+            u_chromaticAberration: parameters.chromaticAberration || 0.1,
+            u_noiseAmplitude: parameters.noiseAmplitude || 0.3,
+            u_flowDirection: parameters.flowDirection || 180,
+            u_faceTransparency: parameters.faceTransparency || 0.7,
+            u_edgeThickness: parameters.edgeThickness || 2.0,
+            u_projectionDistance: parameters.projectionDistance || 5.0
         };
         
         // Safely set uniforms with error checking
@@ -315,12 +448,20 @@ class PolychoraVisualizer {
     }
 }
 
+// Import 4D physics engine
+import { Polychora4DPhysics } from '../physics/Polychora4DPhysics.js';
+
 export class PolychoraSystem {
     constructor() {
         this.canvasContainer = null;
         this.visualizers = [];
         this.isActive = false;
         this.animationId = null;
+        
+        // Initialize 4D physics engine
+        this.physics = new Polychora4DPhysics();
+        this.physicsEnabled = false;
+        this.physicsBodies = [];
         
         // 6 Real 4D Polytopes
         this.polytopes = [
@@ -343,13 +484,40 @@ export class PolychoraSystem {
             layerScale: 1.0,    // Overall layer scaling
             translucency: 0.8,  // Overall translucency
             
-            // 4D Math parameters (shared with other systems)
-            rot4dXW: 0.0,
-            rot4dYW: 0.0,
-            rot4dZW: 0.0,
+            // COMPLETE 6D 4D Math parameters - Full rotational control
+            rot4dXW: 0.0,       // X-W plane rotation (existing)
+            rot4dYW: 0.0,       // Y-W plane rotation (existing)
+            rot4dZW: 0.0,       // Z-W plane rotation (existing)
+            rot4dXY: 0.0,       // X-Y plane rotation (NEW)
+            rot4dXZ: 0.0,       // X-Z plane rotation (NEW)
+            rot4dYZ: 0.0,       // Y-Z plane rotation (NEW)
+            
             dimension: 3.8,
             speed: 1.2,
             hue: 280,           // Purple/magenta base
+            
+            // ADVANCED: Glass effects (NEW)
+            refractionIndex: 1.5,      // 0.5-2.0 Glass refraction
+            chromaticAberration: 0.1,  // 0-0.5 RGB color separation
+            noiseAmplitude: 0.3,       // 0-1 Procedural surface noise
+            flowDirection: 180,        // 0-360° Energy flow orientation
+            
+            // ADVANCED: Polytope-specific controls (NEW)
+            faceTransparency: 0.7,     // 0-1 Face vs edge visibility
+            edgeThickness: 2.0,        // 0.1-3.0 Variable edge rendering
+            projectionDistance: 5.0,   // 1-10 4D→3D projection depth
+            
+            // 4D PHYSICS PARAMETERS (NEW)
+            physicsEnabled: false,     // Enable/disable physics simulation
+            gravity4D: -2.5,          // 4D gravity strength (W-axis)
+            mass: 1.0,                // Polytope mass
+            elasticity: 0.8,          // Collision bounce (0-1)
+            friction: 0.1,            // Surface friction
+            brownianMotion: 0.1,      // Thermal motion amount
+            flocking: false,          // Enable flocking behavior
+            territorial: 2.0,         // Territorial radius
+            magneticField: 0.0,       // Magnetic field strength
+            fluidFlow: 0.5,          // Fluid current strength
         };
         
         // Layer-specific configurations for glassmorphic effects
@@ -506,6 +674,12 @@ export class PolychoraSystem {
         const render = () => {
             if (!this.isActive) return;
             
+            // Step physics simulation if enabled
+            if (this.parameters.physicsEnabled && this.physicsEnabled) {
+                this.physics.step();
+                this.updatePhysicsVisuals();
+            }
+            
             this.visualizers.forEach(visualizer => {
                 visualizer.render(this.parameters);
             });
@@ -513,6 +687,156 @@ export class PolychoraSystem {
             this.animationId = requestAnimationFrame(render);
         };
         render();
+    }
+    
+    /**
+     * Enable/disable 4D physics simulation
+     */
+    enablePhysics() {
+        this.physicsEnabled = true;
+        this.parameters.physicsEnabled = true;
+        this.physics.enable();
+        
+        // Create physics bodies for polytopes
+        this.createPhysicsBodies();
+        
+        console.log('🔮 Polychora physics simulation enabled');
+    }
+    
+    disablePhysics() {
+        this.physicsEnabled = false;
+        this.parameters.physicsEnabled = false;
+        this.physics.disable();
+        this.physics.clearAllBodies();
+        this.physicsBodies = [];
+        
+        console.log('🔮 Polychora physics simulation disabled');
+    }
+    
+    /**
+     * Create physics bodies for visualization
+     */
+    createPhysicsBodies() {
+        // Clear existing bodies
+        this.physics.clearAllBodies();
+        this.physicsBodies = [];
+        
+        // Create physics bodies for each polytope type
+        for (let i = 0; i < this.polytopes.length; i++) {
+            const body = this.physics.createRigidBody(i, 
+                [
+                    (Math.random() - 0.5) * 4, // X
+                    (Math.random() - 0.5) * 4, // Y  
+                    (Math.random() - 0.5) * 4, // Z
+                    (Math.random() - 0.5) * 2  // W
+                ], 
+                {
+                    mass: this.parameters.mass,
+                    elasticity: this.parameters.elasticity,
+                    friction: this.parameters.friction,
+                    brownianMotion: this.parameters.brownianMotion,
+                    flocking: this.parameters.flocking,
+                    territorial: this.parameters.territorial,
+                    magnetic: this.parameters.magneticField
+                }
+            );
+            
+            this.physicsBodies.push(body);
+        }
+        
+        // Set physics world properties
+        this.physics.setGravity([0, 0, 0, this.parameters.gravity4D]);
+        this.physics.setMagneticField([0, 0, this.parameters.magneticField, 0]);
+        this.physics.setFluidFlow([this.parameters.fluidFlow, 0, 0, 0]);
+    }
+    
+    /**
+     * Update visual parameters based on physics simulation
+     */
+    updatePhysicsVisuals() {
+        const physicsFeedback = this.physics.getPhysicsFeedback();
+        
+        if (physicsFeedback.length > 0) {
+            // Use physics feedback to modulate visual parameters
+            const avgFeedback = this.calculateAveragePhysicsFeedback(physicsFeedback);
+            
+            // Modulate parameters based on physics
+            this.parameters.hue += avgFeedback.velocityIntensity * 5;
+            this.parameters.chromaticAberration = Math.max(0.1, 
+                this.parameters.chromaticAberration + avgFeedback.impactIntensity * 0.3);
+            this.parameters.noiseAmplitude = Math.max(0.1,
+                this.parameters.noiseAmplitude + avgFeedback.accelerationGlow * 0.5);
+            
+            // Update rotation based on physics body rotations
+            const primaryBody = physicsFeedback[this.parameters.polytope] || physicsFeedback[0];
+            if (primaryBody) {
+                this.parameters.rot4dXY = primaryBody.rotation[0];
+                this.parameters.rot4dXZ = primaryBody.rotation[1];
+                this.parameters.rot4dYZ = primaryBody.rotation[2];
+                this.parameters.rot4dXW = primaryBody.rotation[3];
+                this.parameters.rot4dYW = primaryBody.rotation[4];
+                this.parameters.rot4dZW = primaryBody.rotation[5];
+            }
+        }
+    }
+    
+    /**
+     * Calculate average physics feedback for visual modulation
+     */
+    calculateAveragePhysicsFeedback(feedbackArray) {
+        const avg = {
+            velocityIntensity: 0,
+            impactIntensity: 0,
+            accelerationGlow: 0
+        };
+        
+        if (feedbackArray.length === 0) return avg;
+        
+        feedbackArray.forEach(fb => {
+            avg.velocityIntensity += fb.feedback.velocityIntensity;
+            avg.impactIntensity += fb.feedback.impactIntensity;
+            avg.accelerationGlow += fb.feedback.accelerationGlow;
+        });
+        
+        const count = feedbackArray.length;
+        avg.velocityIntensity /= count;
+        avg.impactIntensity /= count;
+        avg.accelerationGlow /= count;
+        
+        return avg;
+    }
+    
+    /**
+     * Add interactive forces to physics simulation
+     */
+    addInteractiveForce(position4D, force4D) {
+        if (!this.physicsEnabled) return;
+        
+        // Find closest physics body and apply force
+        let closestBody = null;
+        let closestDistance = Infinity;
+        
+        this.physicsBodies.forEach(body => {
+            const distance = this.physics.distance4D(body.position, position4D);
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestBody = body;
+            }
+        });
+        
+        if (closestBody && closestDistance < 2.0) {
+            this.physics.addForce(closestBody, force4D);
+        }
+    }
+    
+    /**
+     * Reset physics simulation
+     */
+    resetPhysics() {
+        if (this.physicsEnabled) {
+            this.createPhysicsBodies();
+            console.log('🔮 Polychora physics simulation reset');
+        }
     }
     
     /**

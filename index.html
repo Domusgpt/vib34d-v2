@@ -552,10 +552,7 @@
         </div>
         <div class="action-row">
             <button class="panel-btn" onclick="resetAll()">🔄 Reset</button>
-            <button class="panel-btn" onclick="saveToPortfolio()" style="background: rgba(0, 255, 0, 0.1); border-color: rgba(0, 255, 0, 0.3); color: #00ff00;">💾 Save</button>
-        </div>
-        <div class="action-row">
-            <button class="panel-btn" onclick="saveToGallery()" style="background: rgba(0, 255, 255, 0.1); border-color: rgba(0, 255, 255, 0.3); color: #00ffff;">🎯 Save to Gallery</button>
+            <button class="panel-btn" onclick="saveToGallery()" style="background: rgba(0, 255, 255, 0.1); border-color: rgba(0, 255, 255, 0.3); color: #00ffff;">💾 Save to Gallery</button>
         </div>
     </div>
     
@@ -564,6 +561,8 @@
         import { VIB34DIntegratedEngine } from './src/core/Engine.js';
         import { RealHolographicSystem } from './src/holograms/RealHolographicSystem.js';
         import { CollectionManager } from './src/features/CollectionManager.js';
+        import { UnifiedSaveManager } from './src/core/UnifiedSaveManager.js';
+        import { ParameterMapper } from './src/core/ParameterMapper.js';
         
         // Global state
         let currentSystem = 'faceted';
@@ -573,6 +572,8 @@
         let holographicSystem = null;
         let polychoraSystem = null;
         let collectionManager = null;
+        let unifiedSaveManager = null;
+        let parameterMapper = null;
         let savedVariationsCount = 0;
         
         // Geometry configurations
@@ -647,6 +648,16 @@
                 // Initialize Collection Manager for portfolio
                 collectionManager = new CollectionManager();
                 console.log('✅ Collection Manager ready');
+                
+                // Initialize unified save system
+                unifiedSaveManager = new UnifiedSaveManager(engine);
+                parameterMapper = new ParameterMapper();
+                
+                // Make save manager globally accessible
+                window.unifiedSaveManager = unifiedSaveManager;
+                engine.unifiedSaveManager = unifiedSaveManager;
+                engine.parameterMapper = parameterMapper;
+                console.log('✅ Unified Save System ready');
                 
                 // Apply gallery preview parameters if present
                 if (window.galleryPreviewData) {
@@ -1132,55 +1143,7 @@
         window.addEventListener('focus', checkGalleryParameters);
         
         // SAVE TO PORTFOLIO FUNCTIONALITY
-        window.saveToPortfolio = async function() {
-            try {
-                // Get current system state
-                const currentState = getCurrentSystemState();
-                
-                if (!currentState) {
-                    console.error('❌ Failed to capture current state');
-                    return;
-                }
-                
-                // Generate unique variation name
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                const variationName = `${currentSystem.toUpperCase()} ${currentState.geometryName || 'Custom'} ${timestamp.split('T')[0]}`;
-                
-                // Create variation object
-                const variation = {
-                    id: savedVariationsCount,
-                    name: variationName,
-                    isCustom: true,
-                    system: currentSystem,
-                    created: new Date().toISOString(),
-                    parameters: currentState.parameters
-                };
-                
-                // Create or update user collection
-                const collectionName = `User Custom ${new Date().toISOString().split('T')[0]}`;
-                const userCollection = {
-                    name: collectionName,
-                    description: `Custom variations saved from VIB34D Engine`,
-                    version: '1.0',
-                    type: 'holographic-collection',
-                    profileName: 'VIB34D User',
-                    variations: [variation]
-                };
-                
-                // Save to collections folder (will trigger download)
-                const filename = `user-custom-${new Date().toISOString().split('T')[0]}.json`;
-                await collectionManager.saveCollection(userCollection, filename);
-                
-                savedVariationsCount++;
-                
-                console.log(`✅ Saved "${variationName}" to portfolio as ${filename}`);
-                showSaveConfirmation(variationName, filename);
-                
-            } catch (error) {
-                console.error('❌ Failed to save to portfolio:', error);
-                showSaveError(error.message);
-            }
-        }
+        // REMOVED: saveToPortfolio function - Using unified saveToGallery instead
         
         function getCurrentSystemState() {
             const state = {
@@ -1301,14 +1264,24 @@
             }, 3000);
         }
         
-        // Save to Gallery function - uses ExportManager's new saveToGallery method
+        // Save to Gallery function - uses UnifiedSaveManager
         window.saveToGallery = async function() {
             try {
-                if (engine && engine.exportManager && engine.exportManager.saveToGallery) {
-                    // Use the ExportManager's saveToGallery method
-                    engine.exportManager.saveToGallery();
+                if (unifiedSaveManager) {
+                    // Use the UnifiedSaveManager for all saves
+                    const result = await unifiedSaveManager.save({ target: 'gallery' });
+                    
+                    if (result.success) {
+                        console.log('✅ Saved to gallery:', result.id);
+                        
+                        // Real-time gallery update event
+                        const event = new CustomEvent('gallery-refresh-needed');
+                        window.dispatchEvent(event);
+                    } else {
+                        throw new Error(result.error || 'Save failed');
+                    }
                 } else {
-                    throw new Error('Export system not available');
+                    throw new Error('Save system not available');
                 }
             } catch (error) {
                 console.error('❌ Failed to save to gallery:', error);

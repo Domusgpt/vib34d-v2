@@ -1,0 +1,417 @@
+/**
+ * UnifiedSaveManager - Single save system for all VIB34D variations
+ * Replaces multiple conflicting save systems with one unified approach
+ */
+
+export class UnifiedSaveManager {
+    constructor(engine) {
+        this.engine = engine;
+        this.storageKey = 'vib34d-unified-variations';
+        this.collectionStorageKey = 'vib34d-unified-collections';
+        this.maxVariations = 10000; // Support up to 10k variations
+        
+        // Initialize storage
+        this.variations = [];
+        this.collections = new Map();
+        
+        this.loadFromStorage();
+    }
+    
+    /**
+     * Main save method with multiple output options
+     */
+    async save(options = {}) {
+        const variation = this.captureCurrentState();
+        
+        // Add metadata
+        variation.id = this.generateUniqueId();
+        variation.timestamp = Date.now();
+        variation.created = new Date().toISOString();
+        
+        // Save based on target
+        switch (options.target || 'gallery') {
+            case 'localStorage':
+                return this.saveToLocalStorage(variation);
+                
+            case 'download':
+                return this.saveToDownload(variation, options.format || 'json');
+                
+            case 'gallery':
+                return this.saveToGallery(variation);
+                
+            case 'collection':
+                return this.saveToCollection(variation, options.collectionName);
+                
+            case 'share':
+                return this.saveForSharing(variation);
+                
+            default:
+                return this.saveToGallery(variation);
+        }
+    }
+    
+    /**
+     * Capture current engine state as variation
+     */
+    captureCurrentState() {
+        const state = {
+            system: window.currentSystem || this.engine.currentSystem || 'faceted',
+            name: this.generateVariationName(),
+            parameters: {},
+            metadata: {}
+        };
+        
+        // Get parameters based on current system
+        const currentSys = window.currentSystem || this.engine.currentSystem;
+        
+        if (currentSys === 'faceted') {
+            state.parameters = this.engine.parameterManager?.getAllParameters() || {};
+        } else if (currentSys === 'holographic') {
+            state.parameters = window.holographicSystem?.getParameters?.() || {};
+        } else if (currentSys === 'polychora') {
+            state.parameters = window.polychoraSystem?.parameters || {};
+        }
+        
+        // Add metadata
+        state.metadata = {
+            engine: 'VIB34D Unified',
+            version: '3.0',
+            author: 'VIB34D User',
+            device: navigator.userAgent
+        };
+        
+        return state;
+    }
+    
+    /**
+     * Save to localStorage for persistence
+     */
+    saveToLocalStorage(variation) {
+        // Add to variations array
+        this.variations.push(variation);
+        
+        // Limit to max variations
+        if (this.variations.length > this.maxVariations) {
+            this.variations = this.variations.slice(-this.maxVariations);
+        }
+        
+        // Save to localStorage
+        try {
+            localStorage.setItem(this.storageKey, JSON.stringify(this.variations));
+            console.log('✅ Saved variation to localStorage:', variation.name);
+            return { success: true, id: variation.id };
+        } catch (error) {
+            console.error('❌ Failed to save to localStorage:', error);
+            return { success: false, error: error.message };
+        }
+    }
+    
+    /**
+     * Save to gallery (localStorage + visual notification)
+     */
+    async saveToGallery(variation) {
+        // Save to localStorage first
+        const localResult = this.saveToLocalStorage(variation);
+        
+        if (!localResult.success) {
+            return localResult;
+        }
+        
+        // Create collection format for gallery
+        const collection = {
+            name: `Gallery Collection - ${new Date().toLocaleDateString()}`,
+            description: `Saved variation: ${variation.name}`,
+            version: '1.0',
+            type: 'holographic-collection',
+            profileName: 'VIB34D Gallery',
+            totalVariations: 1,
+            created: variation.created,
+            variations: [{
+                id: 0,
+                name: variation.name,
+                isCustom: true,
+                globalId: variation.id,
+                system: variation.system,
+                parameters: this.normalizeParameters(variation.parameters)
+            }]
+        };
+        
+        // Save collection
+        const filename = `gallery-${variation.id}.json`;
+        this.collections.set(filename, collection);
+        
+        // Update localStorage collections
+        this.saveCollectionsToStorage();
+        
+        // Show success notification
+        if (this.engine.statusManager) {
+            this.engine.statusManager.success(
+                `✅ Saved to Gallery!<br>` +
+                `<strong>${variation.name}</strong><br>` +
+                `ID: ${variation.id}<br>` +
+                `<small>Gallery will update automatically</small>`
+            );
+        }
+        
+        // Emit event for real-time gallery update
+        this.emitGalleryUpdate(variation);
+        
+        return { success: true, id: variation.id, filename };
+    }
+    
+    /**
+     * Save as downloadable file
+     */
+    saveToDownload(variation, format = 'json') {
+        let content, filename, mimeType;
+        
+        switch (format) {
+            case 'json':
+                content = JSON.stringify(variation, null, 2);
+                filename = `vib34d-${variation.id}.json`;
+                mimeType = 'application/json';
+                break;
+                
+            case 'collection':
+                const collection = this.createCollectionFormat([variation]);
+                content = JSON.stringify(collection, null, 2);
+                filename = `collection-${variation.id}.json`;
+                mimeType = 'application/json';
+                break;
+                
+            default:
+                throw new Error(`Unsupported format: ${format}`);
+        }
+        
+        // Create download
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        console.log(`📥 Downloaded ${filename}`);
+        return { success: true, filename };
+    }
+    
+    /**
+     * Save to named collection
+     */
+    saveToCollection(variation, collectionName = 'My Collection') {
+        // Get or create collection
+        let collection = this.collections.get(collectionName);
+        
+        if (!collection) {
+            collection = this.createCollectionFormat([], collectionName);
+            this.collections.set(collectionName, collection);
+        }
+        
+        // Add variation to collection
+        collection.variations.push({
+            id: collection.variations.length,
+            name: variation.name,
+            isCustom: true,
+            globalId: variation.id,
+            system: variation.system,
+            parameters: this.normalizeParameters(variation.parameters)
+        });
+        
+        collection.totalVariations = collection.variations.length;
+        collection.updated = new Date().toISOString();
+        
+        // Save collections
+        this.saveCollectionsToStorage();
+        
+        console.log(`📁 Added to collection "${collectionName}":`, variation.name);
+        return { success: true, collection: collectionName, id: variation.id };
+    }
+    
+    /**
+     * Save for sharing (generates shareable URL)
+     */
+    saveForSharing(variation) {
+        // Save to localStorage first
+        this.saveToLocalStorage(variation);
+        
+        // Generate shareable URL
+        const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
+        const params = new URLSearchParams();
+        params.set('id', variation.id);
+        params.set('system', variation.system);
+        
+        // Encode parameters
+        Object.entries(variation.parameters).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                params.set(key, value);
+            }
+        });
+        
+        const shareUrl = `${baseUrl}share.html?${params.toString()}`;
+        
+        // Copy to clipboard
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(shareUrl);
+            
+            if (this.engine.statusManager) {
+                this.engine.statusManager.success(
+                    `🔗 Share URL copied!<br>` +
+                    `<small>${shareUrl}</small>`
+                );
+            }
+        }
+        
+        return { success: true, url: shareUrl, id: variation.id };
+    }
+    
+    /**
+     * Normalize parameters across different systems
+     */
+    normalizeParameters(params) {
+        const normalized = {};
+        
+        // Map common parameters
+        normalized.geometryType = params.geometry || params.geometryType || 0;
+        normalized.density = params.gridDensity || params.density || 10;
+        normalized.morph = params.morphFactor || params.morph || 0;
+        normalized.speed = params.speed || 1.0;
+        normalized.chaos = params.chaos || 0;
+        normalized.hue = params.hue || 200;
+        normalized.saturation = params.saturation || 0.8;
+        normalized.intensity = params.intensity || 0.5;
+        
+        // 4D rotation parameters
+        normalized.rot4dXW = params.rot4dXW || 0;
+        normalized.rot4dYW = params.rot4dYW || 0;
+        normalized.rot4dZW = params.rot4dZW || 0;
+        normalized.dimension = params.dimension || 3.8;
+        
+        // Future 4D rotations (for Polychora enhancement)
+        normalized.rot4dXY = params.rot4dXY || 0;
+        normalized.rot4dXZ = params.rot4dXZ || 0;
+        normalized.rot4dYZ = params.rot4dYZ || 0;
+        
+        return normalized;
+    }
+    
+    /**
+     * Create collection format
+     */
+    createCollectionFormat(variations = [], name = 'Unnamed Collection') {
+        return {
+            name,
+            description: 'VIB34D Unified Collection',
+            version: '1.0',
+            type: 'holographic-collection',
+            profileName: 'VIB34D System',
+            totalVariations: variations.length,
+            created: new Date().toISOString(),
+            updated: new Date().toISOString(),
+            variations: variations.map((v, i) => ({
+                id: i,
+                name: v.name,
+                isCustom: true,
+                globalId: v.id || this.generateUniqueId(),
+                system: v.system,
+                parameters: this.normalizeParameters(v.parameters || {})
+            }))
+        };
+    }
+    
+    /**
+     * Load from localStorage
+     */
+    loadFromStorage() {
+        try {
+            // Load variations
+            const storedVariations = localStorage.getItem(this.storageKey);
+            if (storedVariations) {
+                this.variations = JSON.parse(storedVariations);
+                console.log(`📂 Loaded ${this.variations.length} variations from storage`);
+            }
+            
+            // Load collections
+            const storedCollections = localStorage.getItem(this.collectionStorageKey);
+            if (storedCollections) {
+                const collectionsArray = JSON.parse(storedCollections);
+                this.collections = new Map(collectionsArray);
+                console.log(`📁 Loaded ${this.collections.size} collections from storage`);
+            }
+        } catch (error) {
+            console.error('Failed to load from storage:', error);
+        }
+    }
+    
+    /**
+     * Save collections to localStorage
+     */
+    saveCollectionsToStorage() {
+        try {
+            const collectionsArray = Array.from(this.collections.entries());
+            localStorage.setItem(this.collectionStorageKey, JSON.stringify(collectionsArray));
+        } catch (error) {
+            console.error('Failed to save collections:', error);
+        }
+    }
+    
+    /**
+     * Emit gallery update event
+     */
+    emitGalleryUpdate(variation) {
+        const event = new CustomEvent('vib34d-gallery-update', {
+            detail: { variation, timestamp: Date.now() }
+        });
+        window.dispatchEvent(event);
+    }
+    
+    /**
+     * Generate unique ID
+     */
+    generateUniqueId() {
+        return `V${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
+    
+    /**
+     * Generate variation name
+     */
+    generateVariationName() {
+        const systems = {
+            faceted: 'FACETED',
+            holographic: 'HOLO',
+            polychora: 'POLY'
+        };
+        
+        const system = systems[this.engine.currentSystem] || 'CUSTOM';
+        const timestamp = new Date().toTimeString().split(' ')[0].replace(/:/g, '');
+        
+        return `${system}-${timestamp}`;
+    }
+    
+    /**
+     * Get all variations
+     */
+    getAllVariations() {
+        return this.variations;
+    }
+    
+    /**
+     * Get all collections
+     */
+    getAllCollections() {
+        return Array.from(this.collections.values());
+    }
+    
+    /**
+     * Clear all data
+     */
+    clearAll() {
+        this.variations = [];
+        this.collections.clear();
+        localStorage.removeItem(this.storageKey);
+        localStorage.removeItem(this.collectionStorageKey);
+        console.log('🗑️ Cleared all saved data');
+    }
+}
