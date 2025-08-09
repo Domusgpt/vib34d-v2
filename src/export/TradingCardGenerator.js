@@ -1158,13 +1158,126 @@ void main() {
                 this.gl.uniform1f(this.uniforms.rot4dXW, this.params.rot4dXW || 0.0);
                 this.gl.uniform1f(this.uniforms.rot4dYW, this.params.rot4dYW || 0.0);
                 this.gl.uniform1f(this.uniforms.rot4dZW, this.params.rot4dZW || 0.0);
-                this.gl.uniform1f(this.uniforms.mouseIntensity, 0.0);
-                this.gl.uniform1f(this.uniforms.clickIntensity, 0.0);
+                this.gl.uniform1f(this.uniforms.mouseIntensity, this.mouseIntensity || 0.0);
+                this.gl.uniform1f(this.uniforms.clickIntensity, this.clickIntensity || 0.0);
                 this.gl.uniform1f(this.uniforms.roleIntensity, this.roleIntensity);
                 
                 this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
             }
-        }`;
+        }
+        
+        // Enhanced interactivity system
+        let mouseX = 0.5, mouseY = 0.5, mouseIntensity = 0.0;
+        let clickIntensity = 0.0;
+        let currentTouch = null;
+        
+        // Mouse interactions
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = (e.clientX - rect.left) / rect.width;
+            mouseY = 1.0 - (e.clientY - rect.top) / rect.height;
+            mouseIntensity = Math.min(1.0, Math.sqrt(e.movementX*e.movementX + e.movementY*e.movementY) / 40);
+            
+            // Update all layer visualizers
+            layers.forEach(layer => {
+                if (layer.visualizer) {
+                    layer.visualizer.mouseX = mouseX;
+                    layer.visualizer.mouseY = mouseY;
+                    layer.visualizer.mouseIntensity = mouseIntensity;
+                }
+            });
+        });
+        
+        canvas.addEventListener('click', (e) => {
+            clickIntensity = 1.0;
+            layers.forEach(layer => {
+                if (layer.visualizer) {
+                    layer.visualizer.clickIntensity = clickIntensity;
+                }
+            });
+            setTimeout(() => { 
+                clickIntensity = 0.0;
+                layers.forEach(layer => {
+                    if (layer.visualizer) {
+                        layer.visualizer.clickIntensity = 0.0;
+                    }
+                });
+            }, 500);
+        });
+        
+        // Touch interactions
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (e.touches.length > 0) {
+                currentTouch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                mouseX = (currentTouch.clientX - rect.left) / rect.width;
+                mouseY = 1.0 - (currentTouch.clientY - rect.top) / rect.height;
+                clickIntensity = 1.0;
+                
+                layers.forEach(layer => {
+                    if (layer.visualizer) {
+                        layer.visualizer.mouseX = mouseX;
+                        layer.visualizer.mouseY = mouseY;
+                        layer.visualizer.clickIntensity = clickIntensity;
+                    }
+                });
+            }
+        }, { passive: false });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (e.touches.length > 0) {
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                mouseX = (touch.clientX - rect.left) / rect.width;
+                mouseY = 1.0 - (touch.clientY - rect.top) / rect.height;
+                mouseIntensity = 0.8;
+                currentTouch = touch;
+                
+                layers.forEach(layer => {
+                    if (layer.visualizer) {
+                        layer.visualizer.mouseX = mouseX;
+                        layer.visualizer.mouseY = mouseY;
+                        layer.visualizer.mouseIntensity = mouseIntensity;
+                    }
+                });
+            }
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', (e) => {
+            clickIntensity = 0.0;
+            mouseIntensity = 0.0;
+            currentTouch = null;
+            
+            layers.forEach(layer => {
+                if (layer.visualizer) {
+                    layer.visualizer.clickIntensity = 0.0;
+                    layer.visualizer.mouseIntensity = 0.0;
+                }
+            });
+        }, { passive: false });
+        
+        // Scroll interactions
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            clickIntensity = Math.min(1.0, Math.abs(e.deltaY) / 100);
+            
+            layers.forEach(layer => {
+                if (layer.visualizer) {
+                    layer.visualizer.clickIntensity = clickIntensity;
+                }
+            });
+            
+            setTimeout(() => { 
+                clickIntensity = 0.0;
+                layers.forEach(layer => {
+                    if (layer.visualizer) {
+                        layer.visualizer.clickIntensity = 0.0;
+                    }
+                });
+            }, 300);
+        }, { passive: false });`;
     }
     
     /**
@@ -1566,7 +1679,60 @@ void main() {
                 
                 this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
             }
-        }`;
+        }
+        
+        // Enhanced interactivity system for Holographic cards
+        let mouseX = 0.5, mouseY = 0.5, mouseIntensity = 0.0;
+        let clickIntensity = 0.0;
+        let currentTouch = null;
+        
+        // Mouse interactions
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = (e.clientX - rect.left) / rect.width;
+            mouseY = 1.0 - (e.clientY - rect.top) / rect.height;
+            mouseIntensity = Math.min(1.0, Math.sqrt(e.movementX*e.movementX + e.movementY*e.movementY) / 40);
+            
+            // Update all layer visualizers
+            layers.forEach(layer => {
+                if (layer.visualizer) {
+                    layer.visualizer.mouseX = mouseX;
+                    layer.visualizer.mouseY = mouseY;
+                    layer.visualizer.mouseIntensity = mouseIntensity;
+                }
+            });
+        });
+        
+        // Audio reactivity (double-click to enable)
+        let audioEnabled = false;
+        let audioContext = null;
+        let analyser = null;
+        let frequencyData = null;
+        
+        canvas.addEventListener('dblclick', async () => {
+            if (!audioEnabled) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 256;
+                    frequencyData = new Uint8Array(analyser.frequencyBinCount);
+                    
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        audio: { echoCancellation: false, noiseSuppression: false }
+                    });
+                    
+                    const source = audioContext.createMediaStreamSource(stream);
+                    source.connect(analyser);
+                    audioEnabled = true;
+                    
+                    console.log('🎵 Trading card audio reactivity ENABLED');
+                    canvas.style.border = '2px solid #00ff00';
+                    setTimeout(() => { canvas.style.border = ''; }, 2000);
+                } catch (error) {
+                    console.error('Audio failed:', error);
+                }
+            }
+        });`;
     }
     
     /**

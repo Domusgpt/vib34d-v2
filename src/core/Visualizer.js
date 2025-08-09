@@ -106,82 +106,177 @@ vec3 project4Dto3D(vec4 p) {
     return vec3(p.x * w, p.y * w, p.z * w);
 }
 
-// Simplified geometry functions for WebGL 1.0 compatibility
+// Complex 3D Lattice Functions - From Trading Card Superior Shaders
+float tetrahedronLattice(vec3 p, float gridSize) {
+    vec3 q = fract(p * gridSize) - 0.5;
+    float d1 = length(q);
+    float d2 = length(q - vec3(0.4, 0.0, 0.0));
+    float d3 = length(q - vec3(0.0, 0.4, 0.0));
+    float d4 = length(q - vec3(0.0, 0.0, 0.4));
+    float vertices = 1.0 - smoothstep(0.0, 0.04, min(min(d1, d2), min(d3, d4)));
+    float edges = 0.0;
+    edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.xy) - 0.2)));
+    edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.yz) - 0.2)));
+    edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.xz) - 0.2)));
+    return max(vertices, edges * 0.5);
+}
+
+float hypercubeLattice(vec3 p, float gridSize) {
+    vec3 grid = fract(p * gridSize);
+    vec3 edges = min(grid, 1.0 - grid);
+    float minEdge = min(min(edges.x, edges.y), edges.z);
+    float lattice = 1.0 - smoothstep(0.0, 0.03, minEdge);
+    
+    vec3 centers = abs(grid - 0.5);
+    float maxCenter = max(max(centers.x, centers.y), centers.z);
+    float vertices = 1.0 - smoothstep(0.45, 0.5, maxCenter);
+    
+    return max(lattice * 0.7, vertices);
+}
+
+float sphereLattice(vec3 p, float gridSize) {
+    vec3 cell = fract(p * gridSize) - 0.5;
+    float sphere = 1.0 - smoothstep(0.15, 0.25, length(cell));
+    
+    float rings = 0.0;
+    float ringRadius = length(cell.xy);
+    rings = max(rings, 1.0 - smoothstep(0.0, 0.02, abs(ringRadius - 0.3)));
+    rings = max(rings, 1.0 - smoothstep(0.0, 0.02, abs(ringRadius - 0.2)));
+    
+    return max(sphere, rings * 0.6);
+}
+
+float torusLattice(vec3 p, float gridSize) {
+    vec3 cell = fract(p * gridSize) - 0.5;
+    float majorRadius = 0.3;
+    float minorRadius = 0.1;
+    
+    float toroidalDist = length(vec2(length(cell.xy) - majorRadius, cell.z));
+    float torus = 1.0 - smoothstep(minorRadius - 0.02, minorRadius + 0.02, toroidalDist);
+    
+    float rings = 0.0;
+    float angle = atan(cell.y, cell.x);
+    rings = sin(angle * 8.0) * 0.02;
+    
+    return max(torus, 0.0) + rings;
+}
+
+float kleinLattice(vec3 p, float gridSize) {
+    vec3 cell = fract(p * gridSize) - 0.5;
+    float u = atan(cell.y, cell.x) / 3.14159 + 1.0;
+    float v = cell.z + 0.5;
+    
+    float x = (2.0 + cos(u * 0.5)) * cos(u);
+    float y = (2.0 + cos(u * 0.5)) * sin(u);
+    float z = sin(u * 0.5) + v;
+    
+    vec3 kleinPoint = vec3(x, y, z) * 0.1;
+    float dist = length(cell - kleinPoint);
+    
+    return 1.0 - smoothstep(0.1, 0.15, dist);
+}
+
+float fractalLattice(vec3 p, float gridSize) {
+    vec3 cell = fract(p * gridSize);
+    cell = abs(cell * 2.0 - 1.0);
+    
+    float dist = length(max(abs(cell) - 0.3, 0.0));
+    
+    // Recursive subdivision
+    for(int i = 0; i < 3; i++) {
+        cell = abs(cell * 2.0 - 1.0);
+        float subdist = length(max(abs(cell) - 0.3, 0.0)) / pow(2.0, float(i + 1));
+        dist = min(dist, subdist);
+    }
+    
+    return 1.0 - smoothstep(0.0, 0.05, dist);
+}
+
+float waveLattice(vec3 p, float gridSize) {
+    float time = u_time * 0.001 * u_speed;
+    vec3 cell = fract(p * gridSize) - 0.5;
+    
+    float wave1 = sin(p.x * gridSize * 2.0 + time * 2.0);
+    float wave2 = sin(p.y * gridSize * 1.8 + time * 1.5);
+    float wave3 = sin(p.z * gridSize * 2.2 + time * 1.8);
+    
+    float interference = (wave1 + wave2 + wave3) / 3.0;
+    float amplitude = 1.0 - length(cell) * 2.0;
+    
+    return max(0.0, interference * amplitude);
+}
+
+float crystalLattice(vec3 p, float gridSize) {
+    vec3 cell = fract(p * gridSize) - 0.5;
+    
+    // Octahedral crystal structure
+    float crystal = max(max(abs(cell.x) + abs(cell.y), abs(cell.y) + abs(cell.z)), abs(cell.x) + abs(cell.z));
+    crystal = 1.0 - smoothstep(0.3, 0.4, crystal);
+    
+    // Add crystalline faces
+    float faces = 0.0;
+    faces = max(faces, 1.0 - smoothstep(0.0, 0.02, abs(abs(cell.x) - 0.35)));
+    faces = max(faces, 1.0 - smoothstep(0.0, 0.02, abs(abs(cell.y) - 0.35)));
+    faces = max(faces, 1.0 - smoothstep(0.0, 0.02, abs(abs(cell.z) - 0.35)));
+    
+    return max(crystal, faces * 0.5);
+}
+
+// Enhanced geometry function with holographic effects
 float geometryFunction(vec4 p) {
     int geomType = int(u_geometry);
+    vec3 p3d = project4Dto3D(p);
+    float gridSize = u_gridDensity * 0.08;
     
     if (geomType == 0) {
-        // Tetrahedron lattice - UNIFORM GRID DENSITY
-        vec4 pos = fract(p * u_gridDensity * 0.08);
-        vec4 dist = min(pos, 1.0 - pos);
-        return min(min(dist.x, dist.y), min(dist.z, dist.w)) * u_morphFactor;
+        return tetrahedronLattice(p3d, gridSize) * u_morphFactor;
     }
     else if (geomType == 1) {
-        // Hypercube lattice - UNIFORM GRID DENSITY
-        vec4 pos = fract(p * u_gridDensity * 0.08);
-        vec4 dist = min(pos, 1.0 - pos);
-        float minDist = min(min(dist.x, dist.y), min(dist.z, dist.w));
-        return minDist * u_morphFactor;
+        return hypercubeLattice(p3d, gridSize) * u_morphFactor;
     }
     else if (geomType == 2) {
-        // Sphere lattice - UNIFORM GRID DENSITY
-        float r = length(p);
-        float density = u_gridDensity * 0.08;
-        float spheres = abs(fract(r * density) - 0.5) * 2.0;
-        float theta = atan(p.y, p.x);
-        float harmonics = sin(theta * 3.0) * 0.2;
-        return (spheres + harmonics) * u_morphFactor;
+        return sphereLattice(p3d, gridSize) * u_morphFactor;
     }
     else if (geomType == 3) {
-        // Torus lattice - UNIFORM GRID DENSITY
-        float r1 = length(p.xy) - 2.0;
-        float torus = length(vec2(r1, p.z)) - 0.8;
-        float lattice = sin(p.x * u_gridDensity * 0.08) * sin(p.y * u_gridDensity * 0.08);
-        return (torus + lattice * 0.3) * u_morphFactor;
+        return torusLattice(p3d, gridSize) * u_morphFactor;
     }
     else if (geomType == 4) {
-        // Klein bottle lattice - UNIFORM GRID DENSITY
-        float u = atan(p.y, p.x);
-        float v = atan(p.w, p.z);
-        float dist = length(p) - 2.0;
-        float lattice = sin(u * u_gridDensity * 0.08) * sin(v * u_gridDensity * 0.08);
-        return (dist + lattice * 0.4) * u_morphFactor;
+        return kleinLattice(p3d, gridSize) * u_morphFactor;
     }
     else if (geomType == 5) {
-        // Fractal lattice - NOW WITH UNIFORM GRID DENSITY
-        vec4 pos = fract(p * u_gridDensity * 0.08);
-        pos = abs(pos * 2.0 - 1.0);
-        float dist = length(max(abs(pos) - 1.0, 0.0));
-        return dist * u_morphFactor;
+        return fractalLattice(p3d, gridSize) * u_morphFactor;
     }
     else if (geomType == 6) {
-        // Wave lattice - UNIFORM GRID DENSITY
-        float freq = u_gridDensity * 0.08;
-        float time = u_time * 0.001 * u_speed;
-        float wave1 = sin(p.x * freq + time);
-        float wave2 = sin(p.y * freq + time * 1.3);
-        float wave3 = sin(p.z * freq * 0.8 + time * 0.7); // Add Z-dimension waves
-        float interference = wave1 * wave2 * wave3;
-        return interference * u_morphFactor;
+        return waveLattice(p3d, gridSize) * u_morphFactor;
     }
     else if (geomType == 7) {
-        // Crystal lattice - UNIFORM GRID DENSITY
-        vec4 pos = fract(p * u_gridDensity * 0.08) - 0.5;
-        float cube = max(max(abs(pos.x), abs(pos.y)), max(abs(pos.z), abs(pos.w)));
-        return cube * u_morphFactor;
+        return crystalLattice(p3d, gridSize) * u_morphFactor;
     }
     else {
-        // Default hypercube - UNIFORM GRID DENSITY
-        vec4 pos = fract(p * u_gridDensity * 0.08);
-        vec4 dist = min(pos, 1.0 - pos);
-        return min(min(dist.x, dist.y), min(dist.z, dist.w)) * u_morphFactor;
+        return hypercubeLattice(p3d, gridSize) * u_morphFactor;
     }
+}
+
+// HSV to RGB conversion for better color control
+vec3 hsv2rgb(vec3 c) {
+    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+// RGB Glitch effect for holographic shimmer
+vec3 rgbGlitch(vec3 color, vec2 uv, float intensity) {
+    vec2 offset = vec2(intensity * 0.005, 0.0);
+    float r = color.r + sin(uv.y * 30.0 + u_time * 0.001) * intensity * 0.06;
+    float g = color.g + sin(uv.y * 28.0 + u_time * 0.0012) * intensity * 0.06;
+    float b = color.b + sin(uv.y * 32.0 + u_time * 0.0008) * intensity * 0.06;
+    return vec3(r, g, b);
 }
 
 void main() {
     vec2 uv = (gl_FragCoord.xy - u_resolution.xy * 0.5) / min(u_resolution.x, u_resolution.y);
     
-    // 4D position with mouse interaction - NOW USING SPEED PARAMETER
+    // Enhanced 4D position with holographic depth
     float timeSpeed = u_time * 0.0001 * u_speed;
     vec4 pos = vec4(uv * 3.0, sin(timeSpeed * 3.0), cos(timeSpeed * 2.0));
     pos.xy += (u_mouse - 0.5) * u_mouseIntensity * 2.0;
@@ -191,34 +286,56 @@ void main() {
     pos = rotateYW(u_rot4dYW) * pos;
     pos = rotateZW(u_rot4dZW) * pos;
     
-    // Calculate geometry value
+    // Calculate enhanced geometry value
     float value = geometryFunction(pos);
     
-    // Apply chaos
+    // Enhanced chaos with holographic effects
     float noise = sin(pos.x * 7.0) * cos(pos.y * 11.0) * sin(pos.z * 13.0);
     value += noise * u_chaos;
     
-    // Color based on geometry value and hue with user-controlled intensity/saturation
-    float geometryIntensity = 1.0 - clamp(abs(value), 0.0, 1.0);
+    // Enhanced intensity calculation with holographic glow
+    float geometryIntensity = 1.0 - clamp(abs(value * 0.8), 0.0, 1.0);
+    geometryIntensity = pow(geometryIntensity, 1.5); // More dramatic falloff
     geometryIntensity += u_clickIntensity * 0.3;
+    
+    // Holographic shimmer effect
+    float shimmer = sin(uv.x * 20.0 + timeSpeed * 5.0) * cos(uv.y * 15.0 + timeSpeed * 3.0) * 0.1;
+    geometryIntensity += shimmer * geometryIntensity;
     
     // Apply user intensity control
     float finalIntensity = geometryIntensity * u_intensity;
     
-    float hue = u_hue / 360.0 + value * 0.1;
+    // Enhanced HSV color system
+    float baseHue = u_hue / 360.0;
+    float hueShift = value * 0.2 + timeSpeed * 0.1; // Color shifts over time
+    float finalHue = baseHue + hueShift;
     
-    // Create color with saturation control
-    vec3 baseColor = vec3(
-        sin(hue * 6.28318 + 0.0) * 0.5 + 0.5,
-        sin(hue * 6.28318 + 2.0943) * 0.5 + 0.5,
-        sin(hue * 6.28318 + 4.1887) * 0.5 + 0.5
-    );
+    // Create rich holographic color
+    vec3 hsvColor = vec3(finalHue, u_saturation, finalIntensity);
+    vec3 baseColor = hsv2rgb(hsvColor);
     
-    // Apply saturation (mix with grayscale)
-    float gray = (baseColor.r + baseColor.g + baseColor.b) / 3.0;
-    vec3 color = mix(vec3(gray), baseColor, u_saturation) * finalIntensity;
+    // Add holographic particles effect
+    float particles = 0.0;
+    vec2 particleUV = uv * 8.0;
+    vec2 particleID = floor(particleUV);
+    vec2 particlePos = fract(particleUV) - 0.5;
+    float particleDist = length(particlePos);
     
-    gl_FragColor = vec4(color, finalIntensity * u_roleIntensity);
+    // Animated particles
+    float particleTime = timeSpeed + dot(particleID, vec2(127.1, 311.7));
+    float particleAlpha = sin(particleTime) * 0.5 + 0.5;
+    particles = (1.0 - smoothstep(0.1, 0.3, particleDist)) * particleAlpha * 0.3;
+    
+    // Apply RGB glitch for holographic shimmer
+    vec3 glitchedColor = rgbGlitch(baseColor, uv, finalIntensity * 0.5);
+    
+    // Combine base color with particles
+    vec3 finalColor = glitchedColor + particles * vec3(1.0, 0.8, 1.0);
+    
+    // Enhanced role-based intensity
+    float roleIntensity = u_roleIntensity;
+    
+    gl_FragColor = vec4(finalColor, finalIntensity * roleIntensity);
 }`;
         
         this.program = this.createProgram(vertexShaderSource, fragmentShaderSource);
