@@ -849,11 +849,18 @@
             
             console.log('🎯 Applying gallery preview parameters:', previewData);
             
-            // Switch to the correct system first
-            if (previewData.system !== currentSystem) {
+            // CRITICAL FIX: Switch to the correct system first and wait longer
+            if (previewData.system !== window.currentSystem) {
+                console.log(`🔄 Switching from ${window.currentSystem} to ${previewData.system} for gallery preview`);
                 await switchSystem(previewData.system);
-                // Wait for system switch to complete
-                await new Promise(resolve => setTimeout(resolve, 200));
+                // Wait longer for system switch to complete fully
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                // Verify the switch actually happened
+                if (window.currentSystem !== previewData.system) {
+                    console.error(`❌ System switch failed: expected ${previewData.system}, got ${window.currentSystem}`);
+                    return;
+                }
             }
             
             // Apply all parameters from URL
@@ -869,7 +876,8 @@
                     const slider = document.getElementById(param);
                     if (slider) {
                         slider.value = value;
-                        updateParameter(param, value);
+                        // Use a small delay to ensure system is ready
+                        setTimeout(() => updateParameter(param, value), 50);
                     }
                 }
             });
@@ -963,24 +971,29 @@
             
             // Enhanced parameter updates with comprehensive error handling
             try {
-                if (currentSystem === 'faceted' && window.engine) {
+                // CRITICAL FIX: Use window.currentSystem instead of local currentSystem variable
+                const activeSystem = window.currentSystem || currentSystem || 'faceted';
+                
+                if (activeSystem === 'faceted' && window.engine) {
                     // For VIB34DIntegratedEngine, update parameter manager and call updateFromControls
                     window.engine.parameterManager.setParameter(param, parseFloat(value));
                     window.engine.updateVisualizers();
                     
-                } else if (currentSystem === 'quantum' && window.quantumEngine) {
+                } else if (activeSystem === 'quantum' && window.quantumEngine) {
                     // For Quantum Engine, use enhanced parameter updates
                     window.quantumEngine.updateParameter(param, parseFloat(value));
                     
-                } else if (currentSystem === 'holographic' && window.holographicSystem) {
+                } else if (activeSystem === 'holographic' && window.holographicSystem) {
                     // For Holographic system, use direct parameter names (mapping handled in visualizer)
                     window.holographicSystem.updateParameter(param, parseFloat(value));
                     
-                } else if (currentSystem === 'polychora' && window.polychoraSystem) {
+                } else if (activeSystem === 'polychora' && window.polychoraSystem) {
                     window.polychoraSystem.updateParameters({ [param]: parseFloat(value) });
                 } else {
-                    console.warn(`⚠️ Parameter update failed: ${currentSystem} system not available or not initialized`);
-                    console.warn(`   Current system: ${currentSystem}`);
+                    console.warn(`⚠️ Parameter update failed: ${activeSystem} system not available or not initialized`);
+                    console.warn(`   Active system: ${activeSystem}`);
+                    console.warn(`   Local currentSystem: ${currentSystem}`);
+                    console.warn(`   Window currentSystem: ${window.currentSystem}`);
                     console.warn(`   Available engines:`, {
                         engine: !!window.engine,
                         quantumEngine: !!window.quantumEngine, 
@@ -990,7 +1003,7 @@
                     return;
                 }
                 
-                console.log(`📊 ${currentSystem.toUpperCase()}: ${param} = ${value}`);
+                console.log(`📊 ${activeSystem.toUpperCase()}: ${param} = ${value}`);
                 
             } catch (error) {
                 console.error(`❌ Parameter update error in ${currentSystem} for ${param}:`, error);
