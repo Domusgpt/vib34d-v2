@@ -554,6 +554,10 @@
             <button class="panel-btn" onclick="resetAll()">🔄 Reset</button>
             <button class="panel-btn" onclick="saveToGallery()" style="background: rgba(0, 255, 255, 0.1); border-color: rgba(0, 255, 255, 0.3); color: #00ffff;">💾 Save to Gallery</button>
         </div>
+        <div class="action-row">
+            <button class="panel-btn" onclick="createTradingCard('classic')" style="background: rgba(255, 150, 0, 0.1); border-color: rgba(255, 150, 0, 0.3); color: #ff9600;">🎴 Trading Card</button>
+            <button class="panel-btn" onclick="createTradingCard('social')" style="background: rgba(255, 100, 255, 0.1); border-color: rgba(255, 100, 255, 0.3); color: #ff64ff;">📱 Social Card</button>
+        </div>
     </div>
     
     <script type="module">
@@ -563,6 +567,7 @@
         import { CollectionManager } from './src/features/CollectionManager.js';
         import { UnifiedSaveManager } from './src/core/UnifiedSaveManager.js';
         import { ParameterMapper } from './src/core/ParameterMapper.js';
+        import { TradingCardGenerator } from './src/export/TradingCardGenerator.js';
         
         // Global state - CRITICAL FIX: Ensure window.currentSystem is properly set
         let currentSystem = 'faceted';
@@ -1289,6 +1294,30 @@
             setTimeout(() => {
                 notification.remove();
             }, 3000);
+        }
+        
+        // Create Trading Card function
+        window.createTradingCard = async function(format = 'classic') {
+            console.log(`🎴 Creating ${format} trading card...`);
+            
+            try {
+                // Initialize TradingCardGenerator if needed
+                if (!window.tradingCardGenerator) {
+                    window.tradingCardGenerator = new TradingCardGenerator(engine);
+                }
+                
+                // Generate the trading card
+                const result = await window.tradingCardGenerator.generateTradingCard(format);
+                
+                if (result.success) {
+                    console.log(`✅ Trading card created: ${result.filename}`);
+                }
+            } catch (error) {
+                console.error('❌ Failed to create trading card:', error);
+                if (engine?.statusManager) {
+                    engine.statusManager.error(`Failed to create trading card: ${error.message}`);
+                }
+            }
         }
         
         // Save to Gallery function - uses UnifiedSaveManager

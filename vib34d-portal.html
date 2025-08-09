@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D Portal - Enter the Holographic Dimension</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.2) 0%, transparent 70%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+        }
+        
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            background: radial-gradient(ellipse at center, rgba(0, 255, 255, 0.1) 0%, transparent 60%);
+        }
+        
+        .portal-animation {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, transparent 30%, rgba(0, 255, 255, 0.1) 60%, transparent 100%);
+            animation: portalPulse 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes portalPulse {
+            0%, 100% { 
+                transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                opacity: 0.5;
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.2) rotate(180deg);
+                opacity: 0.8;
+            }
+        }
+        
+        .portal-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+            border: 3px solid transparent;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #00ffff, #ff64ff, #ff9600, #00ffff);
+            background-clip: border-box;
+            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: portalRotate 10s linear infinite;
+        }
+        
+        @keyframes portalRotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            max-width: 800px;
+        }
+        
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #00ffff, #ff64ff, #ff9600);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(0, 255, 255, 0.5);
+            margin-bottom: 20px;
+            letter-spacing: 5px;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+            0% { filter: brightness(1) hue-rotate(0deg); }
+            100% { filter: brightness(1.2) hue-rotate(30deg); }
+        }
+        
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 40px;
+            letter-spacing: 3px;
+        }
+        
+        .hero-description {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 50px;
+            line-height: 1.6;
+            max-width: 600px;
+        }
+        
+        .cta-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .cta-button {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border: none;
+            color: #000;
+            padding: 20px 40px;
+            border-radius: 30px;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 40px rgba(255, 107, 53, 0.4);
+            text-decoration: none;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+        
+        .cta-button:hover::before {
+            left: 100%;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 60px rgba(255, 107, 53, 0.8);
+        }
+        
+        .cta-button.secondary {
+            background: linear-gradient(45deg, #00ffff, #0099ff);
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
+        }
+        
+        .cta-button.secondary:hover {
+            box-shadow: 0 0 60px rgba(0, 255, 255, 0.8);
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 100px 20px;
+            background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.8));
+        }
+        
+        .features-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .features-title {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #00ffff;
+            text-align: center;
+            margin-bottom: 60px;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+        
+        .feature-card {
+            background: linear-gradient(145deg, rgba(0,0,0,0.9), rgba(30,30,60,0.9));
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(45deg, 
+                rgba(0, 255, 255, 0.05), 
+                rgba(255, 100, 255, 0.05), 
+                rgba(255, 150, 0, 0.05));
+            background-size: 300% 300%;
+            animation: featureShimmer 6s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes featureShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: #00ffff;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #00ffff;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+        
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 15px;
+        }
+        
+        .feature-description {
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+        }
+        
+        /* Systems Section */
+        .systems {
+            padding: 100px 20px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent);
+        }
+        
+        .systems-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .systems-title {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #ff64ff;
+            text-align: center;
+            margin-bottom: 60px;
+            text-shadow: 0 0 30px rgba(255, 100, 255, 0.6);
+        }
+        
+        .systems-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .system-card {
+            background: linear-gradient(145deg, rgba(0,0,0,0.9), rgba(60,30,60,0.9));
+            border: 2px solid rgba(255, 100, 255, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .system-card:hover {
+            transform: scale(1.05);
+            border-color: #ff64ff;
+            box-shadow: 0 0 40px rgba(255, 100, 255, 0.4);
+        }
+        
+        .system-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ff64ff;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .system-features {
+            list-style: none;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+        
+        .system-features li {
+            margin-bottom: 8px;
+        }
+        
+        .system-features li::before {
+            content: '✦ ';
+            color: #ff64ff;
+        }
+        
+        /* Call to Action Footer */
+        .footer-cta {
+            padding: 80px 20px;
+            text-align: center;
+            background: radial-gradient(ellipse at center, rgba(255, 150, 0, 0.1) 0%, transparent 60%);
+        }
+        
+        .footer-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #ff9600;
+            margin-bottom: 30px;
+            text-shadow: 0 0 30px rgba(255, 150, 0, 0.6);
+        }
+        
+        .footer-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        
+        .social-link {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .social-link:hover {
+            color: #00ffff;
+            transform: translateY(-3px);
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            .portal-animation {
+                width: 350px;
+                height: 350px;
+            }
+            .portal-ring {
+                width: 300px;
+                height: 300px;
+            }
+            .features-grid,
+            .systems-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Floating particles */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            opacity: 0.6;
+            animation: floatUp 10s linear infinite;
+        }
+        
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="portal-animation"></div>
+        <div class="portal-ring"></div>
+        
+        <div class="hero-content">
+            <h1 class="hero-title">VIB34D PORTAL</h1>
+            <p class="hero-subtitle">Enter the Holographic Dimension</p>
+            <p class="hero-description">
+                Welcome to the complete VIB34D collection. Experience 100+ legendary variations, 
+                3 revolutionary visualization systems, and the power to create your own 4D holographic trading cards.
+            </p>
+            
+            <div class="cta-container">
+                <a href="./index.html" class="cta-button">
+                    🚀 Launch VIB34D Engine
+                </a>
+                <a href="./gallery.html" class="cta-button secondary">
+                    🖼️ Browse Gallery
+                </a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section class="features">
+        <div class="features-container">
+            <h2 class="features-title">🌟 COLLECTION FEATURES</h2>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎴</div>
+                    <h3 class="feature-title">Trading Card Creator</h3>
+                    <p class="feature-description">
+                        Generate personalized trading cards from your visualizations. 
+                        Export as classic or social media format. Share your unique 4D creations 
+                        with the world.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🌌</div>
+                    <h3 class="feature-title">100+ Variations</h3>
+                    <p class="feature-description">
+                        Explore our vast collection of pre-configured holographic variations. 
+                        From common to mythic rarity, each variation offers a unique 
+                        4D mathematical experience.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🎮</div>
+                    <h3 class="feature-title">Real-time Control</h3>
+                    <p class="feature-description">
+                        Take full control with our comprehensive parameter system. 
+                        Adjust 4D rotations, visual properties, and physics in real-time 
+                        to create your perfect visualization.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3 class="feature-title">Save & Share</h3>
+                    <p class="feature-description">
+                        Save your custom variations to the gallery. Export as trading cards, 
+                        JSON configurations, or standalone HTML files. Build your collection 
+                        and share with the community.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔬</div>
+                    <h3 class="feature-title">4D Mathematics</h3>
+                    <p class="feature-description">
+                        Powered by authentic 4D mathematical projections. Experience 
+                        hypercubes, Klein bottles, and other impossible geometries 
+                        rendered in real-time WebGL.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">✨</div>
+                    <h3 class="feature-title">Holographic Effects</h3>
+                    <p class="feature-description">
+                        Cinema-quality visual effects with 5-layer rendering, 
+                        holographic shaders, and dynamic lighting. Each visualization 
+                        is a work of digital art.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Systems Section -->
+    <section class="systems">
+        <div class="systems-container">
+            <h2 class="systems-title">⚡ THREE VISUALIZATION SYSTEMS</h2>
+            
+            <div class="systems-grid">
+                <div class="system-card">
+                    <h3 class="system-name">Faceted</h3>
+                    <ul class="system-features">
+                        <li>Classic 4D geometry engine</li>
+                        <li>8 fundamental shapes</li>
+                        <li>WebGL optimized rendering</li>
+                        <li>Precise parameter control</li>
+                        <li>Mathematical accuracy</li>
+                    </ul>
+                </div>
+                
+                <div class="system-card">
+                    <h3 class="system-name">Holographic</h3>
+                    <ul class="system-features">
+                        <li>5-layer hologram system</li>
+                        <li>Audio reactivity</li>
+                        <li>Advanced shader effects</li>
+                        <li>Dynamic color systems</li>
+                        <li>Real-time morphing</li>
+                    </ul>
+                </div>
+                
+                <div class="system-card">
+                    <h3 class="system-name">Polychora</h3>
+                    <ul class="system-features">
+                        <li>6D rotation matrices</li>
+                        <li>Glass material effects</li>
+                        <li>4D physics simulation</li>
+                        <li>Advanced polytopes</li>
+                        <li>Cinema-quality rendering</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer CTA -->
+    <section class="footer-cta">
+        <h2 class="footer-title">🎯 START YOUR COLLECTION</h2>
+        
+        <div class="footer-buttons">
+            <a href="./index.html" class="cta-button">
+                🌌 Launch VIB34D Engine
+            </a>
+            <a href="./trading-cards-showcase.html" class="cta-button secondary">
+                🎴 View Trading Cards
+            </a>
+            <a href="./gallery.html" class="cta-button secondary">
+                🖼️ Browse Gallery
+            </a>
+        </div>
+        
+        <p style="color: rgba(255,255,255,0.6); margin-top: 30px;">
+            Join the VIB34D community and explore the infinite possibilities of 4D visualization
+        </p>
+        
+        <div class="social-links">
+            <a href="#" class="social-link" title="GitHub">🔗</a>
+            <a href="#" class="social-link" title="Share">📤</a>
+            <a href="#" class="social-link" title="Documentation">📚</a>
+        </div>
+    </section>
+    
+    <script>
+        // Create floating particles
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * window.innerWidth + 'px';
+            particle.style.animationDelay = Math.random() * 10 + 's';
+            particle.style.fontSize = Math.random() * 20 + 10 + 'px';
+            
+            const symbols = ['✦', '◈', '◆', '○', '●', '◉', '⬟', '⬢'];
+            particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+            
+            const hue = Math.random() * 360;
+            particle.style.color = `hsla(${hue}, 80%, 60%, 0.6)`;
+            
+            document.body.appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+            }, 10000);
+        }
+        
+        // Create particles periodically
+        setInterval(createParticle, 2000);
+        
+        // Initial particles
+        for (let i = 0; i < 5; i++) {
+            setTimeout(createParticle, i * 400);
+        }
+        
+        // Parallax effect on hero
+        document.addEventListener('mousemove', (e) => {
+            const portal = document.querySelector('.portal-animation');
+            const ring = document.querySelector('.portal-ring');
+            
+            if (portal && ring) {
+                const x = (e.clientX - window.innerWidth / 2) / 50;
+                const y = (e.clientY - window.innerHeight / 2) / 50;
+                
+                portal.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(1)`;
+                ring.style.transform = `translate(calc(-50% - ${x}px), calc(-50% - ${y}px)) rotate(${Date.now() / 100 % 360}deg)`;
+            }
+        });
+    </script>
+</body>
+</html>
