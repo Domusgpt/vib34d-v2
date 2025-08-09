@@ -18,10 +18,13 @@ export class TradingCardGenerator {
         // Capture current parameters
         const state = this.captureCurrentState();
         
+        // Capture the actual canvas visual as base64 image
+        const canvasImage = await this.captureCanvasImage();
+        
         // Generate card HTML based on format
         const cardHTML = format === 'social' ? 
-            this.generateSocialCard(state) : 
-            this.generateClassicCard(state);
+            this.generateSocialCard(state, canvasImage) : 
+            this.generateClassicCard(state, canvasImage);
         
         // Create blob and download
         const blob = new Blob([cardHTML], { type: 'text/html' });
@@ -53,6 +56,100 @@ export class TradingCardGenerator {
         }
         
         return { success: true, filename, state };
+    }
+    
+    /**
+     * Capture the actual canvas as an image
+     */
+    async captureCanvasImage() {
+        console.log('📸 Capturing actual canvas visualization...');
+        
+        // Find the active canvas based on current system
+        let canvas = null;
+        const systemCanvasMap = {
+            'faceted': ['faceted-content-canvas', 'faceted-highlight-canvas'],
+            'holographic': ['holo-content-canvas', 'holo-highlight-canvas'],
+            'polychora': ['polychora-content-canvas', 'polychora-highlight-canvas']
+        };
+        
+        // Try to get the most visible canvas from the current system
+        const canvasIds = systemCanvasMap[this.currentSystem] || [];
+        for (const id of canvasIds) {
+            const c = document.getElementById(id);
+            if (c && c.getContext) {
+                canvas = c;
+                break;
+            }
+        }
+        
+        // Fallback to any visible canvas
+        if (!canvas) {
+            const allCanvases = document.querySelectorAll('canvas');
+            for (const c of allCanvases) {
+                if (c.offsetParent !== null && c.width > 0 && c.height > 0) {
+                    canvas = c;
+                    break;
+                }
+            }
+        }
+        
+        if (!canvas) {
+            console.warn('⚠️ No active canvas found, using placeholder');
+            return null;
+        }
+        
+        try {
+            // Create a composite canvas to capture all layers
+            const compositeCanvas = document.createElement('canvas');
+            const targetWidth = 800;
+            const targetHeight = 600;
+            compositeCanvas.width = targetWidth;
+            compositeCanvas.height = targetHeight;
+            const ctx = compositeCanvas.getContext('2d');
+            
+            // Black background
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, targetWidth, targetHeight);
+            
+            // Draw gradient background
+            const gradient = ctx.createRadialGradient(
+                targetWidth/2, targetHeight/2, 0,
+                targetWidth/2, targetHeight/2, targetWidth/2
+            );
+            const hue = this.engine?.parameterManager?.getParameter('hue') || 200;
+            gradient.addColorStop(0, `hsla(${hue}, 80%, 50%, 0.1)`);
+            gradient.addColorStop(0.5, `hsla(${(hue + 60) % 360}, 60%, 40%, 0.05)`);
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0.8)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, targetWidth, targetHeight);
+            
+            // Draw all canvases from current system
+            const layerOrder = ['background', 'shadow', 'content', 'highlight', 'accent'];
+            for (const layer of layerOrder) {
+                const layerId = this.currentSystem === 'faceted' ? 
+                    `faceted-${layer}-canvas` : 
+                    this.currentSystem === 'holographic' ? 
+                    `holo-${layer}-canvas` : 
+                    `polychora-${layer}-canvas`;
+                
+                const layerCanvas = document.getElementById(layerId);
+                if (layerCanvas && layerCanvas.width > 0) {
+                    ctx.globalAlpha = layer === 'background' ? 0.3 : 
+                                     layer === 'shadow' ? 0.5 : 
+                                     layer === 'accent' ? 0.7 : 1.0;
+                    ctx.drawImage(layerCanvas, 0, 0, targetWidth, targetHeight);
+                }
+            }
+            
+            // Convert to base64
+            const imageData = compositeCanvas.toDataURL('image/png', 0.9);
+            console.log('✅ Canvas captured successfully');
+            return imageData;
+            
+        } catch (error) {
+            console.error('❌ Error capturing canvas:', error);
+            return null;
+        }
     }
     
     /**
@@ -106,9 +203,11 @@ export class TradingCardGenerator {
     /**
      * Generate classic vertical trading card HTML
      */
-    generateClassicCard(state) {
-        // Generate visualization code based on current parameters
-        const visualizationCode = this.generateVisualizationCode(state);
+    generateClassicCard(state, canvasImage) {
+        // Use captured image or generate visualization code as fallback
+        const visualizationContent = canvasImage ? 
+            this.generateImageVisualization(canvasImage) : 
+            this.generateVisualizationCode(state);
         
         return `<!DOCTYPE html>
 <html lang="en">
@@ -246,6 +345,14 @@ export class TradingCardGenerator {
             width: 100%;
             height: 100%;
             display: block;
+            border-radius: 10px;
+        }
+        
+        .visualizer-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
         }
         
         .stats-panel {
@@ -360,7 +467,10 @@ export class TradingCardGenerator {
         </div>
         
         <div class="visualizer-container">
-            <canvas class="visualizer-canvas" id="vib34dCanvas"></canvas>
+            ${canvasImage ? 
+                `<img src="${canvasImage}" class="visualizer-canvas" alt="${state.name}" style="width: 100%; height: 100%; object-fit: cover;" />` : 
+                `<canvas class="visualizer-canvas" id="vib34dCanvas"></canvas>`
+            }
         </div>
         
         <div class="stats-panel">
@@ -400,12 +510,14 @@ export class TradingCardGenerator {
     </div>
 
     <script>
-        ${visualizationCode}
+        ${visualizationContent}
         
-        // Initialize visualizer
+        // Initialize visualizer (only if using canvas, not image)
         document.addEventListener('DOMContentLoaded', () => {
             const canvas = document.getElementById('vib34dCanvas');
-            new TradingCardVisualizer(canvas);
+            if (canvas) {
+                ${canvasImage ? '// Using captured image, no animation needed' : 'new TradingCardVisualizer(canvas);'}
+            }
         });
         
         // Collect button action - leads to VIB34D Portal
@@ -437,8 +549,10 @@ export class TradingCardGenerator {
     /**
      * Generate social media card HTML
      */
-    generateSocialCard(state) {
-        const visualizationCode = this.generateVisualizationCode(state);
+    generateSocialCard(state, canvasImage) {
+        const visualizationContent = canvasImage ? 
+            this.generateImageVisualization(canvasImage) : 
+            this.generateVisualizationCode(state);
         
         return `<!DOCTYPE html>
 <html lang="en">
@@ -491,6 +605,14 @@ export class TradingCardGenerator {
             width: 100%;
             height: 100%;
             display: block;
+            border-radius: 10px;
+        }
+        
+        .visualizer-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
         }
         
         .card-info {
@@ -575,7 +697,10 @@ export class TradingCardGenerator {
         <div class="rarity-badge">${state.rarity}</div>
         
         <div class="card-visual">
-            <canvas class="visualizer-canvas" id="vib34dCanvas"></canvas>
+            ${canvasImage ? 
+                `<img src="${canvasImage}" class="visualizer-canvas" alt="${state.name}" style="width: 100%; height: 100%; object-fit: cover;" />` : 
+                `<canvas class="visualizer-canvas" id="vib34dCanvas"></canvas>`
+            }
         </div>
         
         <div class="card-info">
@@ -598,11 +723,13 @@ export class TradingCardGenerator {
     </div>
 
     <script>
-        ${visualizationCode}
+        ${visualizationContent}
         
         document.addEventListener('DOMContentLoaded', () => {
             const canvas = document.getElementById('vib34dCanvas');
-            new TradingCardVisualizer(canvas);
+            if (canvas) {
+                ${canvasImage ? '// Using captured image, no animation needed' : 'new TradingCardVisualizer(canvas);'}
+            }
         });
         
         function exploreCollection() {
@@ -791,5 +918,19 @@ export class TradingCardGenerator {
                 this.ctx.shadowBlur = 0;
             }
         }`;
+    }
+    
+    /**
+     * Generate simple image display code for captured canvas
+     */
+    generateImageVisualization(imageData) {
+        return `
+        // VIB34D Trading Card - Captured Visualization
+        // This card contains the exact visual state from when it was created
+        console.log('🎴 Trading card using captured visualization');
+        
+        // The visualization is embedded as an image
+        // Original state preserved perfectly
+        `;
     }
 }
