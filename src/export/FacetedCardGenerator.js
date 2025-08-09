@@ -275,3 +275,5 @@ export class FacetedCardGenerator extends CardGeneratorBase {
         `;
     }
 }
+
+export default FacetedCardGenerator;

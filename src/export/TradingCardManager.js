@@ -58,7 +58,13 @@ export class TradingCardManager {
         }
         
         // Import and instantiate
-        const { default: GeneratorClass } = await importFunction();
+        const module = await importFunction();
+        const GeneratorClass = module.default || module[Object.keys(module).find(key => key.includes('Generator'))];
+        
+        if (!GeneratorClass || typeof GeneratorClass !== 'function') {
+            throw new Error(`Invalid generator class for system: ${system}`);
+        }
+        
         const generator = new GeneratorClass();
         
         // Cache for future use

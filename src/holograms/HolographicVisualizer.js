@@ -208,25 +208,64 @@ export class HolographicVisualizer {
                 return vec3(p.x * w, p.y * w, p.z * w);
             }
             
-            // VIB3 Geometry Library
+            // Enhanced VIB3 Geometry Library - Higher Fidelity
             float tetrahedronLattice(vec3 p, float gridSize) {
                 vec3 q = fract(p * gridSize) - 0.5;
+                
+                // Enhanced tetrahedron vertices with holographic shimmer
                 float d1 = length(q);
-                float d2 = length(q - vec3(0.4, 0.0, 0.0));
-                float d3 = length(q - vec3(0.0, 0.4, 0.0));
-                float d4 = length(q - vec3(0.0, 0.0, 0.4));
-                float vertices = 1.0 - smoothstep(0.0, 0.04, min(min(d1, d2), min(d3, d4)));
+                float d2 = length(q - vec3(0.35, 0.0, 0.0));
+                float d3 = length(q - vec3(0.0, 0.35, 0.0));
+                float d4 = length(q - vec3(0.0, 0.0, 0.35));
+                float d5 = length(q - vec3(0.2, 0.2, 0.0));
+                float d6 = length(q - vec3(0.2, 0.0, 0.2));
+                float d7 = length(q - vec3(0.0, 0.2, 0.2));
+                
+                float vertices = 1.0 - smoothstep(0.0, 0.03, min(min(min(d1, d2), min(d3, d4)), min(min(d5, d6), d7)));
+                
+                // Enhanced edge network with interference patterns
                 float edges = 0.0;
-                edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.xy) - 0.2)));
-                edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.yz) - 0.2)));
-                edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.xz) - 0.2)));
-                return max(vertices, edges * 0.5);
+                float shimmer = sin(u_time * 0.002) * 0.02;
+                edges = max(edges, 1.0 - smoothstep(0.0, 0.015, abs(length(q.xy) - (0.18 + shimmer))));
+                edges = max(edges, 1.0 - smoothstep(0.0, 0.015, abs(length(q.yz) - (0.18 + shimmer * 0.8))));
+                edges = max(edges, 1.0 - smoothstep(0.0, 0.015, abs(length(q.xz) - (0.18 + shimmer * 1.2))));
+                
+                // Add interference patterns between vertices
+                float interference = sin(d1 * 25.0 + u_time * 0.003) * sin(d2 * 22.0 + u_time * 0.0025) * 0.1;
+                
+                // Volumetric density based on distance field
+                float volume = exp(-length(q) * 3.0) * 0.15;
+                
+                return max(vertices, edges * 0.7) + interference + volume;
             }
             
             float hypercubeLattice(vec3 p, float gridSize) {
                 vec3 grid = fract(p * gridSize);
-                vec3 edges = 1.0 - smoothstep(0.0, 0.03, abs(grid - 0.5));
-                return max(max(edges.x, edges.y), edges.z);
+                vec3 q = grid - 0.5;
+                
+                // Enhanced hypercube with 4D projection effects
+                vec3 edges = 1.0 - smoothstep(0.0, 0.025, abs(q));
+                float wireframe = max(max(edges.x, edges.y), edges.z);
+                
+                // Add 4D hypercube vertices (8 corners + 8 hypervertices)
+                float vertices = 0.0;
+                for(int i = 0; i < 8; i++) {
+                    vec3 corner = vec3(
+                        float(i % 2) - 0.5,
+                        float((i / 2) % 2) - 0.5,
+                        float(i / 4) - 0.5
+                    );
+                    float dist = length(q - corner * 0.4);
+                    vertices = max(vertices, 1.0 - smoothstep(0.0, 0.04, dist));
+                }
+                
+                // Holographic interference patterns
+                float interference = sin(length(q) * 20.0 + u_time * 0.002) * 0.08;
+                
+                // Cross-dimensional glow
+                float glow = exp(-length(q) * 2.5) * 0.12;
+                
+                return wireframe * 0.8 + vertices + interference + glow;
             }
             
             float sphereLattice(vec3 p, float gridSize) {
@@ -358,14 +397,27 @@ export class HolographicVisualizer {
                 float morphedGeometry = u_geometryType + u_morph * 3.0 + u_touchMorph * 2.0 + u_audioMorphBoost * 1.5;
                 float lattice = getDynamicGeometry(p, roleDensity, morphedGeometry);
                 
-                // Use the passed RGB as base color and modulate with lattice patterns
+                // Enhanced holographic color processing
                 vec3 baseColor = u_color;
                 float latticeIntensity = lattice * u_intensity;
                 
-                vec3 color = baseColor * (0.3 + latticeIntensity * 0.7);
+                // Multi-layer color composition for higher fidelity
+                vec3 color = baseColor * (0.2 + latticeIntensity * 0.8);
                 
-                // Add lattice-based brightness variations
-                color += vec3(lattice * 0.4) * baseColor;
+                // Holographic shimmer layers
+                vec3 shimmer1 = baseColor * lattice * 0.5;
+                vec3 shimmer2 = baseColor * sin(lattice * 8.0 + u_time * 0.001) * 0.2;
+                vec3 shimmer3 = baseColor * cos(lattice * 12.0 + u_time * 0.0008) * 0.15;
+                
+                color += shimmer1 + shimmer2 + shimmer3;
+                
+                // Enhanced brightness variations with interference
+                color += vec3(lattice * 0.6) * baseColor;
+                color += vec3(sin(lattice * 15.0) * 0.1) * baseColor;
+                
+                // Depth-based coloring for 3D effect
+                float depth = 1.0 - length(p) * 0.3;
+                color *= (0.7 + depth * 0.3);
                 
                 float enhancedChaos = u_chaos + u_chaosIntensity + u_touchChaos * 0.3 + u_audioChaosBoost * 0.4;
                 color += vec3(moirePattern(uv + scrollOffset, enhancedChaos));
@@ -377,12 +429,22 @@ export class HolographicVisualizer {
                                            cos(uv.x * 10.0 + u_time * 0.001) * u_morph * 0.1);
                 color = mix(color, color * (1.0 + length(morphDistortion)), u_morph * 0.5);
                 
+                // Enhanced holographic interaction effects
                 float mouseDist = length(uv - (u_mouse - 0.5) * vec2(aspectRatio, 1.0));
-                float mouseGlow = exp(-mouseDist * 1.5) * u_mouseIntensity * 0.2;
-                color += vec3(mouseGlow) * baseColor * 0.6;
                 
-                float clickPulse = u_clickIntensity * exp(-mouseDist * 2.0) * 0.3;
-                color += vec3(clickPulse, clickPulse * 0.5, clickPulse * 1.5);
+                // Multi-layer mouse glow with holographic ripples
+                float mouseGlow = exp(-mouseDist * 1.2) * u_mouseIntensity * 0.25;
+                float mouseRipple = sin(mouseDist * 15.0 - u_time * 0.003) * exp(-mouseDist * 2.0) * u_mouseIntensity * 0.1;
+                color += vec3(mouseGlow + mouseRipple) * baseColor * 0.8;
+                
+                // Enhanced click pulse with interference
+                float clickPulse = u_clickIntensity * exp(-mouseDist * 1.8) * 0.4;
+                float clickRing = sin(mouseDist * 20.0 - u_clickIntensity * 5.0) * u_clickIntensity * 0.15;
+                color += vec3(clickPulse + clickRing, (clickPulse + clickRing) * 0.6, (clickPulse + clickRing) * 1.2);
+                
+                // Holographic interference from interactions
+                float interference = sin(mouseDist * 25.0 + u_time * 0.002) * u_mouseIntensity * 0.05;
+                color += vec3(interference) * baseColor;
                 
                 gl_FragColor = vec4(color, 0.95);
             }
@@ -651,11 +713,11 @@ export class HolographicVisualizer {
                 if (mappedParam !== null) {
                     let scaledValue = params[param];
                     
-                    // CRITICAL FIX: Scale gridDensity to proper holographic density range
+                    // CRITICAL FIX: Scale gridDensity to higher holographic density range (3x higher)
                     if (param === 'gridDensity') {
-                        // Convert gridDensity (5-100) to holographic density (0.6-2.5)
-                        // Formula: density = 0.6 + (gridDensity - 5) / (100 - 5) * (2.5 - 0.6)
-                        scaledValue = 0.6 + (parseFloat(params[param]) - 5) / 95 * 1.9;
+                        // Convert gridDensity (5-100) to holographic density (0.6-7.5) - 3x higher max
+                        // Formula: density = 0.6 + (gridDensity - 5) / (100 - 5) * (7.5 - 0.6)
+                        scaledValue = 0.6 + (parseFloat(params[param]) - 5) / 95 * 6.9;
                         console.log(`🔧 Density scaling: gridDensity=${params[param]} → density=${scaledValue.toFixed(3)}`);
                     }
                     
