@@ -748,174 +748,587 @@ export class TradingCardGenerator {
     }
     
     /**
-     * Generate the visualization code for the trading card
+     * Generate the actual WebGL visualization code for the trading card
      */
     generateVisualizationCode(state) {
+        if (this.currentSystem === 'faceted') {
+            return this.generateFacetedVisualizationCode(state);
+        } else if (this.currentSystem === 'holographic') {
+            return this.generateHolographicVisualizationCode(state);
+        } else {
+            return this.generateFallbackVisualizationCode(state);
+        }
+    }
+    
+    /**
+     * Generate WebGL code for Faceted system with actual shaders
+     */
+    generateFacetedVisualizationCode(state) {
         return `
-        // VIB34D Trading Card Visualizer - ${state.name}
+        // VIB34D Faceted System Trading Card - ${state.name}
         class TradingCardVisualizer {
             constructor(canvas) {
                 this.canvas = canvas;
-                this.ctx = canvas.getContext('2d');
-                this.time = 0;
+                this.gl = canvas.getContext('webgl');
                 this.params = ${JSON.stringify(state.parameters)};
-                this.resize();
+                this.startTime = Date.now();
                 
-                // Generate geometry based on type
-                this.setupGeometry('${state.geometry}');
+                if (!this.gl) {
+                    console.error('WebGL not supported');
+                    return;
+                }
+                
+                this.initShaders();
+                this.initBuffers();
+                this.resize();
                 this.animate();
             }
             
             resize() {
-                const rect = this.canvas.getBoundingClientRect();
-                this.canvas.width = rect.width * devicePixelRatio;
-                this.canvas.height = rect.height * devicePixelRatio;
-                this.ctx.scale(devicePixelRatio, devicePixelRatio);
-                this.canvas.style.width = rect.width + 'px';
-                this.canvas.style.height = rect.height + 'px';
-                
-                this.centerX = rect.width / 2;
-                this.centerY = rect.height / 2;
-                this.scale = Math.min(rect.width, rect.height) * 0.15;
+                this.canvas.width = this.canvas.clientWidth;
+                this.canvas.height = this.canvas.clientHeight;
+                this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
             }
             
-            setupGeometry(type) {
-                // Simplified geometry setup based on type
-                switch(type) {
-                    case 'HYPERCUBE':
-                        this.vertices = [
-                            [-1, -1, -1, -1], [1, -1, -1, -1], [-1, 1, -1, -1], [1, 1, -1, -1],
-                            [-1, -1, 1, -1], [1, -1, 1, -1], [-1, 1, 1, -1], [1, 1, 1, -1],
-                            [-1, -1, -1, 1], [1, -1, -1, 1], [-1, 1, -1, 1], [1, 1, -1, 1],
-                            [-1, -1, 1, 1], [1, -1, 1, 1], [-1, 1, 1, 1], [1, 1, 1, 1]
-                        ];
-                        this.edges = [
-                            [0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [10, 11], [12, 13], [14, 15],
-                            [0, 2], [1, 3], [4, 6], [5, 7], [8, 10], [9, 11], [12, 14], [13, 15],
-                            [0, 4], [1, 5], [2, 6], [3, 7], [8, 12], [9, 13], [10, 14], [11, 15],
-                            [0, 8], [1, 9], [2, 10], [3, 11], [4, 12], [5, 13], [6, 14], [7, 15]
-                        ];
-                        break;
-                    default:
-                        // Default to tetrahedron for simplicity
-                        this.vertices = [
-                            [1, 1, 1, 0], [1, -1, -1, 0], [-1, 1, -1, 0], [-1, -1, 1, 0]
-                        ];
-                        this.edges = [
-                            [0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]
-                        ];
+            initShaders() {
+                const vertexShaderSource = \`
+                    attribute vec2 a_position;
+                    void main() {
+                        gl_Position = vec4(a_position, 0.0, 1.0);
+                    }
+                \`;
+                
+                const fragmentShaderSource = \`
+                    precision highp float;
+                    
+                    uniform vec2 u_resolution;
+                    uniform float u_time;
+                    uniform vec2 u_mouse;
+                    uniform float u_geometry;
+                    uniform float u_gridDensity;
+                    uniform float u_morphFactor;
+                    uniform float u_chaos;
+                    uniform float u_speed;
+                    uniform float u_hue;
+                    uniform float u_intensity;
+                    uniform float u_saturation;
+                    uniform float u_dimension;
+                    uniform float u_rot4dXW;
+                    uniform float u_rot4dYW;
+                    uniform float u_rot4dZW;
+                    uniform float u_mouseIntensity;
+                    uniform float u_clickIntensity;
+                    uniform float u_roleIntensity;
+                    
+                    // 4D rotation matrices
+                    mat4 rotateXW(float theta) {
+                        float c = cos(theta);
+                        float s = sin(theta);
+                        return mat4(c, 0.0, 0.0, -s, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, s, 0.0, 0.0, c);
+                    }
+                    
+                    mat4 rotateYW(float theta) {
+                        float c = cos(theta);
+                        float s = sin(theta);
+                        return mat4(1.0, 0.0, 0.0, 0.0, 0.0, c, 0.0, -s, 0.0, 0.0, 1.0, 0.0, 0.0, s, 0.0, c);
+                    }
+                    
+                    mat4 rotateZW(float theta) {
+                        float c = cos(theta);
+                        float s = sin(theta);
+                        return mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, c, -s, 0.0, 0.0, s, c);
+                    }
+                    
+                    vec3 project4Dto3D(vec4 p) {
+                        float w = 2.5 / (2.5 + p.w);
+                        return vec3(p.x * w, p.y * w, p.z * w);
+                    }
+                    
+                    float geometryFunction(vec4 p) {
+                        int geomType = int(u_geometry);
+                        
+                        if (geomType == 0) {
+                            vec4 pos = fract(p * u_gridDensity * 0.08);
+                            vec4 dist = min(pos, 1.0 - pos);
+                            return min(min(dist.x, dist.y), min(dist.z, dist.w)) * u_morphFactor;
+                        }
+                        else if (geomType == 1) {
+                            vec4 pos = fract(p * u_gridDensity * 0.08);
+                            vec4 dist = min(pos, 1.0 - pos);
+                            float minDist = min(min(dist.x, dist.y), min(dist.z, dist.w));
+                            return minDist * u_morphFactor;
+                        }
+                        else if (geomType == 2) {
+                            float r = length(p);
+                            float density = u_gridDensity * 0.08;
+                            float spheres = abs(fract(r * density) - 0.5) * 2.0;
+                            float theta = atan(p.y, p.x);
+                            float harmonics = sin(theta * 3.0) * 0.2;
+                            return (spheres + harmonics) * u_morphFactor;
+                        }
+                        else if (geomType == 3) {
+                            float r1 = length(p.xy) - 2.0;
+                            float torus = length(vec2(r1, p.z)) - 0.8;
+                            float lattice = sin(p.x * u_gridDensity * 0.08) * sin(p.y * u_gridDensity * 0.08);
+                            return (torus + lattice * 0.3) * u_morphFactor;
+                        }
+                        else if (geomType == 4) {
+                            float u = atan(p.y, p.x);
+                            float v = atan(p.w, p.z);
+                            float dist = length(p) - 2.0;
+                            float lattice = sin(u * u_gridDensity * 0.08) * sin(v * u_gridDensity * 0.08);
+                            return (dist + lattice * 0.4) * u_morphFactor;
+                        }
+                        else if (geomType == 5) {
+                            vec4 pos = fract(p * u_gridDensity * 0.08);
+                            pos = abs(pos * 2.0 - 1.0);
+                            float dist = length(max(abs(pos) - 1.0, 0.0));
+                            return dist * u_morphFactor;
+                        }
+                        else if (geomType == 6) {
+                            float freq = u_gridDensity * 0.08;
+                            float time = u_time * 0.001 * u_speed;
+                            float wave1 = sin(p.x * freq + time);
+                            float wave2 = sin(p.y * freq + time * 1.3);
+                            float wave3 = sin(p.z * freq * 0.8 + time * 0.7);
+                            float interference = wave1 * wave2 * wave3;
+                            return interference * u_morphFactor;
+                        }
+                        else if (geomType == 7) {
+                            vec4 pos = fract(p * u_gridDensity * 0.08) - 0.5;
+                            float cube = max(max(abs(pos.x), abs(pos.y)), max(abs(pos.z), abs(pos.w)));
+                            return cube * u_morphFactor;
+                        }
+                        else {
+                            vec4 pos = fract(p * u_gridDensity * 0.08);
+                            vec4 dist = min(pos, 1.0 - pos);
+                            return min(min(dist.x, dist.y), min(dist.z, dist.w)) * u_morphFactor;
+                        }
+                    }
+                    
+                    void main() {
+                        vec2 uv = (gl_FragCoord.xy - u_resolution.xy * 0.5) / min(u_resolution.x, u_resolution.y);
+                        
+                        float timeSpeed = u_time * 0.0001 * u_speed;
+                        vec4 pos = vec4(uv * 3.0, sin(timeSpeed * 3.0), cos(timeSpeed * 2.0));
+                        pos.xy += (u_mouse - 0.5) * u_mouseIntensity * 2.0;
+                        
+                        pos = rotateXW(u_rot4dXW) * pos;
+                        pos = rotateYW(u_rot4dYW) * pos;
+                        pos = rotateZW(u_rot4dZW) * pos;
+                        
+                        float value = geometryFunction(pos);
+                        
+                        float noise = sin(pos.x * 7.0) * cos(pos.y * 11.0) * sin(pos.z * 13.0);
+                        value += noise * u_chaos;
+                        
+                        float geometryIntensity = 1.0 - clamp(abs(value), 0.0, 1.0);
+                        geometryIntensity += u_clickIntensity * 0.3;
+                        
+                        float finalIntensity = geometryIntensity * u_intensity;
+                        
+                        float hue = u_hue / 360.0 + value * 0.1;
+                        
+                        vec3 baseColor = vec3(
+                            sin(hue * 6.28318 + 0.0) * 0.5 + 0.5,
+                            sin(hue * 6.28318 + 2.0943) * 0.5 + 0.5,
+                            sin(hue * 6.28318 + 4.1887) * 0.5 + 0.5
+                        );
+                        
+                        float gray = (baseColor.r + baseColor.g + baseColor.b) / 3.0;
+                        vec3 color = mix(vec3(gray), baseColor, u_saturation) * finalIntensity;
+                        
+                        gl_FragColor = vec4(color, finalIntensity * u_roleIntensity);
+                    }
+                \`;
+                
+                this.program = this.createProgram(vertexShaderSource, fragmentShaderSource);
+                this.uniforms = {
+                    resolution: this.gl.getUniformLocation(this.program, 'u_resolution'),
+                    time: this.gl.getUniformLocation(this.program, 'u_time'),
+                    mouse: this.gl.getUniformLocation(this.program, 'u_mouse'),
+                    geometry: this.gl.getUniformLocation(this.program, 'u_geometry'),
+                    gridDensity: this.gl.getUniformLocation(this.program, 'u_gridDensity'),
+                    morphFactor: this.gl.getUniformLocation(this.program, 'u_morphFactor'),
+                    chaos: this.gl.getUniformLocation(this.program, 'u_chaos'),
+                    speed: this.gl.getUniformLocation(this.program, 'u_speed'),
+                    hue: this.gl.getUniformLocation(this.program, 'u_hue'),
+                    intensity: this.gl.getUniformLocation(this.program, 'u_intensity'),
+                    saturation: this.gl.getUniformLocation(this.program, 'u_saturation'),
+                    dimension: this.gl.getUniformLocation(this.program, 'u_dimension'),
+                    rot4dXW: this.gl.getUniformLocation(this.program, 'u_rot4dXW'),
+                    rot4dYW: this.gl.getUniformLocation(this.program, 'u_rot4dYW'),
+                    rot4dZW: this.gl.getUniformLocation(this.program, 'u_rot4dZW'),
+                    mouseIntensity: this.gl.getUniformLocation(this.program, 'u_mouseIntensity'),
+                    clickIntensity: this.gl.getUniformLocation(this.program, 'u_clickIntensity'),
+                    roleIntensity: this.gl.getUniformLocation(this.program, 'u_roleIntensity')
+                };
+            }
+            
+            createProgram(vertexSource, fragmentSource) {
+                const vertexShader = this.createShader(this.gl.VERTEX_SHADER, vertexSource);
+                const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, fragmentSource);
+                
+                const program = this.gl.createProgram();
+                this.gl.attachShader(program, vertexShader);
+                this.gl.attachShader(program, fragmentShader);
+                this.gl.linkProgram(program);
+                
+                if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
+                    console.error('Program linking failed:', this.gl.getProgramInfoLog(program));
+                    return null;
                 }
+                
+                return program;
             }
             
-            project4Dto3D(vertex, time) {
-                const [x, y, z, w] = vertex;
+            createShader(type, source) {
+                const shader = this.gl.createShader(type);
+                this.gl.shaderSource(shader, source);
+                this.gl.compileShader(shader);
                 
-                // Apply user's rotation parameters
-                const angleXW = time * 0.01 * (this.params.speed || 1) + (this.params.rot4dXW || 0);
-                const angleYW = time * 0.008 * (this.params.speed || 1) + (this.params.rot4dYW || 0);
-                const angleZW = time * 0.006 * (this.params.speed || 1) + (this.params.rot4dZW || 0);
-                
-                // Rotate in XW plane
-                let newX = x * Math.cos(angleXW) - w * Math.sin(angleXW);
-                let newW = x * Math.sin(angleXW) + w * Math.cos(angleXW);
-                
-                // Rotate in YW plane  
-                let newY = y * Math.cos(angleYW) - newW * Math.sin(angleYW);
-                newW = y * Math.sin(angleYW) + newW * Math.cos(angleYW);
-                
-                // Rotate in ZW plane
-                let newZ = z * Math.cos(angleZW) - newW * Math.sin(angleZW);
-                newW = z * Math.sin(angleZW) + newW * Math.cos(angleZW);
-                
-                // Add chaos
-                if (this.params.chaos) {
-                    newX += Math.sin(time * 0.01 + x) * this.params.chaos * 0.1;
-                    newY += Math.cos(time * 0.01 + y) * this.params.chaos * 0.1;
-                    newZ += Math.sin(time * 0.01 + z) * this.params.chaos * 0.1;
+                if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+                    console.error('Shader compilation failed:', this.gl.getShaderInfoLog(shader));
+                    return null;
                 }
                 
-                // 4D to 3D projection
-                const distance = this.params.dimension || 3.8;
-                const factor = distance / (distance + newW);
-                
-                return [newX * factor, newY * factor, newZ * factor, newW];
+                return shader;
             }
             
-            project3Dto2D(vertex3D) {
-                const [x, y, z] = vertex3D;
-                const distance = 3;
-                const factor = distance / (distance + z);
+            initBuffers() {
+                const positions = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
                 
-                return [
-                    this.centerX + x * this.scale * factor,
-                    this.centerY + y * this.scale * factor,
-                    factor
-                ];
+                this.buffer = this.gl.createBuffer();
+                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
+                this.gl.bufferData(this.gl.ARRAY_BUFFER, positions, this.gl.STATIC_DRAW);
+                
+                const positionLocation = this.gl.getAttribLocation(this.program, 'a_position');
+                this.gl.enableVertexAttribArray(positionLocation);
+                this.gl.vertexAttribPointer(positionLocation, 2, this.gl.FLOAT, false, 0, 0);
             }
             
             animate() {
-                this.time += 1;
                 this.render();
                 requestAnimationFrame(() => this.animate());
             }
             
             render() {
-                // Clear with gradient background
-                const gradient = this.ctx.createRadialGradient(
-                    this.centerX, this.centerY, 0,
-                    this.centerX, this.centerY, Math.max(this.centerX, this.centerY)
-                );
-                const hue = this.params.hue || 200;
-                gradient.addColorStop(0, \`hsla(\${hue}, 80%, 50%, 0.1)\`);
-                gradient.addColorStop(1, 'rgba(0, 0, 0, 0.9)');
+                if (!this.program) return;
                 
-                this.ctx.fillStyle = gradient;
-                this.ctx.fillRect(0, 0, this.canvas.width / devicePixelRatio, this.canvas.height / devicePixelRatio);
+                this.resize();
+                this.gl.useProgram(this.program);
                 
-                // Project all vertices
-                const projectedVertices = this.vertices.map(vertex => {
-                    const vertex3D = this.project4Dto3D(vertex, this.time);
-                    const vertex2D = this.project3Dto2D(vertex3D);
-                    return vertex2D;
-                });
+                const time = Date.now() - this.startTime;
                 
-                // Draw edges
-                this.edges.forEach(([i, j]) => {
-                    const [x1, y1, z1] = projectedVertices[i];
-                    const [x2, y2, z2] = projectedVertices[j];
-                    
-                    const avgZ = (z1 + z2) / 2;
-                    const edgeHue = (hue + this.time * 0.5 + avgZ * 100) % 360;
-                    const opacity = (0.3 + avgZ * 0.7) * (this.params.intensity || 0.5) * 2;
-                    const thickness = (1 + avgZ * 3) * (1 + (this.params.morphFactor || 0) * 0.5);
-                    
-                    this.ctx.strokeStyle = \`hsla(\${edgeHue}, \${(this.params.saturation || 0.8) * 100}%, 60%, \${opacity})\`;
-                    this.ctx.lineWidth = thickness;
-                    this.ctx.shadowColor = \`hsla(\${edgeHue}, 80%, 60%, 0.8)\`;
-                    this.ctx.shadowBlur = 10;
-                    
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(x1, y1);
-                    this.ctx.lineTo(x2, y2);
-                    this.ctx.stroke();
-                });
+                this.gl.uniform2f(this.uniforms.resolution, this.canvas.width, this.canvas.height);
+                this.gl.uniform1f(this.uniforms.time, time);
+                this.gl.uniform2f(this.uniforms.mouse, 0.5, 0.5);
+                this.gl.uniform1f(this.uniforms.geometry, this.params.geometry || 0);
+                this.gl.uniform1f(this.uniforms.gridDensity, this.params.gridDensity || 15);
+                this.gl.uniform1f(this.uniforms.morphFactor, this.params.morphFactor || 1.0);
+                this.gl.uniform1f(this.uniforms.chaos, this.params.chaos || 0.2);
+                this.gl.uniform1f(this.uniforms.speed, this.params.speed || 1.0);
+                this.gl.uniform1f(this.uniforms.hue, this.params.hue || 200);
+                this.gl.uniform1f(this.uniforms.intensity, this.params.intensity || 0.5);
+                this.gl.uniform1f(this.uniforms.saturation, this.params.saturation || 0.8);
+                this.gl.uniform1f(this.uniforms.dimension, this.params.dimension || 3.8);
+                this.gl.uniform1f(this.uniforms.rot4dXW, this.params.rot4dXW || 0.0);
+                this.gl.uniform1f(this.uniforms.rot4dYW, this.params.rot4dYW || 0.0);
+                this.gl.uniform1f(this.uniforms.rot4dZW, this.params.rot4dZW || 0.0);
+                this.gl.uniform1f(this.uniforms.mouseIntensity, 0.0);
+                this.gl.uniform1f(this.uniforms.clickIntensity, 0.0);
+                this.gl.uniform1f(this.uniforms.roleIntensity, 1.0);
                 
-                // Draw vertices
-                projectedVertices.forEach(([x, y, z], index) => {
-                    const vertexHue = (hue + this.time * 0.7 + index * 23) % 360;
-                    const size = (2 + z * 4) * (1 + (this.params.gridDensity || 10) / 20);
-                    const opacity = (0.4 + z * 0.6) * (this.params.intensity || 0.5) * 2;
-                    
-                    this.ctx.shadowColor = \`hsla(\${vertexHue}, 80%, 60%, 0.9)\`;
-                    this.ctx.shadowBlur = 15;
-                    this.ctx.fillStyle = \`hsla(\${vertexHue}, \${(this.params.saturation || 0.8) * 100}%, 60%, \${opacity})\`;
-                    
-                    this.ctx.beginPath();
-                    this.ctx.arc(x, y, size, 0, Math.PI * 2);
-                    this.ctx.fill();
-                });
+                this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+            }
+        }`;
+    }
+    
+    /**
+     * Generate WebGL code for Holographic system with actual shaders
+     */
+    generateHolographicVisualizationCode(state) {
+        return `
+        // VIB34D Holographic System Trading Card - ${state.name}
+        class TradingCardVisualizer {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.gl = canvas.getContext('webgl');
+                this.params = ${JSON.stringify(state.parameters)};
+                this.startTime = Date.now();
                 
-                this.ctx.shadowBlur = 0;
+                if (!this.gl) {
+                    console.error('WebGL not supported');
+                    return;
+                }
+                
+                this.initHolographicShaders();
+                this.initBuffers();
+                this.resize();
+                this.animate();
+            }
+            
+            initHolographicShaders() {
+                const vertexShaderSource = \`
+                    attribute vec2 a_position;
+                    void main() {
+                        gl_Position = vec4(a_position, 0.0, 1.0);
+                    }
+                \`;
+                
+                // Use the actual holographic fragment shader
+                const fragmentShaderSource = \`
+                    precision highp float;
+                    
+                    uniform vec2 u_resolution;
+                    uniform float u_time;
+                    uniform vec2 u_mouse;
+                    uniform float u_geometry;
+                    uniform float u_density;
+                    uniform float u_speed;
+                    uniform vec3 u_color;
+                    uniform float u_intensity;
+                    uniform float u_roleDensity;
+                    uniform float u_roleSpeed;
+                    uniform float u_geometryType;
+                    uniform float u_chaos;
+                    uniform float u_morph;
+                    uniform float u_rot4dXW;
+                    uniform float u_rot4dYW;
+                    uniform float u_rot4dZW;
+                    
+                    // 4D rotation matrices
+                    mat4 rotateXW(float theta) {
+                        float c = cos(theta);
+                        float s = sin(theta);
+                        return mat4(c, 0, 0, -s, 0, 1, 0, 0, 0, 0, 1, 0, s, 0, 0, c);
+                    }
+                    
+                    mat4 rotateYW(float theta) {
+                        float c = cos(theta);
+                        float s = sin(theta);
+                        return mat4(1, 0, 0, 0, 0, c, 0, -s, 0, 0, 1, 0, 0, s, 0, c);
+                    }
+                    
+                    mat4 rotateZW(float theta) {
+                        float c = cos(theta);
+                        float s = sin(theta);
+                        return mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, c, -s, 0, 0, s, c);
+                    }
+                    
+                    vec3 project4Dto3D(vec4 p) {
+                        float w = 2.5 / (2.5 + p.w);
+                        return vec3(p.x * w, p.y * w, p.z * w);
+                    }
+                    
+                    float tetrahedronLattice(vec3 p, float gridSize) {
+                        vec3 q = fract(p * gridSize) - 0.5;
+                        float d1 = length(q);
+                        float d2 = length(q - vec3(0.4, 0.0, 0.0));
+                        float d3 = length(q - vec3(0.0, 0.4, 0.0));
+                        float d4 = length(q - vec3(0.0, 0.0, 0.4));
+                        float vertices = 1.0 - smoothstep(0.0, 0.04, min(min(d1, d2), min(d3, d4)));
+                        float edges = 0.0;
+                        edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.xy) - 0.2)));
+                        edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.yz) - 0.2)));
+                        edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.xz) - 0.2)));
+                        return max(vertices, edges * 0.5);
+                    }
+                    
+                    float getDynamicGeometry(vec3 p, float gridSize, float geometryType) {
+                        int baseGeom = int(mod(geometryType, 8.0));
+                        float variation = floor(geometryType / 8.0) / 4.0;
+                        float variedGridSize = gridSize * (0.5 + variation * 1.5);
+                        
+                        if (baseGeom == 0) return tetrahedronLattice(p, variedGridSize);
+                        // Add other geometry types as needed
+                        return tetrahedronLattice(p, variedGridSize);
+                    }
+                    
+                    void main() {
+                        vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+                        float aspectRatio = u_resolution.x / u_resolution.y;
+                        uv.x *= aspectRatio;
+                        uv -= 0.5;
+                        
+                        float time = u_time * 0.0004 * u_speed * u_roleSpeed;
+                        
+                        vec4 p4d = vec4(uv * 3.0, sin(time * 0.1) * 0.15, cos(time * 0.08) * 0.15);
+                        
+                        p4d = rotateXW(u_rot4dXW + time * 0.2) * p4d;
+                        p4d = rotateYW(u_rot4dYW + time * 0.15) * p4d;
+                        p4d = rotateZW(u_rot4dZW + time * 0.25) * p4d;
+                        
+                        vec3 p = project4Dto3D(p4d);
+                        
+                        float roleDensity = u_density * u_roleDensity;
+                        float morphedGeometry = u_geometryType + u_morph * 3.0;
+                        float lattice = getDynamicGeometry(p, roleDensity, morphedGeometry);
+                        
+                        vec3 baseColor = u_color;
+                        float latticeIntensity = lattice * u_intensity;
+                        
+                        vec3 color = baseColor * (0.3 + latticeIntensity * 0.7);
+                        color += vec3(lattice * 0.4) * baseColor;
+                        
+                        gl_FragColor = vec4(color, 0.95);
+                    }
+                \`;
+                
+                this.program = this.createProgram(vertexShaderSource, fragmentShaderSource);
+                this.uniforms = {
+                    resolution: this.gl.getUniformLocation(this.program, 'u_resolution'),
+                    time: this.gl.getUniformLocation(this.program, 'u_time'),
+                    mouse: this.gl.getUniformLocation(this.program, 'u_mouse'),
+                    geometry: this.gl.getUniformLocation(this.program, 'u_geometry'),
+                    density: this.gl.getUniformLocation(this.program, 'u_density'),
+                    speed: this.gl.getUniformLocation(this.program, 'u_speed'),
+                    color: this.gl.getUniformLocation(this.program, 'u_color'),
+                    intensity: this.gl.getUniformLocation(this.program, 'u_intensity'),
+                    roleDensity: this.gl.getUniformLocation(this.program, 'u_roleDensity'),
+                    roleSpeed: this.gl.getUniformLocation(this.program, 'u_roleSpeed'),
+                    geometryType: this.gl.getUniformLocation(this.program, 'u_geometryType'),
+                    chaos: this.gl.getUniformLocation(this.program, 'u_chaos'),
+                    morph: this.gl.getUniformLocation(this.program, 'u_morph'),
+                    rot4dXW: this.gl.getUniformLocation(this.program, 'u_rot4dXW'),
+                    rot4dYW: this.gl.getUniformLocation(this.program, 'u_rot4dYW'),
+                    rot4dZW: this.gl.getUniformLocation(this.program, 'u_rot4dZW')
+                };
+            }
+            
+            createProgram(vertexSource, fragmentSource) {
+                const vertexShader = this.createShader(this.gl.VERTEX_SHADER, vertexSource);
+                const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, fragmentSource);
+                
+                const program = this.gl.createProgram();
+                this.gl.attachShader(program, vertexShader);
+                this.gl.attachShader(program, fragmentShader);
+                this.gl.linkProgram(program);
+                
+                if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
+                    console.error('Program linking failed:', this.gl.getProgramInfoLog(program));
+                    return null;
+                }
+                
+                return program;
+            }
+            
+            createShader(type, source) {
+                const shader = this.gl.createShader(type);
+                this.gl.shaderSource(shader, source);
+                this.gl.compileShader(shader);
+                
+                if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+                    console.error('Shader compilation failed:', this.gl.getShaderInfoLog(shader));
+                    return null;
+                }
+                
+                return shader;
+            }
+            
+            initBuffers() {
+                const positions = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+                
+                this.buffer = this.gl.createBuffer();
+                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
+                this.gl.bufferData(this.gl.ARRAY_BUFFER, positions, this.gl.STATIC_DRAW);
+                
+                const positionLocation = this.gl.getAttribLocation(this.program, 'a_position');
+                this.gl.enableVertexAttribArray(positionLocation);
+                this.gl.vertexAttribPointer(positionLocation, 2, this.gl.FLOAT, false, 0, 0);
+            }
+            
+            resize() {
+                this.canvas.width = this.canvas.clientWidth;
+                this.canvas.height = this.canvas.clientHeight;
+                this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+            }
+            
+            animate() {
+                this.render();
+                requestAnimationFrame(() => this.animate());
+            }
+            
+            render() {
+                if (!this.program) return;
+                
+                this.resize();
+                this.gl.useProgram(this.program);
+                
+                const time = Date.now() - this.startTime;
+                const hue = (this.params.hue || 200) / 360;
+                
+                // Convert hue to RGB
+                const hslToRgb = (h, s, l) => {
+                    let r, g, b;
+                    if (s === 0) {
+                        r = g = b = l;
+                    } else {
+                        const hue2rgb = (p, q, t) => {
+                            if (t < 0) t += 1;
+                            if (t > 1) t -= 1;
+                            if (t < 1/6) return p + (q - p) * 6 * t;
+                            if (t < 1/2) return q;
+                            if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                            return p;
+                        };
+                        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                        const p = 2 * l - q;
+                        r = hue2rgb(p, q, h + 1/3);
+                        g = hue2rgb(p, q, h);
+                        b = hue2rgb(p, q, h - 1/3);
+                    }
+                    return [r, g, b];
+                };
+                
+                const rgbColor = hslToRgb(hue, this.params.saturation || 0.8, this.params.intensity || 0.5);
+                
+                this.gl.uniform2f(this.uniforms.resolution, this.canvas.width, this.canvas.height);
+                this.gl.uniform1f(this.uniforms.time, time);
+                this.gl.uniform2f(this.uniforms.mouse, 0.5, 0.5);
+                this.gl.uniform1f(this.uniforms.geometryType, this.params.geometryType || 0);
+                this.gl.uniform1f(this.uniforms.density, this.params.density || 1.0);
+                this.gl.uniform1f(this.uniforms.speed, this.params.speed || 0.5);
+                this.gl.uniform3fv(this.uniforms.color, new Float32Array(rgbColor));
+                this.gl.uniform1f(this.uniforms.intensity, this.params.intensity || 0.5);
+                this.gl.uniform1f(this.uniforms.roleDensity, 1.0);
+                this.gl.uniform1f(this.uniforms.roleSpeed, 1.0);
+                this.gl.uniform1f(this.uniforms.chaos, this.params.chaos || 0.0);
+                this.gl.uniform1f(this.uniforms.morph, this.params.morph || 0.0);
+                this.gl.uniform1f(this.uniforms.rot4dXW, this.params.rot4dXW || 0.0);
+                this.gl.uniform1f(this.uniforms.rot4dYW, this.params.rot4dYW || 0.0);
+                this.gl.uniform1f(this.uniforms.rot4dZW, this.params.rot4dZW || 0.0);
+                
+                this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+            }
+        }`;
+    }
+    
+    /**
+     * Generate fallback visualization code
+     */
+    generateFallbackVisualizationCode(state) {
+        return `
+        // VIB34D Trading Card - Fallback Canvas Renderer
+        class TradingCardVisualizer {
+            constructor(canvas) {
+                console.log('🎴 Trading card using fallback 2D renderer');
+                // Simple 2D fallback if WebGL fails
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.animate();
+            }
+            
+            animate() {
+                if (this.ctx) {
+                    this.ctx.fillStyle = '#000';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    this.ctx.fillStyle = '#00ffff';
+                    this.ctx.font = '20px Orbitron';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('VIB34D', this.canvas.width/2, this.canvas.height/2);
+                }
+                requestAnimationFrame(() => this.animate());
             }
         }`;
     }
