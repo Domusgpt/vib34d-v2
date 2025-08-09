@@ -1,0 +1,191 @@
+/**
+ * VIB34D Quantum Engine
+ * Manages the enhanced quantum system with complex 3D lattice functions
+ */
+
+import { QuantumHolographicVisualizer } from './QuantumVisualizer.js';
+import { Parameters } from '../core/Parameters.js';
+import { GeometryLibrary } from '../geometry/GeometryLibrary.js';
+
+export class QuantumEngine {
+    constructor() {
+        console.log('🔮 Initializing VIB34D Quantum Engine...');
+        
+        this.visualizers = [];
+        this.parameters = new Parameters();
+        this.isActive = false;
+        
+        // Initialize with quantum-enhanced defaults
+        this.parameters.updateParameter('hue', 280); // Purple-blue for quantum
+        this.parameters.updateParameter('intensity', 0.7); // Higher intensity
+        this.parameters.updateParameter('saturation', 0.9); // More vivid
+        this.parameters.updateParameter('gridDensity', 20); // Denser patterns
+        
+        this.init();
+    }
+    
+    /**
+     * Initialize the quantum system
+     */
+    init() {
+        this.createVisualizers();
+        this.startRenderLoop();
+        console.log('✨ Quantum Engine initialized with enhanced holographic effects');
+    }
+    
+    /**
+     * Create quantum visualizers for all 5 layers
+     */
+    createVisualizers() {
+        const layers = [
+            { id: 'quantum-background-canvas', role: 'background', reactivity: 0.4 },
+            { id: 'quantum-shadow-canvas', role: 'shadow', reactivity: 0.6 },
+            { id: 'quantum-content-canvas', role: 'content', reactivity: 1.0 },
+            { id: 'quantum-highlight-canvas', role: 'highlight', reactivity: 1.3 },
+            { id: 'quantum-accent-canvas', role: 'accent', reactivity: 1.6 }
+        ];
+        
+        layers.forEach(layer => {
+            try {
+                // Create canvas element if it doesn't exist
+                let canvas = document.getElementById(layer.id);
+                if (!canvas) {
+                    canvas = document.createElement('canvas');
+                    canvas.id = layer.id;
+                    canvas.className = 'visualizer-canvas';
+                    canvas.style.position = 'absolute';
+                    canvas.style.top = '0';
+                    canvas.style.left = '0';
+                    canvas.style.width = '100%';
+                    canvas.style.height = '100%';
+                    canvas.style.pointerEvents = 'none';
+                    
+                    // Add to quantum layers container
+                    const quantumLayers = document.getElementById('quantumLayers');
+                    if (quantumLayers) {
+                        quantumLayers.appendChild(canvas);
+                    }
+                }
+                
+                const visualizer = new QuantumHolographicVisualizer(layer.id, layer.role, layer.reactivity, 0);
+                if (visualizer.gl) {
+                    this.visualizers.push(visualizer);
+                    console.log(`🌌 Created quantum layer: ${layer.role}`);
+                }
+            } catch (error) {
+                console.warn(`Failed to create quantum layer ${layer.id}:`, error);
+            }
+        });
+        
+        console.log(`✅ Created ${this.visualizers.length} quantum visualizers with enhanced effects`);
+    }
+    
+    /**
+     * Set system active/inactive
+     */
+    setActive(active) {
+        this.isActive = active;
+        
+        if (active) {
+            // Show quantum layers
+            const quantumLayers = document.getElementById('quantumLayers');
+            if (quantumLayers) {
+                quantumLayers.style.display = 'block';
+            }
+            console.log('🔮 Quantum System ACTIVATED - Enhanced holographic mode');
+        } else {
+            // Hide quantum layers
+            const quantumLayers = document.getElementById('quantumLayers');
+            if (quantumLayers) {
+                quantumLayers.style.display = 'none';
+            }
+            console.log('🔮 Quantum System DEACTIVATED');
+        }
+    }
+    
+    /**
+     * Update parameter across all quantum visualizers
+     */
+    updateParameter(param, value) {
+        this.parameters.updateParameter(param, value);
+        
+        // Apply to all quantum visualizers
+        this.visualizers.forEach(visualizer => {
+            if (visualizer.updateParameters) {
+                const params = {};
+                params[param] = value;
+                visualizer.updateParameters(params);
+            }
+        });
+        
+        console.log(`🔮 Updated quantum ${param}: ${value}`);
+    }
+    
+    /**
+     * Update multiple parameters
+     */
+    updateParameters(params) {
+        Object.keys(params).forEach(param => {
+            this.updateParameter(param, params[param]);
+        });
+    }
+    
+    /**
+     * Update mouse interaction
+     */
+    updateInteraction(x, y, intensity) {
+        this.visualizers.forEach(visualizer => {
+            if (visualizer.updateInteraction) {
+                visualizer.updateInteraction(x, y, intensity);
+            }
+        });
+    }
+    
+    /**
+     * Get current parameters for saving/export
+     */
+    getParameters() {
+        return this.parameters.getAll();
+    }
+    
+    /**
+     * Set parameters from loaded/imported data
+     */
+    setParameters(params) {
+        this.parameters.setAll(params);
+        this.updateParameters(params);
+    }
+    
+    /**
+     * Start the render loop
+     */
+    startRenderLoop() {
+        const render = () => {
+            if (this.isActive) {
+                this.visualizers.forEach(visualizer => {
+                    if (visualizer.render) {
+                        visualizer.render();
+                    }
+                });
+            }
+            
+            requestAnimationFrame(render);
+        };
+        
+        render();
+        console.log('🎬 Quantum render loop started');
+    }
+    
+    /**
+     * Clean up resources
+     */
+    destroy() {
+        this.visualizers.forEach(visualizer => {
+            if (visualizer.destroy) {
+                visualizer.destroy();
+            }
+        });
+        this.visualizers = [];
+        console.log('🧹 Quantum Engine destroyed');
+    }
+}

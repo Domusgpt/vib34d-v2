@@ -366,6 +366,9 @@
             <button class="system-btn active" data-system="faceted" onclick="switchSystem('faceted')">
                 🔷 Faceted
             </button>
+            <button class="system-btn" data-system="quantum" onclick="switchSystem('quantum')">
+                🌌 Quantum
+            </button>
             <button class="system-btn" data-system="holographic" onclick="switchSystem('holographic')">
                 ✨ Holographic
             </button>
@@ -390,6 +393,15 @@
             <canvas id="content-canvas" class="visualization-canvas"></canvas>
             <canvas id="highlight-canvas" class="visualization-canvas"></canvas>
             <canvas id="accent-canvas" class="visualization-canvas"></canvas>
+        </div>
+        
+        <!-- VIB34D Quantum System Canvases -->
+        <div class="holographic-layers" id="quantumLayers" style="display: none;">
+            <canvas id="quantum-background-canvas" class="visualization-canvas"></canvas>
+            <canvas id="quantum-shadow-canvas" class="visualization-canvas"></canvas>
+            <canvas id="quantum-content-canvas" class="visualization-canvas"></canvas>
+            <canvas id="quantum-highlight-canvas" class="visualization-canvas"></canvas>
+            <canvas id="quantum-accent-canvas" class="visualization-canvas"></canvas>
         </div>
         
         <!-- Holographic System Canvases -->
@@ -563,6 +575,7 @@
     <script type="module">
         // Import VIB34D modules
         import { VIB34DIntegratedEngine } from './src/core/Engine.js';
+        import { QuantumEngine } from './src/quantum/QuantumEngine.js';
         import { RealHolographicSystem } from './src/holograms/RealHolographicSystem.js';
         import { CollectionManager } from './src/features/CollectionManager.js';
         import { UnifiedSaveManager } from './src/core/UnifiedSaveManager.js';
@@ -575,6 +588,7 @@
         let audioEnabled = false;
         let interactivityVisible = false;
         let engine = null;
+        let quantumEngine = null;
         let holographicSystem = null;
         let polychoraSystem = null;
         let collectionManager = null;
@@ -588,6 +602,11 @@
                 'Tetra', 'Cube', 'Sphere',
                 'Torus', 'Klein', 'Fractal',
                 'Wave', 'Crystal'
+            ],
+            quantum: [
+                'Quantum Tetra', 'Quantum Cube', 'Quantum Sphere',
+                'Quantum Torus', 'Quantum Klein', 'Quantum Fractal',
+                'Quantum Wave', 'Quantum Crystal'
             ],
             polychora: [
                 '5-Cell', 'Tesseract', '16-Cell',
@@ -645,7 +664,11 @@
             try {
                 // Initialize Faceted engine (auto-initializes in constructor)
                 engine = new VIB34DIntegratedEngine();
-                console.log('✅ VIB34D Engine initialized');
+                console.log('✅ VIB34D Faceted Engine initialized');
+                
+                // Initialize Quantum engine
+                quantumEngine = new QuantumEngine();
+                console.log('✅ VIB34D Quantum Engine initialized');
                 
                 // Initialize Holographic system
                 holographicSystem = new RealHolographicSystem();
@@ -781,24 +804,39 @@
             if (system === 'faceted') {
                 // Show VIB34D canvases, hide others
                 document.getElementById('vib34dLayers').style.display = 'block';
+                document.getElementById('quantumLayers').style.display = 'none';
+                document.getElementById('holographicLayers').style.display = 'none';
+                document.getElementById('polychoraLayers').style.display = 'none';
+                if (quantumEngine) quantumEngine.setActive(false);
+                if (holographicSystem) holographicSystem.setActive(false);
+                if (polychoraSystem) polychoraSystem.stop();
+                // VIB34DIntegratedEngine runs automatically, no start() method
+            } else if (system === 'quantum') {
+                // Show Quantum canvases, hide others
+                document.getElementById('vib34dLayers').style.display = 'none';
+                document.getElementById('quantumLayers').style.display = 'block';
                 document.getElementById('holographicLayers').style.display = 'none';
                 document.getElementById('polychoraLayers').style.display = 'none';
                 if (holographicSystem) holographicSystem.setActive(false);
                 if (polychoraSystem) polychoraSystem.stop();
-                // VIB34DIntegratedEngine runs automatically, no start() method
+                if (quantumEngine) quantumEngine.setActive(true);
             } else if (system === 'holographic') {
                 // Show Holographic canvases, hide others
                 document.getElementById('vib34dLayers').style.display = 'none';
+                document.getElementById('quantumLayers').style.display = 'none';
                 document.getElementById('holographicLayers').style.display = 'block';
                 document.getElementById('polychoraLayers').style.display = 'none';
+                if (quantumEngine) quantumEngine.setActive(false);
                 if (polychoraSystem) polychoraSystem.stop();
                 if (holographicSystem) holographicSystem.setActive(true);
                 // VIB34DIntegratedEngine continues running in background
             } else if (system === 'polychora') {
                 // Show Polychora canvases, hide others
                 document.getElementById('vib34dLayers').style.display = 'none';
+                document.getElementById('quantumLayers').style.display = 'none';
                 document.getElementById('holographicLayers').style.display = 'none';
                 document.getElementById('polychoraLayers').style.display = 'block';
+                if (quantumEngine) quantumEngine.setActive(false);
                 if (holographicSystem) holographicSystem.setActive(false);
                 
                 // Initialize Polychora if needed
@@ -835,6 +873,8 @@
             if (currentSystem === 'faceted' && engine) {
                 engine.parameterManager.setParameter('geometry', index);
                 engine.updateVisualizers();
+            } else if (currentSystem === 'quantum' && quantumEngine) {
+                quantumEngine.updateParameter('geometry', index);
             } else if (currentSystem === 'holographic' && holographicSystem) {
                 holographicSystem.updateParameter('geometryType', index);
             } else if (currentSystem === 'polychora' && polychoraSystem) {
@@ -877,6 +917,9 @@
                 engine.updateVisualizers();
                 
                 // Universal Interactivity notifications disabled until system is repaired
+            } else if (currentSystem === 'quantum' && quantumEngine) {
+                // For Quantum Engine, use direct parameter updates
+                quantumEngine.updateParameter(param, parseFloat(value));
             } else if (currentSystem === 'holographic' && holographicSystem) {
                 // Map parameter names for holographic system
                 const holoParam = param === 'gridDensity' ? 'density' : 
@@ -1189,6 +1232,24 @@
                     saturation: parseFloat(document.getElementById('saturation').value)
                 };
                 state.geometryName = geometries.faceted[getActiveGeometryIndex()];
+                
+            } else if (currentSystem === 'quantum') {
+                // Get Quantum system parameters (same as faceted but with quantum names)
+                state.parameters = {
+                    geometry: getActiveGeometryIndex(),
+                    geometryType: getActiveGeometryIndex(),
+                    rot4dXW: parseFloat(document.getElementById('rot4dXW').value),
+                    rot4dYW: parseFloat(document.getElementById('rot4dYW').value),
+                    rot4dZW: parseFloat(document.getElementById('rot4dZW').value),
+                    gridDensity: parseFloat(document.getElementById('gridDensity').value),
+                    morphFactor: parseFloat(document.getElementById('morphFactor').value),
+                    chaos: parseFloat(document.getElementById('chaos').value),
+                    speed: parseFloat(document.getElementById('speed').value),
+                    hue: parseFloat(document.getElementById('hue').value),
+                    intensity: parseFloat(document.getElementById('intensity').value),
+                    saturation: parseFloat(document.getElementById('saturation').value)
+                };
+                state.geometryName = geometries.quantum[getActiveGeometryIndex()];
                 
             } else if (currentSystem === 'holographic') {
                 // Get Holographic system parameters
