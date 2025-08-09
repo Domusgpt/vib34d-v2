@@ -876,11 +876,19 @@ export class TradingCardGenerator {
                     canvas.style.zIndex = index;
                     
                     // Set layer-specific blend modes and opacity
-                    if (role === 'background') canvas.style.opacity = '0.4';
-                    else if (role === 'shadow') canvas.style.mixBlendMode = 'multiply'; canvas.style.opacity = '0.6';
-                    else if (role === 'content') canvas.style.opacity = '1.0';
-                    else if (role === 'highlight') canvas.style.mixBlendMode = 'screen';
-                    else if (role === 'accent') canvas.style.mixBlendMode = 'overlay'; canvas.style.opacity = '0.8';
+                    if (role === 'background') {
+                        canvas.style.opacity = '0.4';
+                    } else if (role === 'shadow') {
+                        canvas.style.mixBlendMode = 'multiply';
+                        canvas.style.opacity = '0.6';
+                    } else if (role === 'content') {
+                        canvas.style.opacity = '1.0';
+                    } else if (role === 'highlight') {
+                        canvas.style.mixBlendMode = 'screen';
+                    } else if (role === 'accent') {
+                        canvas.style.mixBlendMode = 'overlay';
+                        canvas.style.opacity = '0.8';
+                    }
                     
                     document.getElementById('vib34dCanvas').parentElement.appendChild(canvas);
                     

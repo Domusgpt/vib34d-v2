@@ -963,23 +963,30 @@
             
             // Enhanced parameter updates with comprehensive error handling
             try {
-                if (currentSystem === 'faceted' && engine) {
+                if (currentSystem === 'faceted' && window.engine) {
                     // For VIB34DIntegratedEngine, update parameter manager and call updateFromControls
-                    engine.parameterManager.setParameter(param, parseFloat(value));
-                    engine.updateVisualizers();
+                    window.engine.parameterManager.setParameter(param, parseFloat(value));
+                    window.engine.updateVisualizers();
                     
-                } else if (currentSystem === 'quantum' && quantumEngine) {
+                } else if (currentSystem === 'quantum' && window.quantumEngine) {
                     // For Quantum Engine, use enhanced parameter updates
-                    quantumEngine.updateParameter(param, parseFloat(value));
+                    window.quantumEngine.updateParameter(param, parseFloat(value));
                     
-                } else if (currentSystem === 'holographic' && holographicSystem) {
+                } else if (currentSystem === 'holographic' && window.holographicSystem) {
                     // For Holographic system, use direct parameter names (mapping handled in visualizer)
-                    holographicSystem.updateParameter(param, parseFloat(value));
+                    window.holographicSystem.updateParameter(param, parseFloat(value));
                     
-                } else if (currentSystem === 'polychora' && polychoraSystem) {
-                    polychoraSystem.updateParameters({ [param]: parseFloat(value) });
+                } else if (currentSystem === 'polychora' && window.polychoraSystem) {
+                    window.polychoraSystem.updateParameters({ [param]: parseFloat(value) });
                 } else {
                     console.warn(`⚠️ Parameter update failed: ${currentSystem} system not available or not initialized`);
+                    console.warn(`   Current system: ${currentSystem}`);
+                    console.warn(`   Available engines:`, {
+                        engine: !!window.engine,
+                        quantumEngine: !!window.quantumEngine, 
+                        holographicSystem: !!window.holographicSystem,
+                        polychoraSystem: !!window.polychoraSystem
+                    });
                     return;
                 }
                 
