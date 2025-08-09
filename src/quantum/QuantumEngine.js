@@ -104,17 +104,26 @@ export class QuantumEngine {
     }
     
     /**
-     * Update parameter across all quantum visualizers
+     * Update parameter across all quantum visualizers with enhanced integration
      */
     updateParameter(param, value) {
+        // Update internal parameter manager
         this.parameters.setParameter(param, value);
         
-        // Apply to all quantum visualizers
+        // CRITICAL: Apply to all quantum visualizers with immediate render
         this.visualizers.forEach(visualizer => {
             if (visualizer.updateParameters) {
                 const params = {};
                 params[param] = value;
                 visualizer.updateParameters(params);
+            } else {
+                // Fallback: direct parameter update with manual render
+                if (visualizer.params) {
+                    visualizer.params[param] = value;
+                    if (visualizer.render) {
+                        visualizer.render();
+                    }
+                }
             }
         });
         

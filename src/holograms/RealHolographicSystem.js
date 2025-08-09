@@ -150,14 +150,27 @@ export class RealHolographicSystem {
         }
         this.customParams[param] = value;
         
-        // Update individual parameter across all visualizers
+        // CRITICAL FIX: Call updateParameters method on ALL visualizers for immediate render
         this.visualizers.forEach(visualizer => {
-            if (visualizer.variantParams) {
-                visualizer.variantParams[param] = value;
-                
-                // If it's a geometry type change, regenerate role params with new geometry
-                if (param === 'geometryType') {
-                    visualizer.roleParams = visualizer.generateRoleParams(visualizer.role);
+            if (visualizer.updateParameters) {
+                // Use new updateParameters method with proper parameter mapping
+                const params = {};
+                params[param] = value;
+                visualizer.updateParameters(params);
+            } else {
+                // Fallback for older method (direct parameter setting)
+                if (visualizer.variantParams) {
+                    visualizer.variantParams[param] = value;
+                    
+                    // If it's a geometry type change, regenerate role params with new geometry
+                    if (param === 'geometryType') {
+                        visualizer.roleParams = visualizer.generateRoleParams(visualizer.role);
+                    }
+                    
+                    // Force manual render for older visualizers
+                    if (visualizer.render) {
+                        visualizer.render();
+                    }
                 }
             }
         });

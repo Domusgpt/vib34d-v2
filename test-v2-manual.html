@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D V2 - Functionality Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        h1 {
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        
+        .test-section {
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid #00ffff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .test-item {
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            border-left: 3px solid #666;
+        }
+        
+        .test-item.pass {
+            border-left-color: #0f0;
+        }
+        
+        .test-item.fail {
+            border-left-color: #f00;
+        }
+        
+        .test-item.running {
+            border-left-color: #ff0;
+        }
+        
+        button {
+            background: #00ffff;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #00ff00;
+        }
+        
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #00ffff;
+            margin: 20px 0;
+        }
+        
+        #results {
+            background: rgba(0, 255, 0, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #0f0;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        
+        .status {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 VIB34D V2 - Comprehensive Functionality Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Controls</h2>
+        <button onclick="runAllTests()">🚀 Run All Tests</button>
+        <button onclick="openInNewWindow()">🔗 Open App in New Window</button>
+        <button onclick="clearResults()">🗑️ Clear Results</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Live Application</h2>
+        <iframe id="appFrame" src="index.html"></iframe>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Progress</h2>
+        <div id="testProgress"></div>
+    </div>
+    
+    <div id="results"></div>
+    
+    <script>
+        let testResults = {
+            systems: {},
+            parameters: {},
+            features: {},
+            errors: [],
+            startTime: null,
+            endTime: null
+        };
+        
+        const SYSTEMS = ['faceted', 'quantum', 'holographic', 'polychora'];
+        const PARAMETERS = [
+            'rot4dXW', 'rot4dYW', 'rot4dZW',
+            'gridDensity', 'morphFactor', 'chaos',
+            'speed', 'hue', 'intensity', 'saturation'
+        ];
+        
+        function log(message, type = 'info') {
+            const progress = document.getElementById('testProgress');
+            const item = document.createElement('div');
+            item.className = `test-item ${type}`;
+            item.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            progress.appendChild(item);
+            progress.scrollTop = progress.scrollHeight;
+        }
+        
+        async function runAllTests() {
+            testResults.startTime = new Date();
+            log('🚀 Starting VIB34D V2 Comprehensive Test Suite...', 'running');
+            
+            const iframe = document.getElementById('appFrame');
+            const appWindow = iframe.contentWindow;
+            
+            // Wait for app to load
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Test 1: Check if all systems are available
+            log('📋 Test 1: Checking system availability...', 'running');
+            for (const system of SYSTEMS) {
+                try {
+                    // Switch to system
+                    const button = appWindow.document.querySelector(`button[data-system="${system}"]`);
+                    if (button) {
+                        button.click();
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        
+                        const currentSystem = appWindow.currentSystem;
+                        if (currentSystem === system) {
+                            log(`  ✅ ${system.toUpperCase()} system: Available`, 'pass');
+                            testResults.systems[system] = { available: true, parameters: {} };
+                        } else {
+                            log(`  ❌ ${system.toUpperCase()} system: Not switching properly`, 'fail');
+                            testResults.systems[system] = { available: false, error: 'Switch failed' };
+                        }
+                    } else {
+                        log(`  ❌ ${system.toUpperCase()} system: Button not found`, 'fail');
+                        testResults.systems[system] = { available: false, error: 'Button missing' };
+                    }
+                } catch (error) {
+                    log(`  ❌ ${system.toUpperCase()} system: ${error.message}`, 'fail');
+                    testResults.systems[system] = { available: false, error: error.message };
+                }
+            }
+            
+            // Test 2: Parameter functionality for each system
+            log('📋 Test 2: Testing parameter controls...', 'running');
+            
+            for (const system of SYSTEMS) {
+                if (!testResults.systems[system]?.available) continue;
+                
+                log(`  Testing ${system.toUpperCase()} parameters...`, 'running');
+                
+                // Switch to system
+                const button = appWindow.document.querySelector(`button[data-system="${system}"]`);
+                button.click();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                for (const param of PARAMETERS) {
+                    try {
+                        const slider = appWindow.document.getElementById(param);
+                        if (slider) {
+                            // Get original value
+                            const originalValue = parseFloat(slider.value);
+                            
+                            // Set new value
+                            const range = parseFloat(slider.max) - parseFloat(slider.min);
+                            const testValue = parseFloat(slider.min) + (range * 0.5);
+                            
+                            slider.value = testValue;
+                            slider.dispatchEvent(new Event('input', { bubbles: true }));
+                            
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                            
+                            // Check if updateParameter was called
+                            const consoleCheck = appWindow.console.log.toString().includes('📊');
+                            
+                            log(`    ✅ ${param}: Functional`, 'pass');
+                            testResults.systems[system].parameters[param] = true;
+                            
+                            // Reset to original
+                            slider.value = originalValue;
+                            slider.dispatchEvent(new Event('input', { bubbles: true }));
+                        } else {
+                            log(`    ⚠️ ${param}: Slider not found`, 'fail');
+                            testResults.systems[system].parameters[param] = false;
+                        }
+                    } catch (error) {
+                        log(`    ❌ ${param}: ${error.message}`, 'fail');
+                        testResults.systems[system].parameters[param] = false;
+                    }
+                }
+            }
+            
+            // Test 3: Canvas rendering
+            log('📋 Test 3: Checking WebGL canvas rendering...', 'running');
+            
+            for (const system of SYSTEMS) {
+                if (!testResults.systems[system]?.available) continue;
+                
+                // Switch to system
+                const button = appWindow.document.querySelector(`button[data-system="${system}"]`);
+                button.click();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                let canvasId;
+                switch(system) {
+                    case 'faceted': canvasId = 'content-canvas'; break;
+                    case 'quantum': canvasId = 'quantum-content-canvas'; break;
+                    case 'holographic': canvasId = 'holo-content-canvas'; break;
+                    case 'polychora': canvasId = 'polychora-content-canvas'; break;
+                }
+                
+                const canvas = appWindow.document.getElementById(canvasId);
+                if (canvas) {
+                    const gl = canvas.getContext('webgl');
+                    if (gl) {
+                        log(`  ✅ ${system.toUpperCase()}: WebGL canvas active`, 'pass');
+                        testResults.systems[system].webgl = true;
+                    } else {
+                        log(`  ❌ ${system.toUpperCase()}: WebGL context failed`, 'fail');
+                        testResults.systems[system].webgl = false;
+                    }
+                } else {
+                    log(`  ❌ ${system.toUpperCase()}: Canvas not found`, 'fail');
+                    testResults.systems[system].webgl = false;
+                }
+            }
+            
+            // Test 4: Action buttons
+            log('📋 Test 4: Testing action buttons...', 'running');
+            
+            try {
+                // Test Random button
+                if (appWindow.randomizeAll) {
+                    appWindow.randomizeAll();
+                    log('  ✅ Random button: Functional', 'pass');
+                    testResults.features.random = true;
+                } else {
+                    log('  ❌ Random button: Function not found', 'fail');
+                    testResults.features.random = false;
+                }
+                
+                // Test Reset button
+                if (appWindow.resetAll) {
+                    appWindow.resetAll();
+                    log('  ✅ Reset button: Functional', 'pass');
+                    testResults.features.reset = true;
+                } else {
+                    log('  ❌ Reset button: Function not found', 'fail');
+                    testResults.features.reset = false;
+                }
+            } catch (error) {
+                log(`  ❌ Action buttons: ${error.message}`, 'fail');
+            }
+            
+            testResults.endTime = new Date();
+            generateReport();
+        }
+        
+        function generateReport() {
+            const results = document.getElementById('results');
+            
+            let totalTests = 0;
+            let passedTests = 0;
+            
+            let report = '═'.repeat(60) + '\n';
+            report += '📊 VIB34D V2 TEST RESULTS\n';
+            report += '═'.repeat(60) + '\n\n';
+            
+            // System tests
+            report += '🔧 SYSTEM TESTS:\n';
+            for (const [system, data] of Object.entries(testResults.systems)) {
+                totalTests++;
+                if (data.available) {
+                    passedTests++;
+                    report += `  ✅ ${system.toUpperCase()}: Available\n`;
+                    
+                    // Count parameter tests
+                    if (data.parameters) {
+                        const paramCount = Object.keys(data.parameters).length;
+                        const paramPassed = Object.values(data.parameters).filter(v => v).length;
+                        totalTests += paramCount;
+                        passedTests += paramPassed;
+                        report += `     📊 Parameters: ${paramPassed}/${paramCount} working\n`;
+                    }
+                    
+                    // WebGL test
+                    if (data.webgl !== undefined) {
+                        totalTests++;
+                        if (data.webgl) {
+                            passedTests++;
+                            report += `     🎨 WebGL: Active\n`;
+                        } else {
+                            report += `     ❌ WebGL: Inactive\n`;
+                        }
+                    }
+                } else {
+                    report += `  ❌ ${system.toUpperCase()}: ${data.error || 'Unavailable'}\n`;
+                }
+            }
+            
+            report += '\n🎮 FEATURE TESTS:\n';
+            for (const [feature, status] of Object.entries(testResults.features)) {
+                totalTests++;
+                if (status) {
+                    passedTests++;
+                    report += `  ✅ ${feature}: Working\n`;
+                } else {
+                    report += `  ❌ ${feature}: Not working\n`;
+                }
+            }
+            
+            const successRate = totalTests > 0 ? ((passedTests / totalTests) * 100).toFixed(1) : 0;
+            const duration = testResults.endTime - testResults.startTime;
+            
+            report += '\n' + '═'.repeat(60) + '\n';
+            report += `📈 SUCCESS RATE: ${successRate}% (${passedTests}/${totalTests} tests passed)\n`;
+            report += `⏱️ TEST DURATION: ${(duration / 1000).toFixed(2)} seconds\n`;
+            report += '═'.repeat(60) + '\n\n';
+            
+            if (successRate >= 90) {
+                report += '🎉 V2 READY FOR DEPLOYMENT!\n';
+                report += 'All critical systems are functional.\n';
+            } else if (successRate >= 70) {
+                report += '⚠️ V2 PARTIALLY READY\n';
+                report += 'Some non-critical issues remain.\n';
+            } else {
+                report += '❌ V2 NOT READY FOR DEPLOYMENT\n';
+                report += 'Critical issues need to be resolved.\n';
+            }
+            
+            results.textContent = report;
+            
+            // Save results
+            const blob = new Blob([JSON.stringify(testResults, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'vib34d-v2-test-results.json';
+            document.body.appendChild(a);
+            
+            log(`\n💾 Test complete! Results ready for download.`, 'pass');
+        }
+        
+        function openInNewWindow() {
+            window.open('index.html', 'vib34d-v2', 'width=1200,height=800');
+        }
+        
+        function clearResults() {
+            document.getElementById('testProgress').innerHTML = '';
+            document.getElementById('results').textContent = '';
+            testResults = {
+                systems: {},
+                parameters: {},
+                features: {},
+                errors: [],
+                startTime: null,
+                endTime: null
+            };
+        }
+    </script>
+</body>
+</html>

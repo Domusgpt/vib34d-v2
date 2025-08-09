@@ -638,4 +638,51 @@ export class HolographicVisualizer {
         
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
     }
+    
+    /**
+     * CRITICAL FIX: Update visualization parameters with immediate re-render
+     * This method was missing and causing parameter sliders to not work in holographic system
+     */
+    updateParameters(params) {
+        // Update variant parameters with proper mapping
+        if (this.variantParams) {
+            Object.keys(params).forEach(param => {
+                const mappedParam = this.mapParameterName(param);
+                if (mappedParam !== null) {
+                    this.variantParams[mappedParam] = params[param];
+                    
+                    // Handle special parameter types
+                    if (mappedParam === 'geometryType') {
+                        // Regenerate role params with new geometry
+                        this.roleParams = this.generateRoleParams(this.role);
+                    }
+                }
+            });
+        }
+        
+        // CRITICAL: Force immediate re-render with new parameters
+        this.render();
+        
+        console.log(`🌌 Holographic visualizer updated: ${JSON.stringify(params)}`);
+    }
+    
+    /**
+     * Map global parameter names to holographic system parameter names
+     */
+    mapParameterName(globalParam) {
+        const paramMap = {
+            'gridDensity': 'density',
+            'morphFactor': 'morph',
+            'rot4dXW': 'rot4dXW',
+            'rot4dYW': 'rot4dYW', 
+            'rot4dZW': 'rot4dZW',
+            'hue': 'hue',
+            'intensity': 'intensity',
+            'saturation': 'saturation',
+            'chaos': 'chaos',
+            'speed': 'speed',
+            'geometry': 'geometryType'
+        };
+        return paramMap[globalParam] || globalParam;
+    }
 }

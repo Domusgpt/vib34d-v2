@@ -935,7 +935,7 @@
         
         // REMOVED: Duplicate function - updateParameter is defined below
         
-        // Update parameter
+        // Update parameter with enhanced error handling and system integration
         window.updateParameter = function(param, value) {
             const displays = {
                 rot4dXW: 'xwValue',
@@ -961,28 +961,34 @@
                 }
             }
             
-            // Update the actual visualization engines using their proper methods
-            if (currentSystem === 'faceted' && engine) {
-                // For VIB34DIntegratedEngine, update parameter manager and call updateFromControls
-                engine.parameterManager.setParameter(param, parseFloat(value));
-                engine.updateVisualizers();
+            // Enhanced parameter updates with comprehensive error handling
+            try {
+                if (currentSystem === 'faceted' && engine) {
+                    // For VIB34DIntegratedEngine, update parameter manager and call updateFromControls
+                    engine.parameterManager.setParameter(param, parseFloat(value));
+                    engine.updateVisualizers();
+                    
+                } else if (currentSystem === 'quantum' && quantumEngine) {
+                    // For Quantum Engine, use enhanced parameter updates
+                    quantumEngine.updateParameter(param, parseFloat(value));
+                    
+                } else if (currentSystem === 'holographic' && holographicSystem) {
+                    // For Holographic system, use direct parameter names (mapping handled in visualizer)
+                    holographicSystem.updateParameter(param, parseFloat(value));
+                    
+                } else if (currentSystem === 'polychora' && polychoraSystem) {
+                    polychoraSystem.updateParameters({ [param]: parseFloat(value) });
+                } else {
+                    console.warn(`⚠️ Parameter update failed: ${currentSystem} system not available or not initialized`);
+                    return;
+                }
                 
-                // Universal Interactivity notifications disabled until system is repaired
-            } else if (currentSystem === 'quantum' && quantumEngine) {
-                // For Quantum Engine, use direct parameter updates
-                quantumEngine.updateParameter(param, parseFloat(value));
-            } else if (currentSystem === 'holographic' && holographicSystem) {
-                // Map parameter names for holographic system
-                const holoParam = param === 'gridDensity' ? 'density' : 
-                                 param === 'morphFactor' ? 'morph' : param;
-                holographicSystem.updateParameter(holoParam, parseFloat(value));
-            } else if (currentSystem === 'polychora' && polychoraSystem) {
-                polychoraSystem.updateParameters({ [param]: parseFloat(value) });
+                console.log(`📊 ${currentSystem.toUpperCase()}: ${param} = ${value}`);
                 
-                // Universal Interactivity notifications disabled until system is repaired
+            } catch (error) {
+                console.error(`❌ Parameter update error in ${currentSystem} for ${param}:`, error);
+                // Don't break the UI, just log the error
             }
-            
-            console.log(`📊 ${param}: ${value}`);
         }
         
         // Old updateVariation function removed - holographic now uses parameters directly
