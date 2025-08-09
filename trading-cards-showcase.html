@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D Trading Cards - Digital Collection Showcase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            min-height: 100vh;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+        }
+        
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.8), transparent);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #00ffff;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.8);
+            margin-bottom: 10px;
+            letter-spacing: 3px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.8);
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+        }
+        
+        .main-cta {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border: none;
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-family: 'Orbitron', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 30px rgba(255, 107, 53, 0.4);
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .main-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 50px rgba(255, 107, 53, 0.8);
+        }
+        
+        .showcase {
+            padding: 60px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+        
+        .card-preview {
+            background: linear-gradient(145deg, rgba(0,0,0,0.9), rgba(30,30,60,0.9));
+            border-radius: 20px;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card-preview:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
+            transform: translateY(-5px);
+        }
+        
+        .card-preview::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(45deg, 
+                rgba(0, 255, 255, 0.05), 
+                rgba(255, 100, 255, 0.05), 
+                rgba(255, 150, 0, 0.05));
+            background-size: 300% 300%;
+            animation: shimmer 6s ease-in-out infinite;
+            pointer-events: none;
+            border-radius: 20px;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .card-preview h3 {
+            font-size: 1.5rem;
+            color: #00ffff;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            margin-bottom: 15px;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .card-preview p {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 25px;
+            line-height: 1.6;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .card-preview iframe {
+            width: 100%;
+            height: 300px;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .card-btn {
+            background: rgba(0, 255, 255, 0.2);
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .card-btn:hover {
+            background: rgba(0, 255, 255, 0.4);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .card-btn.primary {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border-color: #ff9600;
+            color: #000;
+        }
+        
+        .card-btn.primary:hover {
+            box-shadow: 0 0 15px rgba(255, 150, 0, 0.5);
+        }
+        
+        .features {
+            background: linear-gradient(145deg, rgba(0,0,0,0.8), rgba(30,30,60,0.8));
+            border-radius: 20px;
+            border: 2px solid rgba(255, 100, 255, 0.3);
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .features h2 {
+            font-size: 2rem;
+            color: #ff64ff;
+            text-shadow: 0 0 20px rgba(255, 100, 255, 0.6);
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .feature-item {
+            background: rgba(255, 100, 255, 0.1);
+            border: 1px solid rgba(255, 100, 255, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #ff64ff;
+            text-shadow: 0 0 15px rgba(255, 100, 255, 0.6);
+        }
+        
+        .feature-title {
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .feature-desc {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            .card-preview iframe {
+                height: 250px;
+            }
+            .card-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌌 VIB34D TRADING CARDS</h1>
+        <p>Digital Holographic Collection Showcase</p>
+        <a href="./index.html" class="main-cta">🚀 Enter Full VIB34D System</a>
+    </div>
+    
+    <div class="showcase">
+        <div class="card-grid">
+            <div class="card-preview">
+                <h3>🎴 Classic Trading Card</h3>
+                <p>Full vertical format with complete stats, rarity system, and interactive 4D hypercube visualization. Perfect for detailed sharing and collection display.</p>
+                <iframe src="./vib34d-trading-card.html" frameborder="0"></iframe>
+                <div class="card-actions">
+                    <a href="./vib34d-trading-card.html" target="_blank" class="card-btn primary">View Full Card</a>
+                    <button class="card-btn" onclick="shareCard('trading-card')">📤 Share</button>
+                    <button class="card-btn" onclick="downloadCard('trading-card')">💾 Download</button>
+                </div>
+            </div>
+            
+            <div class="card-preview">
+                <h3>📱 Social Media Card</h3>
+                <p>Optimized horizontal format for social sharing with crystal quantum visualization. Compact design perfect for embedding and mobile viewing.</p>
+                <iframe src="./vib34d-social-card.html" frameborder="0"></iframe>
+                <div class="card-actions">
+                    <a href="./vib34d-social-card.html" target="_blank" class="card-btn primary">View Full Card</a>
+                    <button class="card-btn" onclick="shareCard('social-card')">📤 Share</button>
+                    <button class="card-btn" onclick="downloadCard('social-card')">💾 Download</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="features">
+            <h2>🔮 Digital Trading Card Features</h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">🌌</div>
+                    <div class="feature-title">Real 4D Mathematics</div>
+                    <div class="feature-desc">Authentic 4D holographic visualizations with live mathematical calculations</div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-title">Interactive Elements</div>
+                    <div class="feature-desc">Mouse interaction, 3D card tilting, and responsive visual effects</div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">🎨</div>
+                    <div class="feature-title">Holographic Design</div>
+                    <div class="feature-desc">Cinematic effects, dynamic lighting, and trading card aesthetics</div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">📱</div>
+                    <div class="feature-title">Share Anywhere</div>
+                    <div class="feature-desc">Self-contained HTML files work on any device or platform</div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">🔗</div>
+                    <div class="feature-title">Portal Gateway</div>
+                    <div class="feature-desc">Each card includes call-to-action to access full VIB34D system</div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">🚀</div>
+                    <div class="feature-title">Collection Builder</div>
+                    <div class="feature-desc">Entry point to discover and collect the complete VIB34D experience</div>
+                </div>
+            </div>
+            
+            <a href="./index.html" class="main-cta">🌟 Collect Full VIB34D System</a>
+        </div>
+    </div>
+
+    <script>
+        function shareCard(type) {
+            const urls = {
+                'trading-card': './vib34d-trading-card.html',
+                'social-card': './vib34d-social-card.html'
+            };
+            
+            const url = new URL(urls[type], window.location.href).href;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: `VIB34D ${type === 'trading-card' ? 'Trading Card' : 'Social Card'} - Hypercube Quantum`,
+                    text: '🌌 Check out this incredible 4D holographic visualization!',
+                    url: url
+                });
+            } else {
+                // Fallback: copy to clipboard
+                navigator.clipboard.writeText(url).then(() => {
+                    alert(`🔗 Share link copied to clipboard!\n\n${url}`);
+                }).catch(() => {
+                    prompt('Copy this share link:', url);
+                });
+            }
+        }
+        
+        function downloadCard(type) {
+            const urls = {
+                'trading-card': './vib34d-trading-card.html',
+                'social-card': './vib34d-social-card.html'
+            };
+            
+            const link = document.createElement('a');
+            link.href = urls[type];
+            link.download = `vib34d-${type}.html`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert(`💾 ${type === 'trading-card' ? 'Trading Card' : 'Social Card'} downloaded!\n\nYou can now share this file anywhere - it's completely self-contained.`);
+        }
+        
+        // Add some interactive sparkles
+        function createSparkle() {
+            const sparkle = document.createElement('div');
+            sparkle.style.cssText = `
+                position: fixed;
+                width: 4px;
+                height: 4px;
+                background: #00ffff;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 1000;
+                box-shadow: 0 0 10px #00ffff;
+                left: ${Math.random() * window.innerWidth}px;
+                top: ${Math.random() * window.innerHeight}px;
+                animation: sparkle 3s ease-out forwards;
+            `;
+            
+            document.body.appendChild(sparkle);
+            
+            setTimeout(() => {
+                sparkle.remove();
+            }, 3000);
+        }
+        
+        // Add sparkle animation CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes sparkle {
+                0% { 
+                    opacity: 1; 
+                    transform: scale(0) rotate(0deg);
+                }
+                50% { 
+                    opacity: 0.8; 
+                    transform: scale(1) rotate(180deg);
+                }
+                100% { 
+                    opacity: 0; 
+                    transform: scale(0) rotate(360deg);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Create sparkles periodically
+        setInterval(createSparkle, 2000);
+    </script>
+</body>
+</html>
