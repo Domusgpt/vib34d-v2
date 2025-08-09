@@ -1,55 +1,91 @@
-# 🌌 VIB34D Holographic Engine
+# 🌌 VIB34D Holographic Visualization Engine
 
-**A unified 4D mathematics and holographic visualization system with real-time interactive portfolio management.**
+**Advanced 4D Mathematics + WebGL Holographic Rendering System**
 
-[![Demo](https://img.shields.io/badge/Live%20Demo-Try%20Now-00ffff?style=for-the-badge&logo=github)](https://domusgpt.github.io/vib34d-holographic-engine)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![WebGL](https://img.shields.io/badge/WebGL-Powered-orange?style=for-the-badge&logo=webgl)](https://webgl.org/)
+![Status](https://img.shields.io/badge/Status-Critical_Bug_Fix_Needed-red)
+![Systems](https://img.shields.io/badge/Systems-4_Complete-blue)
+![Architecture](https://img.shields.io/badge/Architecture-ES6_Modular-green)
 
-## ✨ Features
-
-### 🎯 Dual System Architecture
-- **VIB34D Engine**: Classical 4D polytopal mathematics and holographic rendering
-- **Active Holograms**: Real-time elaborate holographic effects with full interactivity
-- **Unified Interface**: Seamlessly switch between systems with tabbed navigation
-
-### 🎮 Interactive Systems
-- **Mouse/Touch Control**: Responsive real-time interactions
-- **Audio Reactivity**: Live microphone input with frequency analysis
-- **Scroll Effects**: Parallax and depth control with scroll wheel
-- **Keyboard Shortcuts**: Quick navigation and variant switching
-
-### 🎨 Holographic Portfolio
-- **Real-time Parameter Control**: 7 parameter sliders for live adjustment
-- **Save to Portfolio**: Capture current holographic states
-- **Gallery Browser**: Visual portfolio with live preview iframes
-- **Custom Variations**: Create and manage unlimited variations
-
-### 🧮 4D Mathematics
-- **8 Base Geometries**: Tetrahedron, Hypercube, Sphere, Torus, Klein Bottle, Fractal, Wave, Crystal
-- **30 Built-in Variations**: 4 variants per geometry type
-- **4D Rotations**: XW, YW, ZW rotation controls
-- **Dimensional Shifting**: Smooth transitions between 3D and 4D space
+---
 
 ## 🚀 Quick Start
 
-### Online Demo
-Visit the live demo: **[https://domusgpt.github.io/vib34d-holographic-engine](https://domusgpt.github.io/vib34d-holographic-engine)**
+### **CURRENT STATUS: CRITICAL BUG BLOCKING** 🚨
+Before using the system, see **[PLAN.md](PLAN.md)** for the critical `switchSystem` bug that needs fixing.
 
-### Local Development
+### **Development Server**
 ```bash
-# Clone the repository
-git clone https://github.com/domusgpt/vib34d-holographic-engine.git
-cd vib34d-holographic-engine
-
-# Start local server
-npm start
-# or
-python3 -m http.server 8144
-
-# Open in browser
-open http://localhost:8144
+cd /mnt/c/Users/millz/vib34d-refactored
+python -m http.server 8080
+# Open: http://localhost:8080
 ```
+
+### **Key Documentation**
+- **[PLAN.md](PLAN.md)** - Current status, critical bugs, action plan
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Technical architecture details
+- **[API_REFERENCE.md](API_REFERENCE.md)** - All functions and parameters
+- **[TESTING_CHECKLIST.md](TESTING_CHECKLIST.md)** - Comprehensive testing procedures
+
+---
+
+## 🎯 System Overview
+
+### **4 Visualization Systems**
+
+#### **🔷 Faceted System** (Original/Simple)
+- **Purpose**: Simple 2D geometric patterns 
+- **Shader**: Basic `fract(p * gridDensity * 0.08)` functions
+- **Use Case**: Clean, minimal geometric visualization
+
+#### **🌌 Quantum System** (Enhanced/Complex)
+- **Purpose**: Advanced 3D lattice functions with holographic effects
+- **Shader**: Complex tetrahedronLattice, hypercubeLattice functions
+- **Features**: RGB glitch, HSV colors, volumetric particles, shimmer
+- **Use Case**: Premium holographic visualization experience
+
+#### **✨ Holographic System** (Audio Reactive)
+- **Purpose**: Audio-reactive holographic effects
+- **Features**: Microphone input, frequency analysis, real-time audio visualization
+- **Use Case**: Interactive audio-visual experiences
+
+#### **🔮 Polychora System** (4D Polytopes)
+- **Purpose**: True 4D polytope mathematics with glassmorphic rendering
+- **Features**: 5-Cell, Tesseract, 16-Cell, 24-Cell, 600-Cell, 120-Cell
+- **Use Case**: Advanced mathematical visualization
+
+---
+
+## 🏗️ Architecture
+
+### **Core System Structure**
+```
+vib34d-refactored/
+├── index.html                 # Main interface (1453 lines)
+├── src/core/                  # Core engines and systems
+│   ├── Engine.js             # VIB34D main engine
+│   ├── Parameters.js         # 11-parameter management
+│   ├── Visualizer.js         # Simple patterns (faceted)
+│   └── PolychoraSystem.js    # 4D polytope system
+├── src/quantum/              # Enhanced visualization system
+│   ├── QuantumEngine.js      # Quantum system manager
+│   └── QuantumVisualizer.js  # Complex 3D lattice shaders
+├── src/holograms/            # Audio-reactive system
+└── src/{gallery,export,ui}/  # Supporting systems
+```
+
+### **Parameter System (11 Core Parameters)**
+- **4D Rotation**: rot4dXW, rot4dYW, rot4dZW (-6.28 to 6.28)
+- **Geometry**: geometry (0-7), gridDensity (5-100), morphFactor (0-2)
+- **Animation**: speed (0.1-3), chaos (0-1)  
+- **Visual**: hue (0-360°), intensity (0-1), saturation (0-1)
+
+### **5-Layer WebGL Rendering**
+Each system uses 5 WebGL canvas layers:
+- **Background** (0.3-0.5 intensity)
+- **Shadow** (0.5-0.7 intensity)  
+- **Content** (0.8-1.0 intensity)
+- **Highlight** (1.0-1.3 intensity)
+- **Accent** (1.2-1.6 intensity)
 
 ## 📖 User Guide
 

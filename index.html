@@ -572,6 +572,133 @@
         </div>
     </div>
     
+    <!-- CRITICAL BUG FIX: Move switchSystem function outside ES6 module for global access -->
+    <script>
+        // Global system switching function - accessible to HTML onclick handlers
+        window.switchSystem = async function(system) {
+            // Wait for ES6 module to be loaded and variables initialized
+            if (!window.moduleReady) {
+                console.log('⏳ Waiting for module initialization...');
+                setTimeout(() => window.switchSystem(system), 100);
+                return;
+            }
+            
+            window.currentSystem = system;
+            
+            console.log('🔄 System switched to:', system);
+            
+            // Update UI
+            document.querySelectorAll('.system-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.system === system);
+            });
+            
+            // Update panel header
+            const headers = {
+                faceted: 'FACETED SYSTEM',
+                quantum: 'QUANTUM SYSTEM', 
+                holographic: 'HOLOGRAPHIC SYSTEM',
+                polychora: 'POLYCHORA SYSTEM'
+            };
+            const panelHeader = document.getElementById('panelHeader');
+            if (panelHeader) panelHeader.textContent = headers[system] || 'VIB34D SYSTEM';
+            
+            // Show/hide sections based on system
+            const geometrySection = document.getElementById('geometrySection');
+            const holographicSection = document.getElementById('holographicSection');
+            if (geometrySection) geometrySection.style.display = 'block';
+            if (holographicSection) holographicSection.style.display = system === 'holographic' ? 'block' : 'none';
+            
+            // Setup geometry for current system
+            if (window.setupGeometry) window.setupGeometry(system);
+            
+            // Switch visualization systems
+            if (system === 'faceted') {
+                // Show VIB34D canvases, hide others
+                const vib34dLayers = document.getElementById('vib34dLayers');
+                const quantumLayers = document.getElementById('quantumLayers');
+                const holographicLayers = document.getElementById('holographicLayers');
+                const polychoraLayers = document.getElementById('polychoraLayers');
+                
+                if (vib34dLayers) vib34dLayers.style.display = 'block';
+                if (quantumLayers) quantumLayers.style.display = 'none';
+                if (holographicLayers) holographicLayers.style.display = 'none';
+                if (polychoraLayers) polychoraLayers.style.display = 'none';
+                
+                if (window.quantumEngine) window.quantumEngine.setActive(false);
+                if (window.holographicSystem) window.holographicSystem.setActive(false);
+                if (window.polychoraSystem) window.polychoraSystem.stop();
+                
+            } else if (system === 'quantum') {
+                // Show Quantum canvases, hide others
+                const vib34dLayers = document.getElementById('vib34dLayers');
+                const quantumLayers = document.getElementById('quantumLayers');
+                const holographicLayers = document.getElementById('holographicLayers');
+                const polychoraLayers = document.getElementById('polychoraLayers');
+                
+                if (vib34dLayers) vib34dLayers.style.display = 'none';
+                if (quantumLayers) quantumLayers.style.display = 'block';
+                if (holographicLayers) holographicLayers.style.display = 'none';
+                if (polychoraLayers) polychoraLayers.style.display = 'none';
+                
+                if (window.holographicSystem) window.holographicSystem.setActive(false);
+                if (window.polychoraSystem) window.polychoraSystem.stop();
+                if (window.quantumEngine) window.quantumEngine.setActive(true);
+                
+            } else if (system === 'holographic') {
+                // Show Holographic canvases, hide others
+                const vib34dLayers = document.getElementById('vib34dLayers');
+                const quantumLayers = document.getElementById('quantumLayers');
+                const holographicLayers = document.getElementById('holographicLayers');
+                const polychoraLayers = document.getElementById('polychoraLayers');
+                
+                if (vib34dLayers) vib34dLayers.style.display = 'none';
+                if (quantumLayers) quantumLayers.style.display = 'none';
+                if (holographicLayers) holographicLayers.style.display = 'block';
+                if (polychoraLayers) polychoraLayers.style.display = 'none';
+                
+                if (window.quantumEngine) window.quantumEngine.setActive(false);
+                if (window.polychoraSystem) window.polychoraSystem.stop();
+                if (window.holographicSystem) window.holographicSystem.setActive(true);
+                
+            } else if (system === 'polychora') {
+                // Show Polychora canvases, hide others
+                const vib34dLayers = document.getElementById('vib34dLayers');
+                const quantumLayers = document.getElementById('quantumLayers');
+                const holographicLayers = document.getElementById('holographicLayers');
+                const polychoraLayers = document.getElementById('polychoraLayers');
+                
+                if (vib34dLayers) vib34dLayers.style.display = 'none';
+                if (quantumLayers) quantumLayers.style.display = 'none';
+                if (holographicLayers) holographicLayers.style.display = 'none';
+                if (polychoraLayers) polychoraLayers.style.display = 'block';
+                
+                if (window.quantumEngine) window.quantumEngine.setActive(false);
+                if (window.holographicSystem) window.holographicSystem.setActive(false);
+                
+                // Initialize Polychora if needed
+                if (window.initializePolychora) await window.initializePolychora();
+                if (window.polychoraSystem) window.polychoraSystem.start();
+            }
+            
+            console.log(`✅ Switched to ${system} system successfully`);
+        }
+        
+        // Make other essential functions globally accessible
+        window.selectGeometry = function(index) {
+            document.querySelectorAll('.geom-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.index == index);
+            });
+            
+            if (window.updateParameter) {
+                window.updateParameter('geometry', index);
+            }
+        }
+        
+        // Global flag to indicate module readiness
+        window.moduleReady = false;
+        window.currentSystem = 'faceted';
+    </script>
+    
     <script type="module">
         // Import VIB34D modules
         import { VIB34DIntegratedEngine } from './src/core/Engine.js';
@@ -620,8 +747,23 @@
             parseURLParameters();
             
             setupGeometry('faceted');
-            await initializeEngine();
-            console.log('🚀 VIB34D Clean Interface Ready');
+            const success = await initializeEngine();
+            
+            // CRITICAL: Make engines globally accessible for switchSystem function
+            window.engine = engine;
+            window.quantumEngine = quantumEngine;
+            window.holographicSystem = holographicSystem;
+            window.polychoraSystem = polychoraSystem;
+            window.unifiedSaveManager = unifiedSaveManager;
+            window.parameterMapper = parameterMapper;
+            window.geometries = geometries;
+            window.initializePolychora = initializePolychora;
+            window.updateParameter = updateParameter;
+            
+            // Set moduleReady flag to enable global switchSystem function
+            window.moduleReady = true;
+            
+            console.log('🚀 VIB34D Clean Interface Ready - All systems initialized');
         });
         
         // Parse URL parameters for gallery preview integration
@@ -771,89 +913,17 @@
             return false;
         }
         
-        // System switching - CRITICAL FIX: Keep window.currentSystem synchronized
-        window.switchSystem = async function(system) {
-            currentSystem = system;
-            window.currentSystem = system; // Make available to UnifiedSaveManager
-            
-            console.log('🔄 System switched to:', system);
-            
-            // Update UI
-            document.querySelectorAll('.system-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.system === system);
-            });
-            
-            // Update panel header
-            const headers = {
-                faceted: 'FACETED SYSTEM',
-                holographic: 'HOLOGRAPHIC SYSTEM',
-                polychora: 'POLYCHORA SYSTEM'
-            };
-            document.getElementById('panelHeader').textContent = headers[system];
-            
-            // Show/hide sections based on system
-            // ALL systems show geometry section
-            document.getElementById('geometrySection').style.display = 'block';
-            document.getElementById('holographicSection').style.display = 
-                system === 'holographic' ? 'block' : 'none';
-            
-            // Setup geometry for current system
-            setupGeometry(system);
-            
-            // Switch visualization systems
-            if (system === 'faceted') {
-                // Show VIB34D canvases, hide others
-                document.getElementById('vib34dLayers').style.display = 'block';
-                document.getElementById('quantumLayers').style.display = 'none';
-                document.getElementById('holographicLayers').style.display = 'none';
-                document.getElementById('polychoraLayers').style.display = 'none';
-                if (quantumEngine) quantumEngine.setActive(false);
-                if (holographicSystem) holographicSystem.setActive(false);
-                if (polychoraSystem) polychoraSystem.stop();
-                // VIB34DIntegratedEngine runs automatically, no start() method
-            } else if (system === 'quantum') {
-                // Show Quantum canvases, hide others
-                document.getElementById('vib34dLayers').style.display = 'none';
-                document.getElementById('quantumLayers').style.display = 'block';
-                document.getElementById('holographicLayers').style.display = 'none';
-                document.getElementById('polychoraLayers').style.display = 'none';
-                if (holographicSystem) holographicSystem.setActive(false);
-                if (polychoraSystem) polychoraSystem.stop();
-                if (quantumEngine) quantumEngine.setActive(true);
-            } else if (system === 'holographic') {
-                // Show Holographic canvases, hide others
-                document.getElementById('vib34dLayers').style.display = 'none';
-                document.getElementById('quantumLayers').style.display = 'none';
-                document.getElementById('holographicLayers').style.display = 'block';
-                document.getElementById('polychoraLayers').style.display = 'none';
-                if (quantumEngine) quantumEngine.setActive(false);
-                if (polychoraSystem) polychoraSystem.stop();
-                if (holographicSystem) holographicSystem.setActive(true);
-                // VIB34DIntegratedEngine continues running in background
-            } else if (system === 'polychora') {
-                // Show Polychora canvases, hide others
-                document.getElementById('vib34dLayers').style.display = 'none';
-                document.getElementById('quantumLayers').style.display = 'none';
-                document.getElementById('holographicLayers').style.display = 'none';
-                document.getElementById('polychoraLayers').style.display = 'block';
-                if (quantumEngine) quantumEngine.setActive(false);
-                if (holographicSystem) holographicSystem.setActive(false);
-                
-                // Initialize Polychora if needed
-                await initializePolychora();
-                if (polychoraSystem) polychoraSystem.start();
-            }
-            
-            // Universal Interactivity Engine disabled until system is repaired
-            // TODO: Re-enable when Universal Interactivity is fixed
-            
-            console.log(`🔄 Switched to ${system} system`);
-        }
+        // REMOVED: switchSystem function moved outside ES6 module for global access
         
-        // Setup geometry buttons
-        function setupGeometry(system) {
+        // Setup geometry buttons - make globally accessible
+        window.setupGeometry = function(system) {
             const grid = document.getElementById('geometryGrid');
-            const geoList = geometries[system] || geometries.faceted;
+            if (!grid) return;
+            
+            const geoList = window.geometries?.[system] || window.geometries?.faceted || [
+                'TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 
+                'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'
+            ];
             
             grid.innerHTML = geoList.map((name, i) => 
                 `<button class="geom-btn ${i === 0 ? 'active' : ''}" 
@@ -863,26 +933,7 @@
             ).join('');
         }
         
-        // Select geometry
-        window.selectGeometry = function(index) {
-            document.querySelectorAll('.geom-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.index == index);
-            });
-            
-            // Update the actual engine
-            if (currentSystem === 'faceted' && engine) {
-                engine.parameterManager.setParameter('geometry', index);
-                engine.updateVisualizers();
-            } else if (currentSystem === 'quantum' && quantumEngine) {
-                quantumEngine.updateParameter('geometry', index);
-            } else if (currentSystem === 'holographic' && holographicSystem) {
-                holographicSystem.updateParameter('geometryType', index);
-            } else if (currentSystem === 'polychora' && polychoraSystem) {
-                polychoraSystem.setPolytope(index);
-            }
-            
-            console.log(`📐 Selected geometry: ${index}`);
-        }
+        // REMOVED: Duplicate function - updateParameter is defined below
         
         // Update parameter
         window.updateParameter = function(param, value) {

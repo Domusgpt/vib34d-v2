@@ -1168,7 +1168,13 @@ void main() {
             }
         }
         
-        // Enhanced interactivity system
+        // Enhanced interactivity system - FIXED CANVAS SCOPE
+        const canvas = document.getElementById('vib34dCanvas');
+        if (!canvas) {
+            console.error('Canvas not found for interactivity');
+            return;
+        }
+        
         let mouseX = 0.5, mouseY = 0.5, mouseIntensity = 0.0;
         let clickIntensity = 0.0;
         let currentTouch = null;
@@ -1628,7 +1634,13 @@ void main() {
             }
         }
         
-        // Enhanced interactivity system for Quantum cards
+        // Enhanced interactivity system for Quantum cards - FIXED CANVAS SCOPE
+        const canvas = document.getElementById('vib34dCanvas');
+        if (!canvas) {
+            console.error('Canvas not found for quantum interactivity');
+            return;
+        }
+        
         let mouseX = 0.5, mouseY = 0.5, mouseIntensity = 0.0;
         let clickIntensity = 0.0;
         
@@ -2055,7 +2067,13 @@ void main() {
             }
         }
         
-        // Enhanced interactivity system for Holographic cards
+        // Enhanced interactivity system for Holographic cards - FIXED CANVAS SCOPE
+        const canvas = document.getElementById('vib34dCanvas');
+        if (!canvas) {
+            console.error('Canvas not found for holographic interactivity');
+            return;
+        }
+        
         let mouseX = 0.5, mouseY = 0.5, mouseIntensity = 0.0;
         let clickIntensity = 0.0;
         let currentTouch = null;

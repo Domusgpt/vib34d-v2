@@ -4,7 +4,7 @@
  */
 
 import { QuantumHolographicVisualizer } from './QuantumVisualizer.js';
-import { Parameters } from '../core/Parameters.js';
+import { ParameterManager } from '../core/Parameters.js';
 import { GeometryLibrary } from '../geometry/GeometryLibrary.js';
 
 export class QuantumEngine {
@@ -12,14 +12,14 @@ export class QuantumEngine {
         console.log('🔮 Initializing VIB34D Quantum Engine...');
         
         this.visualizers = [];
-        this.parameters = new Parameters();
+        this.parameters = new ParameterManager();
         this.isActive = false;
         
         // Initialize with quantum-enhanced defaults
-        this.parameters.updateParameter('hue', 280); // Purple-blue for quantum
-        this.parameters.updateParameter('intensity', 0.7); // Higher intensity
-        this.parameters.updateParameter('saturation', 0.9); // More vivid
-        this.parameters.updateParameter('gridDensity', 20); // Denser patterns
+        this.parameters.setParameter('hue', 280); // Purple-blue for quantum
+        this.parameters.setParameter('intensity', 0.7); // Higher intensity
+        this.parameters.setParameter('saturation', 0.9); // More vivid
+        this.parameters.setParameter('gridDensity', 20); // Denser patterns
         
         this.init();
     }
@@ -107,7 +107,7 @@ export class QuantumEngine {
      * Update parameter across all quantum visualizers
      */
     updateParameter(param, value) {
-        this.parameters.updateParameter(param, value);
+        this.parameters.setParameter(param, value);
         
         // Apply to all quantum visualizers
         this.visualizers.forEach(visualizer => {
@@ -145,14 +145,16 @@ export class QuantumEngine {
      * Get current parameters for saving/export
      */
     getParameters() {
-        return this.parameters.getAll();
+        return this.parameters.getAllParameters();
     }
     
     /**
      * Set parameters from loaded/imported data
      */
     setParameters(params) {
-        this.parameters.setAll(params);
+        Object.keys(params).forEach(param => {
+            this.parameters.setParameter(param, params[param]);
+        });
         this.updateParameters(params);
     }
     

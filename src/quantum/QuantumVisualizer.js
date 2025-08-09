@@ -428,10 +428,15 @@ void main() {
     }
     
     /**
-     * Update visualization parameters
+     * Update visualization parameters with immediate GPU sync
      */
     updateParameters(params) {
         this.params = { ...this.params, ...params };
+        
+        // CRITICAL FIX: Force immediate render with new parameters
+        this.render();
+        
+        console.log(`🔮 Quantum visualizer updated: ${JSON.stringify(params)}`);
     }
     
     /**
