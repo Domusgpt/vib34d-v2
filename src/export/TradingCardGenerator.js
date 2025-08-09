@@ -156,7 +156,42 @@ export class TradingCardGenerator {
      * Capture current visualization state
      */
     captureCurrentState() {
-        const params = this.engine?.parameterManager?.getAllParameters() || {};
+        console.log('🎯 Capturing state for system:', this.currentSystem);
+        
+        // Get parameters based on current system
+        let params = {};
+        let geometryType = 0;
+        
+        if (this.currentSystem === 'faceted' && this.engine) {
+            params = this.engine.parameterManager?.getAllParameters() || {};
+            geometryType = params.geometry || 0;
+        } else if (this.currentSystem === 'holographic') {
+            // Get holographic system parameters directly from UI and system
+            params = {
+                geometryType: this.getActiveGeometryIndex(),
+                density: parseFloat(document.getElementById('gridDensity')?.value || 15) / 15.0,
+                morph: parseFloat(document.getElementById('morphFactor')?.value || 1.0),
+                speed: parseFloat(document.getElementById('speed')?.value || 1.0),
+                chaos: parseFloat(document.getElementById('chaos')?.value || 0.2),
+                hue: parseFloat(document.getElementById('hue')?.value || 200),
+                intensity: parseFloat(document.getElementById('intensity')?.value || 0.5),
+                saturation: parseFloat(document.getElementById('saturation')?.value || 0.8),
+                rot4dXW: parseFloat(document.getElementById('rot4dXW')?.value || 0),
+                rot4dYW: parseFloat(document.getElementById('rot4dYW')?.value || 0),
+                rot4dZW: parseFloat(document.getElementById('rot4dZW')?.value || 0)
+            };
+            geometryType = params.geometryType;
+        } else if (this.currentSystem === 'polychora') {
+            // Get polychora parameters
+            params = {
+                polytope: this.getActiveGeometryIndex(),
+                gridDensity: parseFloat(document.getElementById('gridDensity')?.value || 15),
+                morphFactor: parseFloat(document.getElementById('morphFactor')?.value || 1.0),
+                // ... other polychora params
+            };
+            geometryType = params.polytope;
+        }
+        
         const geometryNames = ['TETRAHEDRON', 'HYPERCUBE', 'SPHERE', 'TORUS', 'KLEIN BOTTLE', 'FRACTAL', 'WAVE', 'CRYSTAL'];
         const systemNames = {
             faceted: 'FACETED',
@@ -165,10 +200,10 @@ export class TradingCardGenerator {
         };
         
         const state = {
-            name: `${geometryNames[params.geometry || 0]} ${systemNames[this.currentSystem] || 'QUANTUM'}`,
-            geometry: geometryNames[params.geometry || 0],
+            name: `${geometryNames[geometryType] || 'QUANTUM'} ${systemNames[this.currentSystem] || 'SYSTEM'}`,
+            geometry: geometryNames[geometryType] || 'QUANTUM',
             system: this.currentSystem,
-            dimension: (params.dimension || 3.8).toFixed(1),
+            dimension: (params.dimension || 3.8).toString(),
             hue: params.hue || 200,
             saturation: ((params.saturation || 0.8) * 100).toFixed(0),
             intensity: ((params.intensity || 0.5) * 100).toFixed(0),
@@ -179,7 +214,13 @@ export class TradingCardGenerator {
             portalUrl: window.location.origin + '/vib34d-portal.html'
         };
         
+        console.log('🎯 Captured state:', state);
         return state;
+    }
+    
+    getActiveGeometryIndex() {
+        const activeBtn = document.querySelector('.geom-btn.active');
+        return activeBtn ? parseInt(activeBtn.dataset.index) : 0;
     }
     
     /**
@@ -761,11 +802,12 @@ export class TradingCardGenerator {
     }
     
     /**
-     * Generate WebGL code for Faceted system with actual shaders
+     * Generate WebGL code for Faceted system with EXACT shader from Visualizer.js
      */
     generateFacetedVisualizationCode(state) {
         return `
         // VIB34D Faceted System Trading Card - ${state.name}
+        // EXACT SHADER CODE FROM src/core/Visualizer.js IntegratedHolographicVisualizer
         class TradingCardVisualizer {
             constructor(canvas) {
                 this.canvas = canvas;
@@ -791,156 +833,164 @@ export class TradingCardGenerator {
             }
             
             initShaders() {
-                const vertexShaderSource = \`
-                    attribute vec2 a_position;
-                    void main() {
-                        gl_Position = vec4(a_position, 0.0, 1.0);
-                    }
-                \`;
+                const vertexShaderSource = \`attribute vec2 a_position;
+void main() {
+    gl_Position = vec4(a_position, 0.0, 1.0);
+}\`;
                 
-                const fragmentShaderSource = \`
-                    precision highp float;
-                    
-                    uniform vec2 u_resolution;
-                    uniform float u_time;
-                    uniform vec2 u_mouse;
-                    uniform float u_geometry;
-                    uniform float u_gridDensity;
-                    uniform float u_morphFactor;
-                    uniform float u_chaos;
-                    uniform float u_speed;
-                    uniform float u_hue;
-                    uniform float u_intensity;
-                    uniform float u_saturation;
-                    uniform float u_dimension;
-                    uniform float u_rot4dXW;
-                    uniform float u_rot4dYW;
-                    uniform float u_rot4dZW;
-                    uniform float u_mouseIntensity;
-                    uniform float u_clickIntensity;
-                    uniform float u_roleIntensity;
-                    
-                    // 4D rotation matrices
-                    mat4 rotateXW(float theta) {
-                        float c = cos(theta);
-                        float s = sin(theta);
-                        return mat4(c, 0.0, 0.0, -s, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, s, 0.0, 0.0, c);
-                    }
-                    
-                    mat4 rotateYW(float theta) {
-                        float c = cos(theta);
-                        float s = sin(theta);
-                        return mat4(1.0, 0.0, 0.0, 0.0, 0.0, c, 0.0, -s, 0.0, 0.0, 1.0, 0.0, 0.0, s, 0.0, c);
-                    }
-                    
-                    mat4 rotateZW(float theta) {
-                        float c = cos(theta);
-                        float s = sin(theta);
-                        return mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, c, -s, 0.0, 0.0, s, c);
-                    }
-                    
-                    vec3 project4Dto3D(vec4 p) {
-                        float w = 2.5 / (2.5 + p.w);
-                        return vec3(p.x * w, p.y * w, p.z * w);
-                    }
-                    
-                    float geometryFunction(vec4 p) {
-                        int geomType = int(u_geometry);
-                        
-                        if (geomType == 0) {
-                            vec4 pos = fract(p * u_gridDensity * 0.08);
-                            vec4 dist = min(pos, 1.0 - pos);
-                            return min(min(dist.x, dist.y), min(dist.z, dist.w)) * u_morphFactor;
-                        }
-                        else if (geomType == 1) {
-                            vec4 pos = fract(p * u_gridDensity * 0.08);
-                            vec4 dist = min(pos, 1.0 - pos);
-                            float minDist = min(min(dist.x, dist.y), min(dist.z, dist.w));
-                            return minDist * u_morphFactor;
-                        }
-                        else if (geomType == 2) {
-                            float r = length(p);
-                            float density = u_gridDensity * 0.08;
-                            float spheres = abs(fract(r * density) - 0.5) * 2.0;
-                            float theta = atan(p.y, p.x);
-                            float harmonics = sin(theta * 3.0) * 0.2;
-                            return (spheres + harmonics) * u_morphFactor;
-                        }
-                        else if (geomType == 3) {
-                            float r1 = length(p.xy) - 2.0;
-                            float torus = length(vec2(r1, p.z)) - 0.8;
-                            float lattice = sin(p.x * u_gridDensity * 0.08) * sin(p.y * u_gridDensity * 0.08);
-                            return (torus + lattice * 0.3) * u_morphFactor;
-                        }
-                        else if (geomType == 4) {
-                            float u = atan(p.y, p.x);
-                            float v = atan(p.w, p.z);
-                            float dist = length(p) - 2.0;
-                            float lattice = sin(u * u_gridDensity * 0.08) * sin(v * u_gridDensity * 0.08);
-                            return (dist + lattice * 0.4) * u_morphFactor;
-                        }
-                        else if (geomType == 5) {
-                            vec4 pos = fract(p * u_gridDensity * 0.08);
-                            pos = abs(pos * 2.0 - 1.0);
-                            float dist = length(max(abs(pos) - 1.0, 0.0));
-                            return dist * u_morphFactor;
-                        }
-                        else if (geomType == 6) {
-                            float freq = u_gridDensity * 0.08;
-                            float time = u_time * 0.001 * u_speed;
-                            float wave1 = sin(p.x * freq + time);
-                            float wave2 = sin(p.y * freq + time * 1.3);
-                            float wave3 = sin(p.z * freq * 0.8 + time * 0.7);
-                            float interference = wave1 * wave2 * wave3;
-                            return interference * u_morphFactor;
-                        }
-                        else if (geomType == 7) {
-                            vec4 pos = fract(p * u_gridDensity * 0.08) - 0.5;
-                            float cube = max(max(abs(pos.x), abs(pos.y)), max(abs(pos.z), abs(pos.w)));
-                            return cube * u_morphFactor;
-                        }
-                        else {
-                            vec4 pos = fract(p * u_gridDensity * 0.08);
-                            vec4 dist = min(pos, 1.0 - pos);
-                            return min(min(dist.x, dist.y), min(dist.z, dist.w)) * u_morphFactor;
-                        }
-                    }
-                    
-                    void main() {
-                        vec2 uv = (gl_FragCoord.xy - u_resolution.xy * 0.5) / min(u_resolution.x, u_resolution.y);
-                        
-                        float timeSpeed = u_time * 0.0001 * u_speed;
-                        vec4 pos = vec4(uv * 3.0, sin(timeSpeed * 3.0), cos(timeSpeed * 2.0));
-                        pos.xy += (u_mouse - 0.5) * u_mouseIntensity * 2.0;
-                        
-                        pos = rotateXW(u_rot4dXW) * pos;
-                        pos = rotateYW(u_rot4dYW) * pos;
-                        pos = rotateZW(u_rot4dZW) * pos;
-                        
-                        float value = geometryFunction(pos);
-                        
-                        float noise = sin(pos.x * 7.0) * cos(pos.y * 11.0) * sin(pos.z * 13.0);
-                        value += noise * u_chaos;
-                        
-                        float geometryIntensity = 1.0 - clamp(abs(value), 0.0, 1.0);
-                        geometryIntensity += u_clickIntensity * 0.3;
-                        
-                        float finalIntensity = geometryIntensity * u_intensity;
-                        
-                        float hue = u_hue / 360.0 + value * 0.1;
-                        
-                        vec3 baseColor = vec3(
-                            sin(hue * 6.28318 + 0.0) * 0.5 + 0.5,
-                            sin(hue * 6.28318 + 2.0943) * 0.5 + 0.5,
-                            sin(hue * 6.28318 + 4.1887) * 0.5 + 0.5
-                        );
-                        
-                        float gray = (baseColor.r + baseColor.g + baseColor.b) / 3.0;
-                        vec3 color = mix(vec3(gray), baseColor, u_saturation) * finalIntensity;
-                        
-                        gl_FragColor = vec4(color, finalIntensity * u_roleIntensity);
-                    }
-                \`;
+                // EXACT FRAGMENT SHADER FROM FACETED SYSTEM
+                const fragmentShaderSource = \`precision highp float;
+uniform vec2 u_resolution;
+uniform float u_time;
+uniform vec2 u_mouse;
+uniform float u_geometry;
+uniform float u_gridDensity;
+uniform float u_morphFactor;
+uniform float u_chaos;
+uniform float u_speed;
+uniform float u_hue;
+uniform float u_intensity;
+uniform float u_saturation;
+uniform float u_dimension;
+uniform float u_rot4dXW;
+uniform float u_rot4dYW;
+uniform float u_rot4dZW;
+uniform float u_mouseIntensity;
+uniform float u_clickIntensity;
+uniform float u_roleIntensity;
+// 4D rotation matrices
+mat4 rotateXW(float theta) {
+    float c = cos(theta);
+    float s = sin(theta);
+    return mat4(c, 0.0, 0.0, -s, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, s, 0.0, 0.0, c);
+}
+mat4 rotateYW(float theta) {
+    float c = cos(theta);
+    float s = sin(theta);
+    return mat4(1.0, 0.0, 0.0, 0.0, 0.0, c, 0.0, -s, 0.0, 0.0, 1.0, 0.0, 0.0, s, 0.0, c);
+}
+mat4 rotateZW(float theta) {
+    float c = cos(theta);
+    float s = sin(theta);
+    return mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, c, -s, 0.0, 0.0, s, c);
+}
+vec3 project4Dto3D(vec4 p) {
+    float w = 2.5 / (2.5 + p.w);
+    return vec3(p.x * w, p.y * w, p.z * w);
+}
+// Simplified geometry functions for WebGL 1.0 compatibility
+float geometryFunction(vec4 p) {
+    int geomType = int(u_geometry);
+    
+    if (geomType == 0) {
+        // Tetrahedron lattice - UNIFORM GRID DENSITY
+        vec4 pos = fract(p * u_gridDensity * 0.08);
+        vec4 dist = min(pos, 1.0 - pos);
+        return min(min(dist.x, dist.y), min(dist.z, dist.w)) * u_morphFactor;
+    }
+    else if (geomType == 1) {
+        // Hypercube lattice - UNIFORM GRID DENSITY
+        vec4 pos = fract(p * u_gridDensity * 0.08);
+        vec4 dist = min(pos, 1.0 - pos);
+        float minDist = min(min(dist.x, dist.y), min(dist.z, dist.w));
+        return minDist * u_morphFactor;
+    }
+    else if (geomType == 2) {
+        // Sphere lattice - UNIFORM GRID DENSITY
+        float r = length(p);
+        float density = u_gridDensity * 0.08;
+        float spheres = abs(fract(r * density) - 0.5) * 2.0;
+        float theta = atan(p.y, p.x);
+        float harmonics = sin(theta * 3.0) * 0.2;
+        return (spheres + harmonics) * u_morphFactor;
+    }
+    else if (geomType == 3) {
+        // Torus lattice - UNIFORM GRID DENSITY
+        float r1 = length(p.xy) - 2.0;
+        float torus = length(vec2(r1, p.z)) - 0.8;
+        float lattice = sin(p.x * u_gridDensity * 0.08) * sin(p.y * u_gridDensity * 0.08);
+        return (torus + lattice * 0.3) * u_morphFactor;
+    }
+    else if (geomType == 4) {
+        // Klein bottle lattice - UNIFORM GRID DENSITY
+        float u = atan(p.y, p.x);
+        float v = atan(p.w, p.z);
+        float dist = length(p) - 2.0;
+        float lattice = sin(u * u_gridDensity * 0.08) * sin(v * u_gridDensity * 0.08);
+        return (dist + lattice * 0.4) * u_morphFactor;
+    }
+    else if (geomType == 5) {
+        // Fractal lattice - NOW WITH UNIFORM GRID DENSITY
+        vec4 pos = fract(p * u_gridDensity * 0.08);
+        pos = abs(pos * 2.0 - 1.0);
+        float dist = length(max(abs(pos) - 1.0, 0.0));
+        return dist * u_morphFactor;
+    }
+    else if (geomType == 6) {
+        // Wave lattice - UNIFORM GRID DENSITY
+        float freq = u_gridDensity * 0.08;
+        float time = u_time * 0.001 * u_speed;
+        float wave1 = sin(p.x * freq + time);
+        float wave2 = sin(p.y * freq + time * 1.3);
+        float wave3 = sin(p.z * freq * 0.8 + time * 0.7); // Add Z-dimension waves
+        float interference = wave1 * wave2 * wave3;
+        return interference * u_morphFactor;
+    }
+    else if (geomType == 7) {
+        // Crystal lattice - UNIFORM GRID DENSITY
+        vec4 pos = fract(p * u_gridDensity * 0.08) - 0.5;
+        float cube = max(max(abs(pos.x), abs(pos.y)), max(abs(pos.z), abs(pos.w)));
+        return cube * u_morphFactor;
+    }
+    else {
+        // Default hypercube - UNIFORM GRID DENSITY
+        vec4 pos = fract(p * u_gridDensity * 0.08);
+        vec4 dist = min(pos, 1.0 - pos);
+        return min(min(dist.x, dist.y), min(dist.z, dist.w)) * u_morphFactor;
+    }
+}
+void main() {
+    vec2 uv = (gl_FragCoord.xy - u_resolution.xy * 0.5) / min(u_resolution.x, u_resolution.y);
+    
+    // 4D position with mouse interaction - NOW USING SPEED PARAMETER
+    float timeSpeed = u_time * 0.0001 * u_speed;
+    vec4 pos = vec4(uv * 3.0, sin(timeSpeed * 3.0), cos(timeSpeed * 2.0));
+    pos.xy += (u_mouse - 0.5) * u_mouseIntensity * 2.0;
+    
+    // Apply 4D rotations
+    pos = rotateXW(u_rot4dXW) * pos;
+    pos = rotateYW(u_rot4dYW) * pos;
+    pos = rotateZW(u_rot4dZW) * pos;
+    
+    // Calculate geometry value
+    float value = geometryFunction(pos);
+    
+    // Apply chaos
+    float noise = sin(pos.x * 7.0) * cos(pos.y * 11.0) * sin(pos.z * 13.0);
+    value += noise * u_chaos;
+    
+    // Color based on geometry value and hue with user-controlled intensity/saturation
+    float geometryIntensity = 1.0 - clamp(abs(value), 0.0, 1.0);
+    geometryIntensity += u_clickIntensity * 0.3;
+    
+    // Apply user intensity control
+    float finalIntensity = geometryIntensity * u_intensity;
+    
+    float hue = u_hue / 360.0 + value * 0.1;
+    
+    // Create color with saturation control
+    vec3 baseColor = vec3(
+        sin(hue * 6.28318 + 0.0) * 0.5 + 0.5,
+        sin(hue * 6.28318 + 2.0943) * 0.5 + 0.5,
+        sin(hue * 6.28318 + 4.1887) * 0.5 + 0.5
+    );
+    
+    // Apply saturation (mix with grayscale)
+    float gray = (baseColor.r + baseColor.g + baseColor.b) / 3.0;
+    vec3 color = mix(vec3(gray), baseColor, u_saturation) * finalIntensity;
+    
+    gl_FragColor = vec4(color, finalIntensity * u_roleIntensity);
+}\`;
                 
                 this.program = this.createProgram(vertexShaderSource, fragmentShaderSource);
                 this.uniforms = {
@@ -1045,11 +1095,12 @@ export class TradingCardGenerator {
     }
     
     /**
-     * Generate WebGL code for Holographic system with actual shaders
+     * Generate WebGL code for Holographic system with EXACT shader from HolographicVisualizer.js
      */
     generateHolographicVisualizationCode(state) {
         return `
         // VIB34D Holographic System Trading Card - ${state.name}
+        // EXACT SHADER CODE FROM src/holograms/HolographicVisualizer.js
         class TradingCardVisualizer {
             constructor(canvas) {
                 this.canvas = canvas;
@@ -1070,110 +1121,252 @@ export class TradingCardGenerator {
             
             initHolographicShaders() {
                 const vertexShaderSource = \`
-                    attribute vec2 a_position;
-                    void main() {
-                        gl_Position = vec4(a_position, 0.0, 1.0);
-                    }
-                \`;
+            attribute vec2 a_position;
+            void main() {
+                gl_Position = vec4(a_position, 0.0, 1.0);
+            }
+        \`;
                 
-                // Use the actual holographic fragment shader
+                // EXACT FRAGMENT SHADER FROM HOLOGRAPHIC SYSTEM
                 const fragmentShaderSource = \`
-                    precision highp float;
-                    
-                    uniform vec2 u_resolution;
-                    uniform float u_time;
-                    uniform vec2 u_mouse;
-                    uniform float u_geometry;
-                    uniform float u_density;
-                    uniform float u_speed;
-                    uniform vec3 u_color;
-                    uniform float u_intensity;
-                    uniform float u_roleDensity;
-                    uniform float u_roleSpeed;
-                    uniform float u_geometryType;
-                    uniform float u_chaos;
-                    uniform float u_morph;
-                    uniform float u_rot4dXW;
-                    uniform float u_rot4dYW;
-                    uniform float u_rot4dZW;
-                    
-                    // 4D rotation matrices
-                    mat4 rotateXW(float theta) {
-                        float c = cos(theta);
-                        float s = sin(theta);
-                        return mat4(c, 0, 0, -s, 0, 1, 0, 0, 0, 0, 1, 0, s, 0, 0, c);
-                    }
-                    
-                    mat4 rotateYW(float theta) {
-                        float c = cos(theta);
-                        float s = sin(theta);
-                        return mat4(1, 0, 0, 0, 0, c, 0, -s, 0, 0, 1, 0, 0, s, 0, c);
-                    }
-                    
-                    mat4 rotateZW(float theta) {
-                        float c = cos(theta);
-                        float s = sin(theta);
-                        return mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, c, -s, 0, 0, s, c);
-                    }
-                    
-                    vec3 project4Dto3D(vec4 p) {
-                        float w = 2.5 / (2.5 + p.w);
-                        return vec3(p.x * w, p.y * w, p.z * w);
-                    }
-                    
-                    float tetrahedronLattice(vec3 p, float gridSize) {
-                        vec3 q = fract(p * gridSize) - 0.5;
-                        float d1 = length(q);
-                        float d2 = length(q - vec3(0.4, 0.0, 0.0));
-                        float d3 = length(q - vec3(0.0, 0.4, 0.0));
-                        float d4 = length(q - vec3(0.0, 0.0, 0.4));
-                        float vertices = 1.0 - smoothstep(0.0, 0.04, min(min(d1, d2), min(d3, d4)));
-                        float edges = 0.0;
-                        edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.xy) - 0.2)));
-                        edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.yz) - 0.2)));
-                        edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.xz) - 0.2)));
-                        return max(vertices, edges * 0.5);
-                    }
-                    
-                    float getDynamicGeometry(vec3 p, float gridSize, float geometryType) {
-                        int baseGeom = int(mod(geometryType, 8.0));
-                        float variation = floor(geometryType / 8.0) / 4.0;
-                        float variedGridSize = gridSize * (0.5 + variation * 1.5);
-                        
-                        if (baseGeom == 0) return tetrahedronLattice(p, variedGridSize);
-                        // Add other geometry types as needed
-                        return tetrahedronLattice(p, variedGridSize);
-                    }
-                    
-                    void main() {
-                        vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-                        float aspectRatio = u_resolution.x / u_resolution.y;
-                        uv.x *= aspectRatio;
-                        uv -= 0.5;
-                        
-                        float time = u_time * 0.0004 * u_speed * u_roleSpeed;
-                        
-                        vec4 p4d = vec4(uv * 3.0, sin(time * 0.1) * 0.15, cos(time * 0.08) * 0.15);
-                        
-                        p4d = rotateXW(u_rot4dXW + time * 0.2) * p4d;
-                        p4d = rotateYW(u_rot4dYW + time * 0.15) * p4d;
-                        p4d = rotateZW(u_rot4dZW + time * 0.25) * p4d;
-                        
-                        vec3 p = project4Dto3D(p4d);
-                        
-                        float roleDensity = u_density * u_roleDensity;
-                        float morphedGeometry = u_geometryType + u_morph * 3.0;
-                        float lattice = getDynamicGeometry(p, roleDensity, morphedGeometry);
-                        
-                        vec3 baseColor = u_color;
-                        float latticeIntensity = lattice * u_intensity;
-                        
-                        vec3 color = baseColor * (0.3 + latticeIntensity * 0.7);
-                        color += vec3(lattice * 0.4) * baseColor;
-                        
-                        gl_FragColor = vec4(color, 0.95);
-                    }
-                \`;
+            precision highp float;
+            
+            uniform vec2 u_resolution;
+            uniform float u_time;
+            uniform vec2 u_mouse;
+            uniform float u_geometry;
+            uniform float u_density;
+            uniform float u_speed;
+            uniform vec3 u_color;
+            uniform float u_intensity;
+            uniform float u_roleDensity;
+            uniform float u_roleSpeed;
+            uniform float u_colorShift;
+            uniform float u_chaosIntensity;
+            uniform float u_mouseIntensity;
+            uniform float u_clickIntensity;
+            uniform float u_densityVariation;
+            uniform float u_geometryType;
+            uniform float u_chaos;
+            uniform float u_morph;
+            uniform float u_touchMorph;
+            uniform float u_touchChaos;
+            uniform float u_scrollParallax;
+            uniform float u_gridDensityShift;
+            uniform float u_colorScrollShift;
+            uniform float u_audioDensityBoost;
+            uniform float u_audioMorphBoost;
+            uniform float u_audioSpeedBoost;
+            uniform float u_audioChaosBoost;
+            uniform float u_audioColorShift;
+            uniform float u_rot4dXW;
+            uniform float u_rot4dYW;
+            uniform float u_rot4dZW;
+            
+            // 4D rotation matrices
+            mat4 rotateXW(float theta) {
+                float c = cos(theta);
+                float s = sin(theta);
+                return mat4(c, 0, 0, -s, 0, 1, 0, 0, 0, 0, 1, 0, s, 0, 0, c);
+            }
+            
+            mat4 rotateYW(float theta) {
+                float c = cos(theta);
+                float s = sin(theta);
+                return mat4(1, 0, 0, 0, 0, c, 0, -s, 0, 0, 1, 0, 0, s, 0, c);
+            }
+            
+            mat4 rotateZW(float theta) {
+                float c = cos(theta);
+                float s = sin(theta);
+                return mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, c, -s, 0, 0, s, c);
+            }
+            
+            // 4D to 3D projection
+            vec3 project4Dto3D(vec4 p) {
+                float w = 2.5 / (2.5 + p.w);
+                return vec3(p.x * w, p.y * w, p.z * w);
+            }
+            
+            // VIB3 Geometry Library
+            float tetrahedronLattice(vec3 p, float gridSize) {
+                vec3 q = fract(p * gridSize) - 0.5;
+                float d1 = length(q);
+                float d2 = length(q - vec3(0.4, 0.0, 0.0));
+                float d3 = length(q - vec3(0.0, 0.4, 0.0));
+                float d4 = length(q - vec3(0.0, 0.0, 0.4));
+                float vertices = 1.0 - smoothstep(0.0, 0.04, min(min(d1, d2), min(d3, d4)));
+                float edges = 0.0;
+                edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.xy) - 0.2)));
+                edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.yz) - 0.2)));
+                edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.xz) - 0.2)));
+                return max(vertices, edges * 0.5);
+            }
+            
+            float hypercubeLattice(vec3 p, float gridSize) {
+                vec3 grid = fract(p * gridSize);
+                vec3 edges = 1.0 - smoothstep(0.0, 0.03, abs(grid - 0.5));
+                return max(max(edges.x, edges.y), edges.z);
+            }
+            
+            float sphereLattice(vec3 p, float gridSize) {
+                vec3 q = fract(p * gridSize) - 0.5;
+                float r = length(q);
+                return 1.0 - smoothstep(0.2, 0.5, r);
+            }
+            
+            float torusLattice(vec3 p, float gridSize) {
+                vec3 q = fract(p * gridSize) - 0.5;
+                float r1 = sqrt(q.x*q.x + q.y*q.y);
+                float r2 = sqrt((r1 - 0.3)*(r1 - 0.3) + q.z*q.z);
+                return 1.0 - smoothstep(0.0, 0.1, r2);
+            }
+            
+            float kleinLattice(vec3 p, float gridSize) {
+                vec3 q = fract(p * gridSize);
+                float u = q.x * 2.0 * 3.14159;
+                float v = q.y * 2.0 * 3.14159;
+                float x = cos(u) * (3.0 + cos(u/2.0) * sin(v) - sin(u/2.0) * sin(2.0*v));
+                float klein = length(vec2(x, q.z)) - 0.1;
+                return 1.0 - smoothstep(0.0, 0.05, abs(klein));
+            }
+            
+            float fractalLattice(vec3 p, float gridSize) {
+                vec3 q = p * gridSize;
+                float scale = 1.0;
+                float fractal = 0.0;
+                for(int i = 0; i < 4; i++) {
+                  q = fract(q) - 0.5;
+                  fractal += abs(length(q)) / scale;
+                  scale *= 2.0;
+                  q *= 2.0;
+                }
+                return 1.0 - smoothstep(0.0, 1.0, fractal);
+            }
+            
+            float waveLattice(vec3 p, float gridSize) {
+                vec3 q = p * gridSize;
+                float wave = sin(q.x * 2.0) * sin(q.y * 2.0) * sin(q.z * 2.0 + u_time);
+                return smoothstep(-0.5, 0.5, wave);
+            }
+            
+            float crystalLattice(vec3 p, float gridSize) {
+                vec3 q = fract(p * gridSize) - 0.5;
+                float d = max(max(abs(q.x), abs(q.y)), abs(q.z));
+                return 1.0 - smoothstep(0.3, 0.5, d);
+            }
+            
+            float getDynamicGeometry(vec3 p, float gridSize, float geometryType) {
+                int baseGeom = int(mod(geometryType, 8.0));
+                float variation = floor(geometryType / 8.0) / 4.0;
+                float variedGridSize = gridSize * (0.5 + variation * 1.5);
+                
+                if (baseGeom == 0) return tetrahedronLattice(p, variedGridSize);
+                else if (baseGeom == 1) return hypercubeLattice(p, variedGridSize);
+                else if (baseGeom == 2) return sphereLattice(p, variedGridSize);
+                else if (baseGeom == 3) return torusLattice(p, variedGridSize);
+                else if (baseGeom == 4) return kleinLattice(p, variedGridSize);
+                else if (baseGeom == 5) return fractalLattice(p, variedGridSize);
+                else if (baseGeom == 6) return waveLattice(p, variedGridSize);
+                else return crystalLattice(p, variedGridSize);
+            }
+            
+            vec3 hsv2rgb(vec3 c) {
+                vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+                vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+                return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+            }
+            
+            vec3 rgbGlitch(vec3 color, vec2 uv, float intensity) {
+                vec2 offset = vec2(intensity * 0.005, 0.0);
+                float r = color.r + sin(uv.y * 30.0 + u_time * 0.001) * intensity * 0.06;
+                float g = color.g + sin(uv.y * 28.0 + u_time * 0.0012) * intensity * 0.06;
+                float b = color.b + sin(uv.y * 32.0 + u_time * 0.0008) * intensity * 0.06;
+                return vec3(r, g, b);
+            }
+            
+            float moirePattern(vec2 uv, float intensity) {
+                float freq1 = 12.0 + intensity * 6.0 + u_densityVariation * 3.0;
+                float freq2 = 14.0 + intensity * 8.0 + u_densityVariation * 4.0;
+                float pattern1 = sin(uv.x * freq1) * sin(uv.y * freq1);
+                float pattern2 = sin(uv.x * freq2) * sin(uv.y * freq2);
+                return (pattern1 * pattern2) * intensity * 0.15;
+            }
+            
+            float gridOverlay(vec2 uv, float intensity) {
+                vec2 grid = fract(uv * (8.0 + u_densityVariation * 4.0));
+                float lines = 0.0;
+                lines = max(lines, 1.0 - smoothstep(0.0, 0.02, abs(grid.x - 0.5)));
+                lines = max(lines, 1.0 - smoothstep(0.0, 0.02, abs(grid.y - 0.5)));
+                return lines * intensity * 0.1;
+            }
+            
+            void main() {
+                vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+                float aspectRatio = u_resolution.x / u_resolution.y;
+                uv.x *= aspectRatio;
+                uv -= 0.5;
+                
+                float time = u_time * 0.0004 * u_speed * u_roleSpeed;
+                
+                float mouseInfluence = u_mouseIntensity * 0.5;
+                vec2 mouseOffset = (u_mouse - 0.5) * mouseInfluence;
+                
+                float parallaxOffset = u_scrollParallax * 0.2;
+                vec2 scrollOffset = vec2(parallaxOffset * 0.1, parallaxOffset * 0.05);
+                
+                float morphOffset = u_touchMorph * 0.3;
+                
+                vec4 p4d = vec4(uv + mouseOffset * 0.1 + scrollOffset, 
+                               sin(time * 0.1 + morphOffset) * 0.15, 
+                               cos(time * 0.08 + morphOffset * 0.5) * 0.15);
+                
+                float scrollRotation = u_scrollParallax * 0.1;
+                float touchRotation = u_touchMorph * 0.2;
+                
+                // Combine manual rotation with automatic/interactive rotation
+                p4d = rotateXW(u_rot4dXW + time * 0.2 + mouseOffset.y * 0.5 + scrollRotation) * p4d;
+                p4d = rotateYW(u_rot4dYW + time * 0.15 + mouseOffset.x * 0.5 + touchRotation) * p4d;
+                p4d = rotateZW(u_rot4dZW + time * 0.25 + u_clickIntensity * 0.3 + u_touchChaos * 0.4) * p4d;
+                
+                vec3 p = project4Dto3D(p4d);
+                
+                float scrollDensityMod = 1.0 + u_gridDensityShift * 0.3;
+                float audioDensityMod = 1.0 + u_audioDensityBoost * 0.5;
+                float roleDensity = ((u_density + u_densityVariation) * u_roleDensity) * scrollDensityMod * audioDensityMod;
+                
+                float morphedGeometry = u_geometryType + u_morph * 3.0 + u_touchMorph * 2.0 + u_audioMorphBoost * 1.5;
+                float lattice = getDynamicGeometry(p, roleDensity, morphedGeometry);
+                
+                // Use the passed RGB as base color and modulate with lattice patterns
+                vec3 baseColor = u_color;
+                float latticeIntensity = lattice * u_intensity;
+                
+                vec3 color = baseColor * (0.3 + latticeIntensity * 0.7);
+                
+                // Add lattice-based brightness variations
+                color += vec3(lattice * 0.4) * baseColor;
+                
+                float enhancedChaos = u_chaos + u_chaosIntensity + u_touchChaos * 0.3 + u_audioChaosBoost * 0.4;
+                color += vec3(moirePattern(uv + scrollOffset, enhancedChaos));
+                color += vec3(gridOverlay(uv, u_mouseIntensity + u_scrollParallax * 0.1));
+                color = rgbGlitch(color, uv, enhancedChaos);
+                
+                // Apply morph distortion to position
+                vec2 morphDistortion = vec2(sin(uv.y * 10.0 + u_time * 0.001) * u_morph * 0.1, 
+                                           cos(uv.x * 10.0 + u_time * 0.001) * u_morph * 0.1);
+                color = mix(color, color * (1.0 + length(morphDistortion)), u_morph * 0.5);
+                
+                float mouseDist = length(uv - (u_mouse - 0.5) * vec2(aspectRatio, 1.0));
+                float mouseGlow = exp(-mouseDist * 1.5) * u_mouseIntensity * 0.2;
+                color += vec3(mouseGlow) * baseColor * 0.6;
+                
+                float clickPulse = u_clickIntensity * exp(-mouseDist * 2.0) * 0.3;
+                color += vec3(clickPulse, clickPulse * 0.5, clickPulse * 1.5);
+                
+                gl_FragColor = vec4(color, 0.95);
+            }
+        \`;
                 
                 this.program = this.createProgram(vertexShaderSource, fragmentShaderSource);
                 this.uniforms = {
@@ -1187,9 +1380,24 @@ export class TradingCardGenerator {
                     intensity: this.gl.getUniformLocation(this.program, 'u_intensity'),
                     roleDensity: this.gl.getUniformLocation(this.program, 'u_roleDensity'),
                     roleSpeed: this.gl.getUniformLocation(this.program, 'u_roleSpeed'),
+                    colorShift: this.gl.getUniformLocation(this.program, 'u_colorShift'),
+                    chaosIntensity: this.gl.getUniformLocation(this.program, 'u_chaosIntensity'),
+                    mouseIntensity: this.gl.getUniformLocation(this.program, 'u_mouseIntensity'),
+                    clickIntensity: this.gl.getUniformLocation(this.program, 'u_clickIntensity'),
+                    densityVariation: this.gl.getUniformLocation(this.program, 'u_densityVariation'),
                     geometryType: this.gl.getUniformLocation(this.program, 'u_geometryType'),
                     chaos: this.gl.getUniformLocation(this.program, 'u_chaos'),
                     morph: this.gl.getUniformLocation(this.program, 'u_morph'),
+                    touchMorph: this.gl.getUniformLocation(this.program, 'u_touchMorph'),
+                    touchChaos: this.gl.getUniformLocation(this.program, 'u_touchChaos'),
+                    scrollParallax: this.gl.getUniformLocation(this.program, 'u_scrollParallax'),
+                    gridDensityShift: this.gl.getUniformLocation(this.program, 'u_gridDensityShift'),
+                    colorScrollShift: this.gl.getUniformLocation(this.program, 'u_colorScrollShift'),
+                    audioDensityBoost: this.gl.getUniformLocation(this.program, 'u_audioDensityBoost'),
+                    audioMorphBoost: this.gl.getUniformLocation(this.program, 'u_audioMorphBoost'),
+                    audioSpeedBoost: this.gl.getUniformLocation(this.program, 'u_audioSpeedBoost'),
+                    audioChaosBoost: this.gl.getUniformLocation(this.program, 'u_audioChaosBoost'),
+                    audioColorShift: this.gl.getUniformLocation(this.program, 'u_audioColorShift'),
                     rot4dXW: this.gl.getUniformLocation(this.program, 'u_rot4dXW'),
                     rot4dYW: this.gl.getUniformLocation(this.program, 'u_rot4dYW'),
                     rot4dZW: this.gl.getUniformLocation(this.program, 'u_rot4dZW')
@@ -1293,8 +1501,23 @@ export class TradingCardGenerator {
                 this.gl.uniform1f(this.uniforms.intensity, this.params.intensity || 0.5);
                 this.gl.uniform1f(this.uniforms.roleDensity, 1.0);
                 this.gl.uniform1f(this.uniforms.roleSpeed, 1.0);
+                this.gl.uniform1f(this.uniforms.colorShift, 0.0);
+                this.gl.uniform1f(this.uniforms.chaosIntensity, this.params.chaos || 0.0);
+                this.gl.uniform1f(this.uniforms.mouseIntensity, 0.0);
+                this.gl.uniform1f(this.uniforms.clickIntensity, 0.0);
+                this.gl.uniform1f(this.uniforms.densityVariation, 0.0);
                 this.gl.uniform1f(this.uniforms.chaos, this.params.chaos || 0.0);
                 this.gl.uniform1f(this.uniforms.morph, this.params.morph || 0.0);
+                this.gl.uniform1f(this.uniforms.touchMorph, 0.0);
+                this.gl.uniform1f(this.uniforms.touchChaos, 0.0);
+                this.gl.uniform1f(this.uniforms.scrollParallax, 0.0);
+                this.gl.uniform1f(this.uniforms.gridDensityShift, 0.0);
+                this.gl.uniform1f(this.uniforms.colorScrollShift, 0.0);
+                this.gl.uniform1f(this.uniforms.audioDensityBoost, 0.0);
+                this.gl.uniform1f(this.uniforms.audioMorphBoost, 0.0);
+                this.gl.uniform1f(this.uniforms.audioSpeedBoost, 0.0);
+                this.gl.uniform1f(this.uniforms.audioChaosBoost, 0.0);
+                this.gl.uniform1f(this.uniforms.audioColorShift, 0.0);
                 this.gl.uniform1f(this.uniforms.rot4dXW, this.params.rot4dXW || 0.0);
                 this.gl.uniform1f(this.uniforms.rot4dYW, this.params.rot4dYW || 0.0);
                 this.gl.uniform1f(this.uniforms.rot4dZW, this.params.rot4dZW || 0.0);
