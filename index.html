@@ -1434,27 +1434,86 @@
             }, 3000);
         }
         
-        // Create Trading Card function
+        // Create Trading Card function - now uses modular system
         window.createTradingCard = async function(format = 'classic') {
-            console.log(`🎴 Creating ${format} trading card...`);
+            console.log(`🎴 Creating ${format} trading card for ${window.currentSystem} system...`);
             
             try {
-                // Initialize TradingCardGenerator if needed
-                if (!window.tradingCardGenerator) {
-                    window.tradingCardGenerator = new TradingCardGenerator(engine);
-                }
+                // Dynamic import of TradingCardManager
+                const { TradingCardManager } = await import('./src/export/TradingCardManager.js');
                 
-                // Generate the trading card
-                const result = await window.tradingCardGenerator.generateTradingCard(format);
+                // Get current parameters
+                const parameters = {
+                    system: window.currentSystem || 'faceted',
+                    geometry: getActiveGeometryIndex(),
+                    rot4dXW: parseFloat(document.getElementById('rot4dXW').value),
+                    rot4dYW: parseFloat(document.getElementById('rot4dYW').value),
+                    rot4dZW: parseFloat(document.getElementById('rot4dZW').value),
+                    gridDensity: parseFloat(document.getElementById('gridDensity').value),
+                    morphFactor: parseFloat(document.getElementById('morphFactor').value),
+                    chaos: parseFloat(document.getElementById('chaos').value),
+                    speed: parseFloat(document.getElementById('speed').value),
+                    hue: parseFloat(document.getElementById('hue').value),
+                    intensity: parseFloat(document.getElementById('intensity').value),
+                    saturation: parseFloat(document.getElementById('saturation').value)
+                };
+                
+                // Generate system-specific trading card
+                const result = await TradingCardManager.createCard(
+                    window.currentSystem || 'faceted',
+                    format,
+                    parameters
+                );
                 
                 if (result.success) {
-                    console.log(`✅ Trading card created: ${result.filename}`);
+                    console.log(`✅ ${result.system} trading card created: ${result.filename}`);
+                    
+                    // Show success notification
+                    const notification = document.createElement('div');
+                    notification.style.cssText = `
+                        position: fixed;
+                        top: 70px;
+                        right: 20px;
+                        background: rgba(0, 255, 0, 0.9);
+                        color: black;
+                        padding: 15px 20px;
+                        border-radius: 10px;
+                        font-family: 'Orbitron', monospace;
+                        font-weight: bold;
+                        z-index: 10000;
+                        animation: slideIn 0.3s ease-out;
+                    `;
+                    notification.innerHTML = `
+                        🎴 ${result.system.toUpperCase()} Trading Card Created!<br>
+                        <small style="opacity: 0.8;">${result.filename}</small>
+                    `;
+                    
+                    document.body.appendChild(notification);
+                    setTimeout(() => notification.remove(), 4000);
+                    
+                } else {
+                    throw new Error(result.error || 'Trading card generation failed');
                 }
             } catch (error) {
                 console.error('❌ Failed to create trading card:', error);
-                if (engine?.statusManager) {
-                    engine.statusManager.error(`Failed to create trading card: ${error.message}`);
-                }
+                
+                // Show error notification
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 70px;
+                    right: 20px;
+                    background: rgba(255, 0, 0, 0.9);
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 10px;
+                    font-family: 'Orbitron', monospace;
+                    z-index: 10000;
+                `;
+                notification.innerHTML = `❌ Trading Card Failed: ${error.message}`;
+                
+                document.body.appendChild(notification);
+                setTimeout(() => notification.remove(), 3000);
             }
         }
         
