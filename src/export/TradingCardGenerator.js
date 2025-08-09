@@ -6,7 +6,41 @@
 export class TradingCardGenerator {
     constructor(engine) {
         this.engine = engine;
-        this.currentSystem = window.currentSystem || 'faceted';
+        // Detect current system reliably from multiple sources
+        this.currentSystem = this.detectCurrentSystem();
+    }
+    
+    /**
+     * Reliably detect which visualization system is currently active
+     */
+    detectCurrentSystem() {
+        // Method 1: Check active system button in UI
+        const activeSystemBtn = document.querySelector('.system-btn.active');
+        if (activeSystemBtn?.dataset.system) {
+            return activeSystemBtn.dataset.system;
+        }
+        
+        // Method 2: Check global variable
+        if (window.currentSystem) {
+            return window.currentSystem;
+        }
+        
+        // Method 3: Check which canvas layers are visible
+        const holographicLayers = document.getElementById('holographicLayers');
+        const polychoraLayers = document.getElementById('polychoraLayers');
+        const vib34dLayers = document.getElementById('vib34dLayers');
+        
+        if (holographicLayers && holographicLayers.style.display !== 'none') {
+            return 'holographic';
+        } else if (polychoraLayers && polychoraLayers.style.display !== 'none') {
+            return 'polychora';
+        } else if (vib34dLayers && vib34dLayers.style.display !== 'none') {
+            return 'faceted';
+        }
+        
+        // Fallback
+        console.warn('⚠️ Could not detect current system, defaulting to faceted');
+        return 'faceted';
     }
     
     /**
@@ -59,47 +93,43 @@ export class TradingCardGenerator {
     }
     
     /**
-     * Capture the actual canvas as an image
+     * Capture ALL 5 layers from the current active system and composite them properly
      */
     async captureCanvasImage() {
-        console.log('📸 Capturing actual canvas visualization...');
+        console.log('📸 Capturing multi-layer visualization from system:', this.currentSystem);
         
-        // Find the active canvas based on current system
-        let canvas = null;
-        const systemCanvasMap = {
-            'faceted': ['faceted-content-canvas', 'faceted-highlight-canvas'],
-            'holographic': ['holo-content-canvas', 'holo-highlight-canvas'],
-            'polychora': ['polychora-content-canvas', 'polychora-highlight-canvas']
+        // System-specific layer configuration
+        const systemLayers = {
+            'faceted': {
+                prefix: '',
+                layers: ['background-canvas', 'shadow-canvas', 'content-canvas', 'highlight-canvas', 'accent-canvas'],
+                name: 'VIB34D Faceted'
+            },
+            'holographic': {
+                prefix: 'holo-',
+                layers: ['background-canvas', 'shadow-canvas', 'content-canvas', 'highlight-canvas', 'accent-canvas'],  
+                name: 'Active Holograms'
+            },
+            'polychora': {
+                prefix: 'polychora-',
+                layers: ['background-canvas', 'shadow-canvas', 'content-canvas', 'highlight-canvas', 'accent-canvas'],
+                name: 'Polychora System'
+            }
         };
         
-        // Try to get the most visible canvas from the current system
-        const canvasIds = systemCanvasMap[this.currentSystem] || [];
-        for (const id of canvasIds) {
-            const c = document.getElementById(id);
-            if (c && c.getContext) {
-                canvas = c;
-                break;
-            }
-        }
+        const systemConfig = systemLayers[this.currentSystem] || systemLayers['faceted'];
         
-        // Fallback to any visible canvas
-        if (!canvas) {
-            const allCanvases = document.querySelectorAll('canvas');
-            for (const c of allCanvases) {
-                if (c.offsetParent !== null && c.width > 0 && c.height > 0) {
-                    canvas = c;
-                    break;
-                }
-            }
-        }
-        
-        if (!canvas) {
-            console.warn('⚠️ No active canvas found, using placeholder');
-            return null;
-        }
+        // Layer-specific properties matching the actual system
+        const layerProperties = {
+            'background-canvas': { alpha: 0.4, blendMode: 'normal' },
+            'shadow-canvas': { alpha: 0.6, blendMode: 'multiply' },
+            'content-canvas': { alpha: 1.0, blendMode: 'normal' },
+            'highlight-canvas': { alpha: 1.0, blendMode: 'screen' },
+            'accent-canvas': { alpha: 0.8, blendMode: 'overlay' }
+        };
         
         try {
-            // Create a composite canvas to capture all layers
+            // Create high-quality composite canvas
             const compositeCanvas = document.createElement('canvas');
             const targetWidth = 800;
             const targetHeight = 600;
@@ -107,55 +137,62 @@ export class TradingCardGenerator {
             compositeCanvas.height = targetHeight;
             const ctx = compositeCanvas.getContext('2d');
             
-            // Black background
+            // Start with black background
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, targetWidth, targetHeight);
             
-            // Draw gradient background
-            const gradient = ctx.createRadialGradient(
-                targetWidth/2, targetHeight/2, 0,
-                targetWidth/2, targetHeight/2, targetWidth/2
-            );
-            const hue = this.engine?.parameterManager?.getParameter('hue') || 200;
-            gradient.addColorStop(0, `hsla(${hue}, 80%, 50%, 0.1)`);
-            gradient.addColorStop(0.5, `hsla(${(hue + 60) % 360}, 60%, 40%, 0.05)`);
-            gradient.addColorStop(1, 'rgba(0, 0, 0, 0.8)');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, targetWidth, targetHeight);
-            
-            // Draw all canvases from current system
-            const layerOrder = ['background', 'shadow', 'content', 'highlight', 'accent'];
-            for (const layer of layerOrder) {
-                const layerId = this.currentSystem === 'faceted' ? 
-                    `faceted-${layer}-canvas` : 
-                    this.currentSystem === 'holographic' ? 
-                    `holo-${layer}-canvas` : 
-                    `polychora-${layer}-canvas`;
-                
+            // Composite all 5 layers in correct order
+            let layersFound = 0;
+            for (const layerBase of systemConfig.layers) {
+                const layerId = systemConfig.prefix + layerBase;
                 const layerCanvas = document.getElementById(layerId);
-                if (layerCanvas && layerCanvas.width > 0) {
-                    ctx.globalAlpha = layer === 'background' ? 0.3 : 
-                                     layer === 'shadow' ? 0.5 : 
-                                     layer === 'accent' ? 0.7 : 1.0;
+                
+                if (layerCanvas && layerCanvas.width > 0 && layerCanvas.height > 0) {
+                    const props = layerProperties[layerBase];
+                    
+                    // Set blend mode and alpha
+                    ctx.globalAlpha = props.alpha;
+                    ctx.globalCompositeOperation = props.blendMode;
+                    
+                    // Draw the layer
                     ctx.drawImage(layerCanvas, 0, 0, targetWidth, targetHeight);
+                    layersFound++;
+                    
+                    console.log(`✅ Composited ${layerId} (alpha: ${props.alpha}, blend: ${props.blendMode})`);
+                } else {
+                    console.warn(`⚠️ Layer ${layerId} not found or empty`);
                 }
             }
             
-            // Convert to base64
-            const imageData = compositeCanvas.toDataURL('image/png', 0.9);
-            console.log('✅ Canvas captured successfully');
+            // Reset composite operation
+            ctx.globalCompositeOperation = 'normal';
+            ctx.globalAlpha = 1.0;
+            
+            if (layersFound === 0) {
+                console.error('❌ No layers captured from current system');
+                return null;
+            }
+            
+            // Convert to high-quality base64
+            const imageData = compositeCanvas.toDataURL('image/png', 0.95);
+            console.log(`✅ Multi-layer capture complete: ${layersFound} layers from ${systemConfig.name}`);
             return imageData;
             
         } catch (error) {
-            console.error('❌ Error capturing canvas:', error);
+            console.error('❌ Error capturing multi-layer canvas:', error);
             return null;
         }
     }
     
     /**
-     * Capture current visualization state
+     * Capture current visualization state with improved system detection
      */
     captureCurrentState() {
+        // Detect current system more reliably
+        const activeSystemBtn = document.querySelector('.system-btn.active');
+        const detectedSystem = activeSystemBtn?.dataset.system || window.currentSystem || 'faceted';
+        this.currentSystem = detectedSystem;
+        
         console.log('🎯 Capturing state for system:', this.currentSystem);
         
         // Get parameters based on current system
@@ -163,10 +200,11 @@ export class TradingCardGenerator {
         let geometryType = 0;
         
         if (this.currentSystem === 'faceted' && this.engine) {
+            // VIB34D Faceted System
             params = this.engine.parameterManager?.getAllParameters() || {};
-            geometryType = params.geometry || 0;
+            geometryType = params.geometry || this.getActiveGeometryIndex();
         } else if (this.currentSystem === 'holographic') {
-            // Get holographic system parameters directly from UI and system
+            // Active Holographic System - get from UI controls
             params = {
                 geometryType: this.getActiveGeometryIndex(),
                 density: parseFloat(document.getElementById('gridDensity')?.value || 15) / 15.0,
@@ -182,12 +220,19 @@ export class TradingCardGenerator {
             };
             geometryType = params.geometryType;
         } else if (this.currentSystem === 'polychora') {
-            // Get polychora parameters
+            // Polychora System  
             params = {
                 polytope: this.getActiveGeometryIndex(),
                 gridDensity: parseFloat(document.getElementById('gridDensity')?.value || 15),
                 morphFactor: parseFloat(document.getElementById('morphFactor')?.value || 1.0),
-                // ... other polychora params
+                chaos: parseFloat(document.getElementById('chaos')?.value || 0.2),
+                speed: parseFloat(document.getElementById('speed')?.value || 1.0),
+                hue: parseFloat(document.getElementById('hue')?.value || 200),
+                intensity: parseFloat(document.getElementById('intensity')?.value || 0.5),
+                saturation: parseFloat(document.getElementById('saturation')?.value || 0.8),
+                rot4dXW: parseFloat(document.getElementById('rot4dXW')?.value || 0),
+                rot4dYW: parseFloat(document.getElementById('rot4dYW')?.value || 0),
+                rot4dZW: parseFloat(document.getElementById('rot4dZW')?.value || 0)
             };
             geometryType = params.polytope;
         }
