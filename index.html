@@ -1215,7 +1215,20 @@
             return activeBtn ? parseInt(activeBtn.dataset.index) : 0;
         }
         
-        function showSaveConfirmation(variationName, filename) {
+        function showSaveConfirmation(message, id) {
+            // Handle both old format (variationName, filename) and new format (message, id)
+            let displayMessage, displayId;
+            
+            if (typeof message === 'string' && !message.includes('Variation saved')) {
+                // Old format: showSaveConfirmation(variationName, filename)
+                displayMessage = `✅ Saved to Portfolio!<br><small>"${message}"</small>`;
+                displayId = id;
+            } else {
+                // New format: showSaveConfirmation(message, id)
+                displayMessage = `✅ ${message}`;
+                displayId = id;
+            }
+            
             // Create temporary notification
             const notification = document.createElement('div');
             notification.style.cssText = `
@@ -1232,9 +1245,8 @@
                 animation: slideIn 0.3s ease-out;
             `;
             notification.innerHTML = `
-                ✅ Saved to Portfolio!<br>
-                <small style="opacity: 0.8;">"${variationName}"</small><br>
-                <small style="opacity: 0.6;">Download ${filename} and place in collections/ folder</small>
+                ${displayMessage}<br>
+                <small style="opacity: 0.8;">ID: ${displayId}</small>
             `;
             
             document.body.appendChild(notification);
@@ -1302,33 +1314,6 @@
                 console.error('❌ Failed to save to gallery:', error);
                 showSaveError(error.message || 'Gallery save failed');
             }
-        }
-        
-        function showSaveConfirmation(message, id) {
-            // Create temporary notification
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 70px;
-                right: 20px;
-                background: rgba(0, 255, 0, 0.9);
-                color: black;
-                padding: 15px 20px;
-                border-radius: 10px;
-                font-family: 'Orbitron', monospace;
-                font-weight: bold;
-                z-index: 10000;
-                animation: slideIn 0.3s ease-out;
-            `;
-            notification.innerHTML = `
-                ✅ ${message}<br>
-                <small style="opacity: 0.8;">ID: ${id}</small>
-            `;
-            
-            document.body.appendChild(notification);
-            setTimeout(() => {
-                notification.remove();
-            }, 4000);
         }
     </script>
 </body>
