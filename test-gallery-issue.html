@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gallery Preview Issue Test</title>
+    <style>
+        body { background: #000; color: #fff; font-family: monospace; padding: 20px; }
+        .log { margin: 5px 0; padding: 10px; background: #333; border-left: 3px solid #0ff; }
+        .error { border-left-color: #f00; }
+        .success { border-left-color: #0f0; }
+        .warning { border-left-color: #fa0; }
+    </style>
+</head>
+<body>
+    <h1>VIB34D Gallery Preview Issue Diagnosis</h1>
+    <div id="results"></div>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function addLog(message, type = 'log') {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            results.appendChild(div);
+        }
+        
+        addLog('🚀 Starting Gallery Preview Issue Test');
+        addLog(`📍 Current URL: ${window.location.href}`);
+        
+        // Test 1: URL Parameter Parsing
+        const urlParams = new URLSearchParams(window.location.search);
+        addLog(`🔍 URL Parameters: ${urlParams.toString()}`);
+        
+        if (urlParams.has('system')) {
+            const system = urlParams.get('system');
+            addLog(`✅ System parameter found: ${system}`, 'success');
+            
+            // Extract all parameters except system and hideui
+            const parameters = {};
+            urlParams.forEach((value, key) => {
+                if (!['system', 'hideui'].includes(key)) {
+                    parameters[key] = value;
+                }
+            });
+            
+            addLog(`📊 Parameters extracted: ${JSON.stringify(parameters, null, 2)}`);
+            
+            // Simulate what the main index.html would do
+            window.galleryPreviewData = {
+                system: system,
+                parameters: parameters,
+                hideUI: urlParams.get('hideui') === 'true'
+            };
+            
+            addLog(`🎯 Preview data created: ${JSON.stringify(window.galleryPreviewData, null, 2)}`, 'success');
+            
+            // Test 2: Parameter Routing Logic
+            addLog(`🔧 Testing parameter routing for ${system} system:`);
+            
+            Object.entries(parameters).forEach(([param, value]) => {
+                if (system === 'holographic') {
+                    addLog(`   🌌 Holographic: ${param} = ${value} (should route to holographicSystem.updateParameter)`);
+                } else if (system === 'quantum') {
+                    addLog(`   ⚛️ Quantum: ${param} = ${value} (should route to quantumEngine.updateParameter)`);
+                } else if (system === 'faceted') {
+                    addLog(`   🔷 Faceted: ${param} = ${value} (should route to engine.parameterManager.setParameter)`);
+                }
+            });
+            
+            // Test 3: Common Issues
+            addLog(`🔍 Checking for common issues:`);
+            
+            if (parameters.density) {
+                addLog(`   ⚠️ Parameter 'density' found - should be mapped to 'gridDensity'`, 'warning');
+            }
+            if (parameters.morph) {
+                addLog(`   ⚠️ Parameter 'morph' found - should be mapped to 'morphFactor'`, 'warning');
+            }
+            if (parameters.geometryType) {
+                addLog(`   ⚠️ Parameter 'geometryType' found - should be mapped to 'geometry'`, 'warning');
+            }
+            
+            // Test 4: System-specific requirements
+            if (system === 'holographic') {
+                addLog(`   🌌 Holographic system requires visualizers to be ready`);
+                addLog(`   🌌 Should wait for window.holographicSystem.visualizers.length > 0`);
+            }
+            
+            if (system === 'quantum') {
+                addLog(`   ⚛️ Quantum system should use quantumEngine.updateParameter()`);
+            }
+            
+        } else {
+            addLog(`❌ No system parameter found - this explains why gallery previews fail!`, 'error');
+            addLog(`   Gallery preview iframes MUST include ?system=holographic or ?system=quantum`);
+        }
+        
+        // Test 5: Iframe Detection
+        if (window.parent !== window.self) {
+            addLog(`🖼️ Running inside iframe (gallery preview)`, 'success');
+        } else {
+            addLog(`🌐 Running in main window (direct access)`);
+        }
+        
+        addLog(`🔚 Test complete - Results above show the issue`);
+        
+        // Auto-scroll to bottom
+        window.scrollTo(0, document.body.scrollHeight);
+    </script>
+</body>
+</html>
