@@ -222,9 +222,10 @@
             overflow: visible;
         }
         
-        /* FIXED: iframe does ALL the transformation - clean and centered */
+        /* FIXED: iframe does ALL the transformation - properly centered and scaled */
         .variation-card:hover .card-preview iframe {
             transform: 
+                translate(-50%, -50%)
                 perspective(800px)
                 scale(2.0)
                 rotateY(calc((var(--mouse-x) - 50) * 0.6deg))
@@ -271,8 +272,9 @@
             border-radius: 12px;
             background: #000;
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             transform-origin: center center;
         }
         
@@ -948,7 +950,7 @@
                 // CRITICAL FIX: Put system parameter FIRST so it gets processed before other parameters
                 iframe.src = `index.html?system=${system}&hideui=true&${params}`;
                 console.log(`🎯 Loading preview: system=${system}, URL: ${iframe.src}`);
-            }, 300); // RESTORED: Smart loading delay to prevent WebGL context overflow
+            }, 100); // REDUCED: Faster preview loading for better responsiveness
             
             hoverTimeouts.set(card, timeoutId);
             

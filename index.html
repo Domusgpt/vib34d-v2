@@ -624,6 +624,10 @@
                 console.log('🎨 System to switch to:', targetSystem);
                 window.isGalleryPreview = true;
                 
+                // CRITICAL FIX: Set currentSystem immediately for gallery previews  
+                window.currentSystem = targetSystem;
+                console.log(`🎯 Gallery preview: currentSystem set to ${targetSystem}`);
+                
                 // CRITICAL FIX: Show correct system canvas layers immediately to prevent wrong visualizer flash
                 const showCorrectSystemLayers = () => {
                     const systems = ['faceted', 'quantum', 'holographic', 'polychora'];
