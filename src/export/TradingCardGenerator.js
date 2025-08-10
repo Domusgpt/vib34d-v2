@@ -204,21 +204,22 @@ export class TradingCardGenerator {
             params = this.engine.parameterManager?.getAllParameters() || {};
             geometryType = params.geometry || this.getActiveGeometryIndex();
         } else if (this.currentSystem === 'holographic') {
-            // Active Holographic System - get from UI controls
+            // CRITICAL FIX: Use SAME parameter names as holographicSystem.getParameters()
+            // This ensures trading cards match gallery save/load system
             params = {
-                geometryType: this.getActiveGeometryIndex(),
-                density: parseFloat(document.getElementById('gridDensity')?.value || 15) / 15.0,
-                morph: parseFloat(document.getElementById('morphFactor')?.value || 1.0),
+                geometry: this.getActiveGeometryIndex(),
+                gridDensity: parseFloat(document.getElementById('gridDensity')?.value || 15), // Raw value, not divided
+                morphFactor: parseFloat(document.getElementById('morphFactor')?.value || 1.0),
                 speed: parseFloat(document.getElementById('speed')?.value || 1.0),
                 chaos: parseFloat(document.getElementById('chaos')?.value || 0.2),
-                hue: parseFloat(document.getElementById('hue')?.value || 200),
-                intensity: parseFloat(document.getElementById('intensity')?.value || 0.5),
+                hue: parseFloat(document.getElementById('hue')?.value || 320), // Match holographic default
+                intensity: parseFloat(document.getElementById('intensity')?.value || 0.6), // Match holographic default
                 saturation: parseFloat(document.getElementById('saturation')?.value || 0.8),
                 rot4dXW: parseFloat(document.getElementById('rot4dXW')?.value || 0),
                 rot4dYW: parseFloat(document.getElementById('rot4dYW')?.value || 0),
                 rot4dZW: parseFloat(document.getElementById('rot4dZW')?.value || 0)
             };
-            geometryType = params.geometryType;
+            geometryType = params.geometry;
         } else if (this.currentSystem === 'polychora') {
             // Polychora System  
             params = {

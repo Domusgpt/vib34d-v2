@@ -656,10 +656,39 @@
                 clearTimeout(hoverTimeouts.get(card));
                 hoverTimeouts.delete(card);
             }
+            
+            // CRITICAL FIX: Smart iframe cleanup with 0.25s delay to prevent canvas overload
+            setTimeout(() => {
+                const container = card.querySelector('[data-preview-container]');
+                if (container) {
+                    const iframe = container.querySelector('iframe');
+                    if (iframe) {
+                        console.log('🧹 Unloading gallery preview iframe to prevent canvas overload');
+                        
+                        // Show static preview again
+                        const staticPreview = container.querySelector('.static-preview');
+                        if (staticPreview) {
+                            staticPreview.style.display = 'flex';
+                            staticPreview.style.opacity = '1';
+                        }
+                        
+                        // Remove iframe completely to free WebGL contexts
+                        iframe.remove();
+                    }
+                }
+            }, 250); // Exactly 0.25s as requested
         };
         
         window.handleMobileTouch = function(card, event) {
             event.preventDefault();
+            
+            // CRITICAL FIX: Clean up all other active previews before starting new one
+            document.querySelectorAll('.variation-card').forEach(otherCard => {
+                if (otherCard !== card) {
+                    stopPreview(otherCard);
+                }
+            });
+            
             const container = card.querySelector('[data-preview-container]');
             
             if (container && container.querySelector('iframe')) {
