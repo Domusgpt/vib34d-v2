@@ -234,7 +234,6 @@
         /* Canvas tilts dramatically based on mouse X/Y with 2x expansion */
         .variation-card:hover .card-preview iframe {
             transform: 
-                translate(-50%, -50%)
                 perspective(600px)
                 scale(2.0)
                 rotateY(calc((var(--mouse-x) - 50) * 0.6deg))
@@ -246,6 +245,7 @@
             box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
             z-index: 100; /* Very high z-index to appear above everything */
             transition: transform 0.1s ease-out; /* Smooth real-time response */
+            position: relative; /* Remove absolute positioning that was causing offset */
         }
         
         /* Holographic shimmer effect overlay - DIRECTIONAL BASED ON MOUSE */
@@ -279,12 +279,8 @@
             height: 100%;
             border: none;
             pointer-events: none;
-            transform-origin: center center;
-            /* CENTER the iframe properly for hover scaling */
-            transform: translate(-50%, -50%) scale(1.0);
-            position: absolute;
-            top: 50%;
-            left: 50%;
+            border-radius: 12px;
+            background: #000;
         }
         
         .static-preview {
@@ -1024,58 +1020,30 @@
             }
         };
         
-        window.openVariation = async function(card) {
+        window.openVariation = function(card) {
             const params = card.getAttribute('data-params');
             const system = card.getAttribute('data-system') || 'faceted';
             const globalId = card.getAttribute('data-global-id');
             const variationName = card.querySelector('h3').textContent.split('#')[0].trim();
             
-            console.log('🎴 Generating trading card for:', variationName, system);
+            console.log('🎬 Opening viewer for:', variationName, system);
             
-            // Parse parameters from URL string
+            // Build URL for viewer.html with all parameters
+            const viewerUrl = new URL('viewer.html', window.location.origin);
+            viewerUrl.searchParams.set('system', system);
+            viewerUrl.searchParams.set('name', variationName);
+            viewerUrl.searchParams.set('id', globalId);
+            
+            // Add all visualization parameters
             const urlParams = new URLSearchParams(params);
-            const parameters = {};
             urlParams.forEach((value, key) => {
-                parameters[key] = parseFloat(value) || value;
+                viewerUrl.searchParams.set(key, value);
             });
             
-            // Import and use TradingCardGenerator
-            try {
-                const { TradingCardGenerator } = await import('./src/export/TradingCardGenerator.js');
-                
-                // Create mock engine with parameters
-                const mockEngine = {
-                    parameterManager: {
-                        getAllParameters: () => parameters
-                    }
-                };
-                
-                // Set current system for generator
-                window.currentSystem = system;
-                
-                const generator = new TradingCardGenerator(mockEngine);
-                const result = await generator.generateTradingCard('gallery');
-                
-                if (result.success) {
-                    // Create blob and navigate to trading card
-                    const blob = new Blob([result.html], { type: 'text/html' });
-                    const url = URL.createObjectURL(blob);
-                    
-                    // Store the blob URL temporarily for navigation
-                    sessionStorage.setItem('tradingCardBlob', url);
-                    sessionStorage.setItem('tradingCardName', `${variationName}-${globalId}`);
-                    
-                    // Navigate to the trading card
-                    window.location.href = url;
-                    
-                    console.log('✅ Trading card generated and navigating');
-                } else {
-                    throw new Error(result.error || 'Trading card generation failed');
-                }
-            } catch (error) {
-                console.error('❌ Failed to generate trading card:', error);
-                alert('Unable to generate trading card. Please try again.');
-            }
+            // Navigate to viewer (same tab for memory optimization)
+            window.location.href = viewerUrl.toString();
+            
+            console.log('✅ Navigating to viewer:', viewerUrl.toString());
         };
         
         window.loadIntoEngine = function(card, event) {
