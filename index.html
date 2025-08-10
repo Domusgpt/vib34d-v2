@@ -991,6 +991,38 @@
                 }
             }
             
+            // CRITICAL: Double-check system switch was successful
+            if (window.currentSystem !== previewData.system) {
+                console.error(`🚨 SYSTEM SWITCH FAILED! Expected: ${previewData.system}, Got: ${window.currentSystem}`);
+                console.log('🔧 Forcing direct system switch for gallery preview...');
+                
+                // Force canvas visibility directly
+                const systems = ['faceted', 'quantum', 'holographic', 'polychora'];
+                systems.forEach(sys => {
+                    const layerId = sys === 'faceted' ? 'vib34dLayers' : `${sys}Layers`;
+                    const layers = document.getElementById(layerId);
+                    if (layers) {
+                        layers.style.display = sys === previewData.system ? 'block' : 'none';
+                        console.log(`🎯 ${sys} layers: ${layers.style.display}`);
+                    }
+                });
+                
+                // Force engine activation
+                if (previewData.system === 'quantum' && window.quantumEngine) {
+                    window.quantumEngine.setActive(true);
+                    console.log('🎯 Quantum engine force-activated');
+                } else if (previewData.system === 'holographic' && window.holographicSystem) {
+                    window.holographicSystem.setActive(true);
+                    console.log('🎯 Holographic system force-activated');
+                }
+                
+                // Update currentSystem
+                window.currentSystem = previewData.system;
+                console.log(`🎯 Forced system switch to: ${previewData.system}`);
+            } else {
+                console.log(`✅ System switch successful: ${previewData.system}`);
+            }
+            
             // Apply all parameters from URL
             Object.entries(previewData.parameters).forEach(([param, value]) => {
                 if (param === 'geometry' || param === 'geometryType' || param === 'polytope') {

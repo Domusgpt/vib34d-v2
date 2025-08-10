@@ -170,7 +170,7 @@
     {
       "id": 10,
       "name": "SPHERE MATRIX",
-      "system": "holographic",
+      "system": "faceted",
       "isCustom": false,
       "parameters": {
         "geometry": 2,
@@ -186,7 +186,7 @@
     {
       "id": 11,
       "name": "SPHERE RESONANCE",
-      "system": "holographic",
+      "system": "quantum",
       "isCustom": false,
       "parameters": {
         "geometry": 2,
@@ -202,7 +202,7 @@
     {
       "id": 12,
       "name": "TORUS LATTICE",
-      "system": "holographic",
+      "system": "faceted",
       "isCustom": false,
       "parameters": {
         "geometry": 3,
@@ -218,7 +218,7 @@
     {
       "id": 13,
       "name": "TORUS FIELD",
-      "system": "holographic",
+      "system": "quantum",
       "isCustom": false,
       "parameters": {
         "geometry": 3,
@@ -266,7 +266,7 @@
     {
       "id": 16,
       "name": "KLEIN BOTTLE LATTICE",
-      "system": "holographic",
+      "system": "faceted",
       "isCustom": false,
       "parameters": {
         "geometry": 4,
@@ -282,7 +282,7 @@
     {
       "id": 17,
       "name": "KLEIN BOTTLE FIELD",
-      "system": "holographic",
+      "system": "quantum",
       "isCustom": false,
       "parameters": {
         "geometry": 4,
@@ -330,7 +330,7 @@
     {
       "id": 20,
       "name": "FRACTAL LATTICE",
-      "system": "holographic",
+      "system": "faceted",
       "isCustom": false,
       "parameters": {
         "geometry": 5,
@@ -346,7 +346,7 @@
     {
       "id": 21,
       "name": "FRACTAL FIELD",
-      "system": "holographic",
+      "system": "quantum",
       "isCustom": false,
       "parameters": {
         "geometry": 5,
@@ -378,7 +378,7 @@
     {
       "id": 23,
       "name": "WAVE LATTICE",
-      "system": "holographic",
+      "system": "faceted",
       "isCustom": false,
       "parameters": {
         "geometry": 6,
@@ -394,7 +394,7 @@
     {
       "id": 24,
       "name": "WAVE FIELD",
-      "system": "holographic",
+      "system": "quantum",
       "isCustom": false,
       "parameters": {
         "geometry": 6,
@@ -426,7 +426,7 @@
     {
       "id": 26,
       "name": "CRYSTAL LATTICE",
-      "system": "holographic",
+      "system": "faceted",
       "isCustom": false,
       "parameters": {
         "geometry": 7,
@@ -442,7 +442,7 @@
     {
       "id": 27,
       "name": "CRYSTAL FIELD",
-      "system": "holographic",
+      "system": "quantum",
       "isCustom": false,
       "parameters": {
         "geometry": 7,
