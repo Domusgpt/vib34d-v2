@@ -576,11 +576,22 @@
     <script>
         // Global system switching function - accessible to HTML onclick handlers
         window.switchSystem = async function(system) {
-            // Wait for ES6 module to be loaded and variables initialized
+            // CRITICAL FIX: Wait for ES6 module OR timeout after 10 seconds for gallery preview
             if (!window.moduleReady) {
                 console.log('⏳ Waiting for module initialization...');
-                setTimeout(() => window.switchSystem(system), 100);
-                return;
+                
+                // For gallery preview iframes, don't wait forever - try direct switch after timeout
+                let waitCount = 0;
+                const maxWait = 100; // 10 seconds max
+                
+                while (!window.moduleReady && waitCount < maxWait) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    waitCount++;
+                }
+                
+                if (!window.moduleReady) {
+                    console.warn('⚠️ Module not ready after 10s, attempting direct system switch for gallery preview');
+                }
             }
             
             window.currentSystem = system;
@@ -640,9 +651,23 @@
                 if (holographicLayers) holographicLayers.style.display = 'none';
                 if (polychoraLayers) polychoraLayers.style.display = 'none';
                 
-                if (window.holographicSystem) window.holographicSystem.setActive(false);
-                if (window.polychoraSystem) window.polychoraSystem.stop();
-                if (window.quantumEngine) window.quantumEngine.setActive(true);
+                if (window.holographicSystem) {
+                    window.holographicSystem.setActive(false);
+                } else {
+                    console.warn('⚠️ holographicSystem not available for system switch');
+                }
+                
+                if (window.polychoraSystem) {
+                    window.polychoraSystem.stop();
+                } else {
+                    console.warn('⚠️ polychoraSystem not available for system switch');
+                }
+                
+                if (window.quantumEngine) {
+                    window.quantumEngine.setActive(true);
+                } else {
+                    console.warn('⚠️ quantumEngine not available for system switch - this will cause parameter routing to faceted system');
+                }
                 
             } else if (system === 'holographic') {
                 // Show Holographic canvases, hide others
@@ -656,9 +681,23 @@
                 if (holographicLayers) holographicLayers.style.display = 'block';
                 if (polychoraLayers) polychoraLayers.style.display = 'none';
                 
-                if (window.quantumEngine) window.quantumEngine.setActive(false);
-                if (window.polychoraSystem) window.polychoraSystem.stop();
-                if (window.holographicSystem) window.holographicSystem.setActive(true);
+                if (window.quantumEngine) {
+                    window.quantumEngine.setActive(false);
+                } else {
+                    console.warn('⚠️ quantumEngine not available for system switch');
+                }
+                
+                if (window.polychoraSystem) {
+                    window.polychoraSystem.stop();
+                } else {
+                    console.warn('⚠️ polychoraSystem not available for system switch');
+                }
+                
+                if (window.holographicSystem) {
+                    window.holographicSystem.setActive(true);
+                } else {
+                    console.warn('⚠️ holographicSystem not available for system switch - this will cause parameter routing to faceted system');
+                }
                 
             } else if (system === 'polychora') {
                 // Show Polychora canvases, hide others
@@ -923,10 +962,18 @@
                         console.log(`✅ Found slider for ${actualParam}, setting value: ${value}`);
                         slider.value = value;
                         // Use longer delay for holographic system to ensure parameters are applied correctly
-                        const delay = previewData.system === 'holographic' ? 300 : 50;
+                        const delay = previewData.system === 'holographic' ? 500 : 100;
                         setTimeout(() => {
                             console.log(`🎯 Applying parameter ${actualParam}=${value} to ${previewData.system} system`);
-                            updateParameter(actualParam, value);
+                            console.log(`🔍 Current system state: window.currentSystem=${window.currentSystem}, expected=${previewData.system}`);
+                            
+                            // CRITICAL FIX: Verify system is correct before applying parameter
+                            if (window.currentSystem !== previewData.system) {
+                                console.warn(`⚠️ System mismatch! Expected ${previewData.system}, got ${window.currentSystem}. Delaying parameter application...`);
+                                setTimeout(() => updateParameter(actualParam, value), 500);
+                            } else {
+                                updateParameter(actualParam, value);
+                            }
                         }, delay);
                     } else {
                         console.warn(`⚠️ No slider found for parameter: ${actualParam} (original: ${param})`);
