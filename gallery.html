@@ -204,38 +204,29 @@
             position: relative;
             border: 1px solid rgba(0, 255, 255, 0.2);
             transform-style: preserve-3d;
-            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
         
-        /* FIXED: Container provides visual effects, iframe does the scaling */
+        /* PROPER CENTERING: Scale from center while preserving all holographic effects */
         .variation-card:hover .card-preview {
-            /* Container provides glow and backdrop effects only */
-            z-index: 50;
+            transform: 
+                perspective(1000px)
+                translateZ(30px)
+                scale(2.0)  /* 2x scale from center */
+                rotateY(calc((var(--mouse-x) - 50) * 0.3deg))
+                rotateX(calc((50 - var(--mouse-y)) * 0.2deg));
+            transform-origin: center center;
+            z-index: 100;
             box-shadow: 
-                0 0 50px rgba(0, 255, 255, 0.6),
-                0 0 100px rgba(255, 0, 255, 0.4),
+                0 0 50px rgba(0, 255, 255, 0.8),
+                0 0 100px rgba(255, 0, 255, 0.6),
                 inset 0 0 20px rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.9);
             background: rgba(17, 17, 17, 0.7);
             backdrop-filter: blur(15px);
-            filter: brightness(1.2) contrast(1.05) saturate(1.1);
-            overflow: visible;
-        }
-        
-        /* FIXED: iframe does ALL the transformation - properly centered and scaled */
-        .variation-card:hover .card-preview iframe {
-            transform: 
-                translate(-50%, -50%)
-                perspective(800px)
-                scale(2.0)
-                rotateY(calc((var(--mouse-x) - 50) * 0.6deg))
-                rotateX(calc((50 - var(--mouse-y)) * 0.4deg))
-                translateZ(40px);
             filter: brightness(1.3) contrast(1.1) saturate(1.2);
-            border-radius: 8px;
-            box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
-            z-index: 100;
             transition: transform 0.1s ease-out;
+            overflow: visible;
         }
         
         /* Holographic shimmer effect overlay - DIRECTIONAL BASED ON MOUSE */
@@ -271,6 +262,7 @@
             pointer-events: none;
             border-radius: 12px;
             background: #000;
+            display: block;
             position: absolute;
             top: 50%;
             left: 50%;
@@ -518,10 +510,23 @@
             }
         }
         
+        /* Enhanced iframe scaling when card is hovered */
+        .variation-card:hover .card-preview iframe {
+            transform: 
+                translate(-50%, -50%) 
+                scale(1.0) 
+                rotateY(calc((var(--mouse-x) - 50) * -0.1deg));
+            filter: brightness(1.15) contrast(1.05);
+            transition: transform 0.1s ease-out;
+        }
+        
         /* Enhanced iframe scaling when card is bent */
         .variation-card.edge-bend .card-preview iframe,
         .variation-card.holographic-explosion .card-preview iframe {
-            transform: scale(1.02) rotateY(calc((var(--mouse-x) - 50) * -0.1deg));
+            transform: 
+                translate(-50%, -50%) 
+                scale(1.02) 
+                rotateY(calc((var(--mouse-x) - 50) * -0.1deg));
             filter: brightness(1.15) contrast(1.05);
         }
         
@@ -795,7 +800,7 @@
                      data-system="${system}"
                      data-global-id="${globalId}"
                      data-params="${parametersQuery}"
-                     ${isMobile ? 'onclick="handleMobileTouch(this, event)"' : 'onclick="openVariation(this)" onmouseenter="startPreview(this, \''+parametersQuery+'\')" onmouseleave="stopPreview(this)"'}>
+                     ${isMobile ? 'onclick="handleMobileTouch(this, event)"' : 'onclick="openVariation(this)" onmouseenter="startPreview(this, \''+parametersQuery+'\')"'}>
                     
                     <div class="system-badge ${system}">${sysInfo.name}</div>
                     
@@ -894,12 +899,20 @@
             }
         }
         
+        let currentPreviewCard = null; // Track currently previewing card
+        
         window.startPreview = function(card, params) {
             const container = card.querySelector('[data-preview-container]');
             
             if (container && container.querySelector('iframe')) {
                 return;
             }
+            
+            // Stop previous preview when starting a new one
+            if (currentPreviewCard && currentPreviewCard !== card) {
+                stopPreview(currentPreviewCard);
+            }
+            currentPreviewCard = card;
             
             // CRITICAL: Enforce WebGL context limit before creating new iframe
             enforceWebGLLimit();
@@ -918,10 +931,16 @@
                     border: none; 
                     border-radius: 12px; 
                     background: #000;
-                    transform-origin: top left;
+                    transform-origin: center center;
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
                 `;
                 
                 iframe.onload = function() {
+                    // Wait for the iframe content to fully load and apply hideui
+                    setTimeout(() => {
+                        iframe.style.opacity = '1';
+                    }, 300); // Give time for hideui to take effect
                     // INSTANT LOADING: Show animated canvas immediately
                     setTimeout(() => {
                         const staticPreview = container.querySelector('.static-preview');
