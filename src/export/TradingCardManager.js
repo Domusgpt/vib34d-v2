@@ -18,13 +18,24 @@ export class TradingCardManager {
             // Generate the card
             const result = await generator.generateCard(format, parameters);
             
-            if (result.success) {
+            // Handle both new exact generators (return {filename, content}) and old generators (return {success, ...})
+            if (result.filename && result.content) {
+                // New exact generator format
+                this.downloadCard(result.filename, result.content);
                 console.log(`✅ ${system} trading card created: ${result.filename}`);
+                return {
+                    success: true,
+                    filename: result.filename,
+                    system: result.system || system
+                };
+            } else if (result.success) {
+                // Old generator format
+                console.log(`✅ ${system} trading card created: ${result.filename}`);
+                return result;
             } else {
                 console.error(`❌ ${system} trading card failed: ${result.error}`);
+                return result;
             }
-            
-            return result;
         } catch (error) {
             console.error(`❌ Trading card manager error:`, error);
             return {
@@ -44,10 +55,10 @@ export class TradingCardManager {
             return this.generators[system];
         }
         
-        // Dynamic import based on system
+        // Dynamic import based on system - USE EXACT GENERATORS THAT MATCH ENGINE VISUALS
         const generatorMap = {
-            'faceted': () => import('./FacetedCardGenerator.js'),
-            'quantum': () => import('./QuantumCardGenerator.js'),
+            'faceted': () => import('./FacetedCardGeneratorExact.js'),
+            'quantum': () => import('./QuantumCardGeneratorExact.js'),
             'holographic': () => import('./HolographicCardGenerator.js'),
             'polychora': () => import('./PolychoraCardGenerator.js')
         };
@@ -57,7 +68,7 @@ export class TradingCardManager {
             throw new Error(`Unknown system: ${system}. Available: ${Object.keys(generatorMap).join(', ')}`);
         }
         
-        // Import and instantiate
+        // Import the generator class
         const module = await importFunction();
         const GeneratorClass = module.default || module[Object.keys(module).find(key => key.includes('Generator'))];
         
@@ -65,7 +76,13 @@ export class TradingCardManager {
             throw new Error(`Invalid generator class for system: ${system}`);
         }
         
-        const generator = new GeneratorClass();
+        // For exact generators, use static methods directly
+        const generator = {
+            generateCard: (format, parameters) => {
+                // Convert to static method call with proper parameters
+                return GeneratorClass.generateCard(parameters);
+            }
+        };
         
         // Cache for future use
         this.generators[system] = generator;
@@ -98,6 +115,21 @@ export class TradingCardManager {
         return parameters;
     }
     
+    /**
+     * Download the generated trading card HTML file
+     */
+    static downloadCard(filename, content) {
+        const blob = new Blob([content], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
     /**
      * Clear generator cache (useful for development)
      */
