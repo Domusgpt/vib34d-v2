@@ -115,9 +115,11 @@ export class HolographicCardGeneratorExact {
                 // Add 4D hypercube vertices (8 corners + 8 hypervertices)
                 float vertices = 0.0;
                 for(int i = 0; i < 8; i++) {
+                    // WebGL 1.0 compatible modulus replacement
+                    float iFloat = float(i);
                     vec3 corner = vec3(
-                        float(i % 2) - 0.5,
-                        float((i / 2) % 2) - 0.5,
+                        floor(iFloat - floor(iFloat / 2.0) * 2.0) - 0.5,
+                        floor((iFloat / 2.0) - floor((iFloat / 2.0) / 2.0) * 2.0) - 0.5,
                         float(i / 4) - 0.5
                     );
                     float dist = length(q - corner * 0.4);
@@ -181,7 +183,9 @@ export class HolographicCardGeneratorExact {
             }
             
             float getDynamicGeometry(vec3 p, float gridSize, float geometryType) {
-                int baseGeom = int(mod(geometryType, 8.0));
+                // WebGL 1.0 compatible modulus replacement
+                float baseGeomFloat = geometryType - floor(geometryType / 8.0) * 8.0;
+                int baseGeom = int(baseGeomFloat);
                 float variation = floor(geometryType / 8.0) / 4.0;
                 float variedGridSize = gridSize * (0.5 + variation * 1.5);
                 
