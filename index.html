@@ -882,8 +882,14 @@
                 console.log('🎵 Universal Reactivity System connected to all systems');
                 
                 // Apply gallery preview parameters if present
+                console.log('🔍 Checking for gallery preview data...');
+                console.log('🔍 window.galleryPreviewData:', window.galleryPreviewData);
+                
                 if (window.galleryPreviewData) {
+                    console.log('✅ Gallery preview data found, calling applyGalleryPreviewData...');
                     await applyGalleryPreviewData();
+                } else {
+                    console.log('ℹ️ No gallery preview data found');
                 }
                 
                 return true;
@@ -895,12 +901,21 @@
         
         // Apply gallery preview data after all systems are initialized
         async function applyGalleryPreviewData() {
+            console.log('🚀 applyGalleryPreviewData CALLED');
+            
             const previewData = window.galleryPreviewData;
-            if (!previewData) return;
+            console.log('🔍 previewData from window.galleryPreviewData:', previewData);
+            
+            if (!previewData) {
+                console.log('❌ No previewData found, returning early');
+                return;
+            }
             
             console.log('🎯 Applying gallery preview parameters:', previewData);
             
             // CRITICAL FIX: Switch to the correct system first and wait longer
+            console.log(`🔍 Current system check: previewData.system=${previewData.system}, window.currentSystem=${window.currentSystem}`);
+            
             if (previewData.system !== window.currentSystem) {
                 console.log(`🔄 Switching from ${window.currentSystem} to ${previewData.system} for gallery preview`);
                 await switchSystem(previewData.system);
