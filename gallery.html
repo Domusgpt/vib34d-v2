@@ -933,14 +933,14 @@
                     background: #000;
                     transform-origin: center center;
                     opacity: 0;
-                    transition: opacity 0.3s ease;
+                    transition: opacity 0.1s ease;
                 `;
                 
                 iframe.onload = function() {
                     // Wait for the iframe content to fully load and apply hideui
                     setTimeout(() => {
                         iframe.style.opacity = '1';
-                    }, 300); // Give time for hideui to take effect
+                    }, 30); // Much faster loading - 1/10 of previous delay
                     // INSTANT LOADING: Show animated canvas immediately
                     setTimeout(() => {
                         const staticPreview = container.querySelector('.static-preview');
