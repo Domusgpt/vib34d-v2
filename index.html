@@ -940,64 +940,13 @@
             
             console.log('🎯 Applying gallery preview parameters:', previewData);
             
-            // CRITICAL FIX: Switch to the correct system first and wait longer
-            console.log(`🔍 Current system check: previewData.system=${previewData.system}, window.currentSystem=${window.currentSystem}`);
-            
+            // SIMPLIFIED FIX: Switch system if needed with standard timing
             if (previewData.system !== window.currentSystem) {
                 console.log(`🔄 Switching from ${window.currentSystem} to ${previewData.system} for gallery preview`);
                 await switchSystem(previewData.system);
-                // Wait longer for system switch to complete fully
-                await new Promise(resolve => setTimeout(resolve, 1200));
-                
-                // Verify the switch actually happened - with more detailed logging
-                console.log(`🔍 System switch verification: currentSystem=${window.currentSystem}, expected=${previewData.system}`);
-                if (window.currentSystem !== previewData.system) {
-                    console.error(`❌ System switch failed: expected ${previewData.system}, got ${window.currentSystem}`);
-                    console.log('⏳ Trying one more time with additional delay...');
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    if (window.currentSystem !== previewData.system) {
-                        console.error(`❌ System switch failed again: expected ${previewData.system}, got ${window.currentSystem}`);
-                        return;
-                    }
-                }
-            }
-            
-            // CRITICAL FIX: For holographic system, wait for visualizers to be fully ready
-            if (previewData.system === 'holographic' && window.holographicSystem) {
-                console.log('🌌 Waiting for holographic visualizers to be fully initialized...');
-                let waitCount = 0;
-                const maxWait = 50; // 5 seconds max wait
-                while (waitCount < maxWait && window.holographicSystem.visualizers.length === 0) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    waitCount++;
-                }
-                
-                if (window.holographicSystem.visualizers.length > 0) {
-                    console.log(`✅ Holographic visualizers ready (${window.holographicSystem.visualizers.length} layers)`);
-                } else {
-                    console.warn('⚠️ Holographic visualizers not ready after 5 seconds, proceeding anyway');
-                }
-                
-                // Additional wait for WebGL contexts to be fully ready
+                // Standard wait for system switch
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
-            
-            // CRITICAL FIX: Force engine activation with LONGER delays for gallery previews
-            console.log(`🎯 GALLERY PREVIEW: Target system = ${previewData.system}`);
-            console.log(`🎯 GALLERY PREVIEW: Available engines:`, {
-                quantum: !!window.quantumEngine,
-                holographic: !!window.holographicSystem,
-                faceted: !!window.engine
-            });
-            
-            // REAL FIX: Use the actual switchSystem function like the main interface does
-            console.log(`🎯 GALLERY PREVIEW: Switching to ${previewData.system} using switchSystem()`);
-            await switchSystem(previewData.system);
-            
-            // CRITICAL: Wait longer for the system to fully initialize before applying parameters
-            await new Promise(resolve => setTimeout(resolve, 800)); // Increased wait time
-            
-            console.log(`🎯 SYSTEM SWITCH COMPLETE: window.currentSystem = ${window.currentSystem}`);
             
             // CRITICAL FIX: Force canvas layer visibility for gallery previews WITH verification
             const systems = ['faceted', 'quantum', 'holographic'];
@@ -1052,18 +1001,12 @@
                 console.log(`✅ System switch successful: ${previewData.system}`);
             }
             
-            // CRITICAL: Wait additional time to ensure system is fully ready for parameter application
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            console.log(`🎯 APPLYING PARAMETERS to ${previewData.system} system:`, previewData.parameters);
-            
-            // Apply all parameters from URL - SYNCHRONOUSLY after system is ready
-            for (const [param, value] of Object.entries(previewData.parameters)) {
+            // Apply all parameters from URL with proper timing
+            Object.entries(previewData.parameters).forEach(([param, value]) => {
                 if (param === 'geometry' || param === 'geometryType' || param === 'polytope') {
                     // Handle geometry selection
                     const geometryIndex = parseInt(value);
                     if (!isNaN(geometryIndex)) {
-                        console.log(`🔧 Setting geometry: ${geometryIndex}`);
                         selectGeometry(geometryIndex);
                     }
                 } else {
@@ -1075,22 +1018,18 @@
                     };
                     
                     const actualParam = parameterMapping[param] || param;
-                    console.log(`🔄 Parameter: ${param} → ${actualParam} = ${value}`);
                     
                     // Handle slider parameters
                     const slider = document.getElementById(actualParam);
                     if (slider) {
                         slider.value = value;
-                        console.log(`🔧 Applying parameter ${actualParam}=${value} to ${window.currentSystem} system`);
-                        updateParameter(actualParam, value);
-                        
-                        // Small delay between parameter applications for stability
-                        await new Promise(resolve => setTimeout(resolve, 50));
-                    } else {
-                        console.warn(`⚠️ No slider found for parameter: ${actualParam} (original: ${param})`);
+                        // Apply with delay to ensure system is ready
+                        setTimeout(() => {
+                            updateParameter(actualParam, value);
+                        }, 100);
                     }
                 }
-            }
+            });
             
             console.log('✅ Gallery preview parameters applied successfully');
         }

@@ -140,16 +140,33 @@
             border: 2px solid rgba(0, 255, 255, 0.3);
             border-radius: 15px;
             padding: 20px;
-            transition: all 0.4s ease;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             cursor: pointer;
             position: relative;
-            overflow: hidden;
+            overflow: visible; /* Changed for holographic popup effect */
+            transform-style: preserve-3d;
+            transform-origin: 50% 50%;
+            will-change: transform;
+            /* CSS variables for mouse tracking */
+            --mouse-x: 50%;
+            --mouse-y: 50%;
+            --bend-intensity: 0;
         }
         
         .variation-card:hover {
             border-color: #00ffff;
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
-            transform: translateY(-5px);
+            box-shadow: 
+                0 30px 60px rgba(0, 255, 255, 0.3),
+                inset 0 2px 0 rgba(255, 255, 255, 0.2),
+                0 0 40px rgba(255, 0, 255, 0.4);
+            transform: 
+                perspective(800px)
+                rotateY(calc(15deg * var(--bend-intensity)))
+                rotateX(calc(5deg * (var(--mouse-y) - 50) / 50))
+                translateZ(calc(var(--bend-intensity) * 30px))
+                translateY(-10px);
+            backdrop-filter: blur(20px);
+            z-index: 10;
         }
         
         .variation-card::before {
@@ -170,15 +187,60 @@
         
         .card-preview {
             width: 100%;
-            /* Make preview container larger and square */
             height: 280px;
             aspect-ratio: 1 / 1;
             border-radius: 12px;
-            overflow: hidden;
+            overflow: visible; /* Allow hologram to extend beyond */
             margin-bottom: 15px;
             background: #111;
             position: relative;
             border: 1px solid rgba(0, 255, 255, 0.2);
+            transform-style: preserve-3d;
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        /* Holographic popup effect when card is hovered */
+        .variation-card:hover .card-preview {
+            transform: 
+                perspective(600px)
+                translateZ(60px)
+                scale(1.08)
+                rotateY(calc((var(--mouse-x) - 50) * 0.2deg))
+                rotateX(calc((var(--mouse-y) - 50) * -0.15deg));
+            box-shadow: 
+                0 0 50px rgba(0, 255, 255, 0.6),
+                0 0 100px rgba(255, 0, 255, 0.4),
+                inset 0 0 20px rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            background: rgba(17, 17, 17, 0.7); /* More translucent when popped out */
+            backdrop-filter: blur(15px);
+            filter: brightness(1.2) contrast(1.05) saturate(1.1);
+        }
+        
+        /* Holographic shimmer effect overlay */
+        .card-preview::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 30%,
+                rgba(0, 255, 255, 0.1) 50%,
+                rgba(255, 0, 255, 0.1) 52%,
+                transparent 70%
+            );
+            transform: translateX(-100%) rotate(45deg);
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+        .variation-card:hover .card-preview::after {
+            transform: translateX(100%) rotate(45deg);
+            opacity: 1;
         }
         
         .card-preview iframe {
@@ -365,6 +427,86 @@
             background: rgba(0, 255, 255, 0.5);
             box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
             transform: translateY(-3px);
+        }
+        
+        /* 🌟 HOLOGRAPHIC CARD BENDING EFFECTS */
+        
+        /* Edge bending effect - card stretches unnaturally at edges */
+        .variation-card.edge-bend {
+            transform: 
+                perspective(800px)
+                rotateY(calc(25deg * var(--bend-intensity)))
+                rotateX(calc(5deg * (var(--mouse-y) - 50) / 50))
+                translateZ(calc(var(--bend-intensity) * 40px))
+                translateY(-10px)
+                scaleX(calc(1 + abs(var(--mouse-x) - 50) * 0.006))
+                scaleY(calc(1 + abs(var(--mouse-y) - 50) * 0.004))
+                skewX(calc((var(--mouse-x) - 50) * 0.2deg))
+                skewY(calc((var(--mouse-y) - 50) * 0.15deg));
+            filter: contrast(1.08) brightness(1.1);
+            border-color: rgba(255, 0, 255, 0.7);
+        }
+        
+        /* Holographic explosion effect */
+        .variation-card.holographic-explosion {
+            transform: 
+                perspective(400px)
+                rotateY(calc(45deg + (var(--mouse-x) - 50) * 0.6deg))
+                rotateX(calc((var(--mouse-y) - 50) * -0.8deg))
+                rotateZ(calc((var(--mouse-x) - 50) * 0.3deg))
+                scaleX(calc(1.1 + abs(var(--mouse-x) - 50) * 0.01))
+                scaleY(calc(0.9 + abs(var(--mouse-y) - 50) * 0.008))
+                skewX(calc((var(--mouse-x) - 50) * 0.8deg))
+                skewY(calc((var(--mouse-y) - 50) * 0.6deg))
+                translateZ(calc(var(--bend-intensity) * 100px))
+                translateX(calc((var(--mouse-x) - 50) * 1.2px))
+                translateY(calc((var(--mouse-y) - 50) * 0.8px));
+            transition: transform 0.1s linear;
+            filter: contrast(1.3) brightness(1.3) saturate(1.2) blur(0.5px);
+            box-shadow: 
+                0 0 60px rgba(255, 0, 255, 0.6),
+                0 0 120px rgba(0, 255, 255, 0.4),
+                inset 0 0 15px rgba(255, 255, 255, 0.2);
+            border-width: 3px;
+            border-color: rgba(255, 255, 255, 0.9);
+            z-index: 100;
+            animation: holographic-pulse 0.6s ease-out;
+        }
+        
+        @keyframes holographic-pulse {
+            0% { 
+                filter: contrast(1) brightness(1) saturate(1) blur(0px);
+                box-shadow: 
+                    0 0 30px rgba(0, 255, 255, 0.3),
+                    inset 0 2px 0 rgba(255, 255, 255, 0.2);
+            }
+            50% { 
+                filter: contrast(2) brightness(2) saturate(2) blur(2px);
+                box-shadow: 
+                    0 0 100px rgba(255, 0, 255, 0.8),
+                    0 0 200px rgba(0, 255, 255, 0.6),
+                    inset 0 0 30px rgba(255, 255, 255, 0.4);
+            }
+            100% { 
+                filter: contrast(1.3) brightness(1.3) saturate(1.2) blur(0.5px);
+                box-shadow: 
+                    0 0 60px rgba(255, 0, 255, 0.6),
+                    0 0 120px rgba(0, 255, 255, 0.4),
+                    inset 0 0 15px rgba(255, 255, 255, 0.2);
+            }
+        }
+        
+        /* Enhanced iframe scaling when card is bent */
+        .variation-card.edge-bend .card-preview iframe,
+        .variation-card.holographic-explosion .card-preview iframe {
+            transform: scale(1.02) rotateY(calc((var(--mouse-x) - 50) * -0.1deg));
+            filter: brightness(1.15) contrast(1.05);
+        }
+        
+        /* Perspective container for entire gallery */
+        .collections-container {
+            perspective: 2000px;
+            perspective-origin: center center;
         }
     </style>
 </head>
@@ -770,6 +912,96 @@
                 console.log('🔄 New variation saved - refreshing gallery...');
                 await refreshCollections();
             }
+        });
+        
+        // 🌟 HOLOGRAPHIC CARD BENDING SYSTEM
+        function initializeHolographicCardEffects() {
+            console.log('🌟 Initializing holographic card bending effects...');
+            
+            const cards = document.querySelectorAll('.variation-card');
+            
+            cards.forEach(card => {
+                let isHovering = false;
+                
+                // Mouse enter - start holographic effect
+                card.addEventListener('mouseenter', (e) => {
+                    isHovering = true;
+                    card.style.setProperty('--bend-intensity', '0.8');
+                    console.log('🌌 Holographic card activated');
+                });
+                
+                // Mouse leave - end holographic effect
+                card.addEventListener('mouseleave', (e) => {
+                    isHovering = false;
+                    card.style.setProperty('--bend-intensity', '0');
+                    card.style.setProperty('--mouse-x', '50%');
+                    card.style.setProperty('--mouse-y', '50%');
+                    console.log('🌌 Holographic card deactivated');
+                });
+                
+                // Mouse move - track position for card bending
+                card.addEventListener('mousemove', (e) => {
+                    if (!isHovering) return;
+                    
+                    const rect = card.getBoundingClientRect();
+                    const cardX = ((e.clientX - rect.left) / rect.width) * 100;
+                    const cardY = ((e.clientY - rect.top) / rect.height) * 100;
+                    
+                    // Calculate distance from center for bend intensity
+                    const centerX = 50;
+                    const centerY = 50;
+                    const distanceFromCenter = Math.sqrt(
+                        Math.pow(cardX - centerX, 2) + Math.pow(cardY - centerY, 2)
+                    );
+                    
+                    // Dynamic bend intensity based on mouse position
+                    const bendIntensity = Math.min(1, (distanceFromCenter / 70) + 0.3);
+                    
+                    // Update CSS variables for real-time transformation
+                    card.style.setProperty('--mouse-x', cardX);
+                    card.style.setProperty('--mouse-y', cardY);
+                    card.style.setProperty('--bend-intensity', bendIntensity);
+                    
+                    // Add extra class for edge effects
+                    if (cardX < 20 || cardX > 80 || cardY < 20 || cardY > 80) {
+                        card.classList.add('edge-bend');
+                    } else {
+                        card.classList.remove('edge-bend');
+                    }
+                });
+                
+                // Click effect - holographic explosion
+                card.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A') return;
+                    
+                    const rect = card.getBoundingClientRect();
+                    const cardX = ((e.clientX - rect.left) / rect.width) * 100;
+                    const cardY = ((e.clientY - rect.top) / rect.height) * 100;
+                    
+                    card.style.setProperty('--mouse-x', cardX);
+                    card.style.setProperty('--mouse-y', cardY);
+                    card.style.setProperty('--bend-intensity', '1.5');
+                    
+                    card.classList.add('holographic-explosion');
+                    
+                    setTimeout(() => {
+                        card.classList.remove('holographic-explosion');
+                        if (!isHovering) {
+                            card.style.setProperty('--bend-intensity', '0');
+                        }
+                    }, 600);
+                    
+                    console.log('💥 Holographic explosion effect triggered');
+                });
+            });
+            
+            console.log(`✅ Holographic effects initialized for ${cards.length} cards`);
+        }
+        
+        // Initialize holographic effects when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            // Small delay to ensure cards are rendered
+            setTimeout(initializeHolographicCardEffects, 500);
         });
     </script>
 </body>
