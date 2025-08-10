@@ -320,18 +320,39 @@ export class TradingCardGenerator {
         }
         
         .trading-card {
-            width: 400px;
-            height: 600px;
-            background: linear-gradient(145deg, rgba(0,0,0,0.9), rgba(30,30,60,0.9));
-            border-radius: 20px;
-            border: 3px solid transparent;
-            background-clip: padding-box;
+            width: 320px;
+            height: auto;
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
+            transform-style: preserve-3d;
+            transform-origin: 50% 50%;
+            will-change: transform;
+            /* CSS variables for mouse tracking */
+            --mouse-x: 50%;
+            --mouse-y: 50%;
+            --bend-intensity: 0;
+        }
+        
+        .trading-card:hover {
+            border-color: #00ffff;
             box-shadow: 
-                0 0 50px hsla(${state.hue}, 80%, 50%, 0.3),
-                inset 0 0 50px rgba(255, 255, 255, 0.05);
-            animation: cardGlow 3s ease-in-out infinite alternate;
+                0 30px 60px rgba(0, 255, 255, 0.3),
+                inset 0 2px 0 rgba(255, 255, 255, 0.2),
+                0 0 40px rgba(255, 0, 255, 0.4);
+            transform: 
+                perspective(800px)
+                rotateY(calc(15deg * var(--bend-intensity)))
+                rotateX(calc(5deg * (var(--mouse-y) - 50) / 50))
+                translateZ(calc(var(--bend-intensity) * 30px))
+                translateY(-10px);
+            backdrop-filter: blur(20px);
+            z-index: 10;
         }
         
         @keyframes cardGlow {
@@ -415,28 +436,55 @@ export class TradingCardGenerator {
             50% { transform: scale(1.1); }
         }
         
-        .visualizer-container {
-            position: relative;
+        .card-preview {
             width: 100%;
-            height: 300px;
-            margin: 20px 0;
-            border-radius: 15px;
+            height: 280px;
+            aspect-ratio: 1 / 1;
+            border-radius: 12px;
+            overflow: visible;
+            margin-bottom: 15px;
+            background: #111;
+            position: relative;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            transform-style: preserve-3d;
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        /* EXACT MATCH to portfolio cards: Proper X/Y position-based tilting with smooth animation */
+        .trading-card:hover .card-preview {
+            /* Host card responds to mouse position with subtle counter-tilt */
+            transform: 
+                perspective(1000px)
+                translateZ(30px)
+                scale(1.05)
+                rotateY(calc((var(--mouse-x) - 50) * -0.15deg))
+                rotateX(calc((50 - var(--mouse-y)) * 0.1deg));
+            box-shadow: 
+                0 0 50px rgba(0, 255, 255, 0.6),
+                0 0 100px rgba(255, 0, 255, 0.4),
+                inset 0 0 20px rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            background: rgba(17, 17, 17, 0.7);
+            backdrop-filter: blur(15px);
+            filter: brightness(1.2) contrast(1.05) saturate(1.1);
+            overflow: visible;
+            transition: transform 0.1s ease-out;
+        }
+        
+        /* Canvas visualization container inside preview - EXACT MATCH */
+        .visualization-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            border-radius: 12px;
             overflow: hidden;
-            background: radial-gradient(ellipse at center, hsla(${state.hue}, 80%, 50%, 0.1) 0%, rgba(0, 0, 0, 0.8) 70%);
-            border: 2px solid hsla(${state.hue}, 80%, 50%, 0.3);
+            background: #000;
         }
         
         .visualizer-canvas {
             width: 100%;
             height: 100%;
             display: block;
-            border-radius: 10px;
-        }
-        
-        .visualizer-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
             border-radius: 10px;
         }
         
@@ -551,8 +599,10 @@ export class TradingCardGenerator {
             <p class="card-subtitle">${state.system} System • ${state.dimension}D</p>
         </div>
         
-        <div class="visualizer-container" style="position: relative;">
-            <canvas class="visualizer-canvas" id="vib34dCanvas"></canvas>
+        <div class="card-preview" data-preview-container>
+            <div class="visualization-container">
+                <canvas class="visualizer-canvas" id="vib34dCanvas"></canvas>
+            </div>
         </div>
         
         <div class="stats-panel">
@@ -601,7 +651,62 @@ export class TradingCardGenerator {
                 console.log('🎴 Initializing LIVE trading card system...');
                 new LiveTradingCardSystem();
             }
+            
+            // EXACT MATCH: Add portfolio card mouse tracking behavior
+            initializeHolographicCardEffects();
         });
+        
+        // EXACT COPY from gallery.html - Mouse tracking for trading cards
+        function initializeHolographicCardEffects() {
+            console.log('🌟 Initializing trading card holographic effects...');
+            
+            const card = document.querySelector('.trading-card');
+            if (!card) return;
+            
+            let isHovering = false;
+            
+            // Mouse enter - start holographic effect
+            card.addEventListener('mouseenter', (e) => {
+                isHovering = true;
+                card.style.setProperty('--bend-intensity', '0.8');
+                console.log('🌌 Trading card holographic effect activated');
+            });
+            
+            // Mouse leave - end holographic effect
+            card.addEventListener('mouseleave', (e) => {
+                isHovering = false;
+                card.style.setProperty('--bend-intensity', '0');
+                card.style.setProperty('--mouse-x', '50%');
+                card.style.setProperty('--mouse-y', '50%');
+                console.log('🌌 Trading card holographic effect deactivated');
+            });
+            
+            // Mouse move - track position for card bending + visual reactivity
+            card.addEventListener('mousemove', (e) => {
+                if (!isHovering) return;
+                
+                const rect = card.getBoundingClientRect();
+                const cardX = ((e.clientX - rect.left) / rect.width) * 100;
+                const cardY = ((e.clientY - rect.top) / rect.height) * 100;
+                
+                // Calculate distance from center for bend intensity
+                const centerX = 50;
+                const centerY = 50;
+                const distanceFromCenter = Math.sqrt(
+                    Math.pow(cardX - centerX, 2) + Math.pow(cardY - centerY, 2)
+                );
+                
+                // Dynamic bend intensity based on mouse position
+                const bendIntensity = Math.min(1, (distanceFromCenter / 70) + 0.3);
+                
+                // Update CSS variables for real-time transformation
+                card.style.setProperty('--mouse-x', cardX);
+                card.style.setProperty('--mouse-y', cardY);
+                card.style.setProperty('--bend-intensity', bendIntensity);
+            });
+            
+            console.log('✅ Trading card holographic effects initialized');
+        }
         
         // Collect button action - leads to VIB34D Portal
         function collectFullSystem() {
