@@ -320,7 +320,7 @@ export class TradingCardGenerator {
         }
         
         .trading-card {
-            width: 320px;
+            width: 400px;
             height: auto;
             background: rgba(0, 0, 0, 0.85);
             border: 2px solid rgba(0, 255, 255, 0.3);
@@ -347,10 +347,11 @@ export class TradingCardGenerator {
                 0 0 40px rgba(255, 0, 255, 0.4);
             transform: 
                 perspective(800px)
-                rotateY(calc(15deg * var(--bend-intensity)))
-                rotateX(calc(5deg * (var(--mouse-y) - 50) / 50))
+                rotateY(calc((var(--mouse-x) - 50) * 0.25deg * var(--bend-intensity)))
+                rotateX(calc((var(--mouse-y) - 50) * 0.12deg * var(--bend-intensity)))
                 translateZ(calc(var(--bend-intensity) * 30px))
-                translateY(-10px);
+                translateY(-10px)
+                scale(1.05);
             backdrop-filter: blur(20px);
             z-index: 10;
         }
@@ -438,7 +439,7 @@ export class TradingCardGenerator {
         
         .card-preview {
             width: 100%;
-            height: 280px;
+            height: 350px;
             aspect-ratio: 1 / 1;
             border-radius: 12px;
             overflow: visible;
@@ -450,15 +451,15 @@ export class TradingCardGenerator {
             transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
         
-        /* EXACT MATCH to portfolio cards: Proper X/Y position-based tilting with smooth animation */
+        /* GALLERY-STYLE: Card preview expands and tilts based on mouse position */
         .trading-card:hover .card-preview {
-            /* Host card responds to mouse position with subtle counter-tilt */
+            /* Match gallery card preview behavior exactly */
             transform: 
                 perspective(1000px)
                 translateZ(30px)
-                scale(1.05)
-                rotateY(calc((var(--mouse-x) - 50) * -0.15deg))
-                rotateX(calc((50 - var(--mouse-y)) * 0.1deg));
+                scale(1.1)
+                rotateY(calc((var(--mouse-x) - 50) * 0.2deg))
+                rotateX(calc((var(--mouse-y) - 50) * 0.15deg));
             box-shadow: 
                 0 0 50px rgba(0, 255, 255, 0.6),
                 0 0 100px rgba(255, 0, 255, 0.4),

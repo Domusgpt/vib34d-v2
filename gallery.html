@@ -1026,16 +1026,58 @@
             }
         };
         
-        window.openVariation = function(card) {
+        window.openVariation = async function(card) {
             const params = card.getAttribute('data-params');
-            const system = card.getAttribute('data-system');
+            const system = card.getAttribute('data-system') || 'faceted';
             const globalId = card.getAttribute('data-global-id');
             const variationName = card.querySelector('h3').textContent.split('#')[0].trim();
             
-            // FIXED: Load individual viewer instead of full engine
-            // Create viewer URL with all parameters
-            const viewerUrl = `viewer.html?${params}&system=${system}&name=${encodeURIComponent(variationName)}&id=${globalId}`;
-            window.location.href = viewerUrl;
+            console.log('🎴 Generating trading card for:', variationName, system);
+            
+            // Parse parameters from URL string
+            const urlParams = new URLSearchParams(params);
+            const parameters = {};
+            urlParams.forEach((value, key) => {
+                parameters[key] = parseFloat(value) || value;
+            });
+            
+            // Import and use TradingCardGenerator
+            try {
+                const { TradingCardGenerator } = await import('./src/export/TradingCardGenerator.js');
+                
+                // Create mock engine with parameters
+                const mockEngine = {
+                    parameterManager: {
+                        getAllParameters: () => parameters
+                    }
+                };
+                
+                // Set current system for generator
+                window.currentSystem = system;
+                
+                const generator = new TradingCardGenerator(mockEngine);
+                const result = await generator.generateTradingCard('gallery');
+                
+                if (result.success) {
+                    // Create blob and navigate to trading card
+                    const blob = new Blob([result.html], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    // Store the blob URL temporarily for navigation
+                    sessionStorage.setItem('tradingCardBlob', url);
+                    sessionStorage.setItem('tradingCardName', `${variationName}-${globalId}`);
+                    
+                    // Navigate to the trading card
+                    window.location.href = url;
+                    
+                    console.log('✅ Trading card generated and navigating');
+                } else {
+                    throw new Error(result.error || 'Trading card generation failed');
+                }
+            } catch (error) {
+                console.error('❌ Failed to generate trading card:', error);
+                alert('Unable to generate trading card. Please try again.');
+            }
         };
         
         window.loadIntoEngine = function(card, event) {
