@@ -576,6 +576,9 @@
     <script>
         // Global system switching function - accessible to HTML onclick handlers
         window.switchSystem = async function(system) {
+            console.log(`🎯 switchSystem called with: ${system}`);
+            console.log(`🔍 Current state: moduleReady=${!!window.moduleReady}, currentSystem=${window.currentSystem}`);
+            
             // CRITICAL FIX: Wait for ES6 module OR timeout after 10 seconds for gallery preview
             if (!window.moduleReady) {
                 console.log('⏳ Waiting for module initialization...');
@@ -596,7 +599,8 @@
             
             window.currentSystem = system;
             
-            console.log('🔄 System switched to:', system);
+            console.log(`🔄 System switched to: ${system}`);
+            console.log(`✅ Verification: window.currentSystem is now: ${window.currentSystem}`);
             
             // Update UI
             document.querySelectorAll('.system-btn').forEach(btn => {
