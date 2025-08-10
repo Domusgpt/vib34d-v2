@@ -1,7 +1,13 @@
 /**
  * Trading Card Generator - Creates personalized trading cards from current visualization
  * Allows users to export their current VIB34D state as a shareable trading card
+ * 
+ * REFACTORED: Now uses modular system architecture
  */
+
+import { TradingCardSystemFaceted } from './systems/TradingCardSystemFaceted.js';
+import { TradingCardSystemQuantum } from './systems/TradingCardSystemQuantum.js';
+import { TradingCardSystemHolographic } from './systems/TradingCardSystemHolographic.js';
 
 export class TradingCardGenerator {
     constructor(engine) {
@@ -938,18 +944,24 @@ export class TradingCardGenerator {
     
     /**
      * Generate LIVE multi-layer WebGL visualization code for the trading card
+     * REFACTORED: Now uses modular system architecture
      */
     generateVisualizationCode(state) {
+        console.log(`🎯 Generating ${this.currentSystem} system using modular architecture`);
+        
         if (this.currentSystem === 'faceted') {
-            return this.generateLiveFacetedSystem(state);
+            return TradingCardSystemFaceted.generateLiveSystem(state);
         } else if (this.currentSystem === 'quantum') {
-            return this.generateLiveQuantumSystem(state);
+            return TradingCardSystemQuantum.generateLiveSystem(state);
         } else if (this.currentSystem === 'holographic') {
-            return this.generateLiveHolographicSystem(state);
+            return TradingCardSystemHolographic.generateLiveSystem(state);
         } else if (this.currentSystem === 'polychora') {
-            return this.generateLivePolychoraSystem(state);
+            // Use faceted as fallback for polychora (placeholder system)
+            console.log('🔮 Polychora system using faceted fallback');
+            return TradingCardSystemFaceted.generateLiveSystem(state);
         } else {
-            return this.generateFallbackVisualizationCode(state);
+            console.warn(`⚠️ Unknown system: ${this.currentSystem}, using faceted fallback`);
+            return TradingCardSystemFaceted.generateLiveSystem(state);
         }
     }
     
