@@ -1,6 +1,6 @@
 {
-  "name": "Base Holographic Variations",
-  "description": "30 default variations across 8 geometric forms",
+  "name": "Base Multi-System Variations",
+  "description": "30 default variations across 8 geometric forms and 4 visualization systems",
   "version": "1.0",
   "type": "holographic-collection",
   "profileName": "Active Holographic Systems",
@@ -10,7 +10,7 @@
     {
       "id": 0,
       "name": "TETRAHEDRON LATTICE",
-      "system": "holographic",
+      "system": "faceted",
       "isCustom": false,
       "parameters": {
         "geometry": 0,
@@ -26,7 +26,7 @@
     {
       "id": 1,
       "name": "TETRAHEDRON FIELD",
-      "system": "holographic",
+      "system": "quantum",
       "isCustom": false,
       "parameters": {
         "geometry": 0,
@@ -74,7 +74,7 @@
     {
       "id": 4,
       "name": "HYPERCUBE LATTICE",
-      "system": "holographic",
+      "system": "faceted",
       "isCustom": false,
       "parameters": {
         "geometry": 1,
@@ -90,7 +90,7 @@
     {
       "id": 5,
       "name": "HYPERCUBE FIELD",
-      "system": "holographic",
+      "system": "quantum",
       "isCustom": false,
       "parameters": {
         "geometry": 1,
@@ -138,7 +138,7 @@
     {
       "id": 8,
       "name": "SPHERE LATTICE",
-      "system": "holographic",
+      "system": "faceted",
       "isCustom": false,
       "parameters": {
         "geometry": 2,
@@ -154,7 +154,7 @@
     {
       "id": 9,
       "name": "SPHERE FIELD",
-      "system": "holographic",
+      "system": "quantum",
       "isCustom": false,
       "parameters": {
         "geometry": 2,

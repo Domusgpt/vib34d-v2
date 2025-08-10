@@ -656,6 +656,12 @@
             
             console.log(`🔄 System switched to: ${system}`);
             console.log(`✅ Verification: window.currentSystem is now: ${window.currentSystem}`);
+            console.log(`🔍 Engine availability at switch time:`, {
+                engine: !!window.engine,
+                quantumEngine: !!window.quantumEngine,
+                holographicSystem: !!window.holographicSystem,
+                polychoraSystem: !!window.polychoraSystem
+            });
             
             // Update UI
             document.querySelectorAll('.system-btn').forEach(btn => {
@@ -974,6 +980,15 @@
                 
                 // Additional wait for WebGL contexts to be fully ready
                 await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            // CRITICAL FIX: For quantum system, ensure it's active
+            if (previewData.system === 'quantum' && window.quantumEngine) {
+                console.log('⚛️ Ensuring quantum engine is active...');
+                if (!window.quantumEngine.isActive) {
+                    console.log('⚛️ Quantum engine was not active, activating now...');
+                    window.quantumEngine.setActive(true);
+                }
             }
             
             // Apply all parameters from URL
