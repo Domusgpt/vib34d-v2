@@ -981,29 +981,27 @@
             }
             
             // CRITICAL FIX: IMMEDIATE WebGL context cleanup to prevent overflow
-            setTimeout(() => {
-                const container = card.querySelector('[data-preview-container]');
-                if (container) {
-                    const iframe = container.querySelector('iframe');
-                    if (iframe) {
-                        console.log('🧹 IMMEDIATE WebGL cleanup - destroying iframe to free contexts');
-                        
-                        // Show static preview again
-                        const staticPreview = container.querySelector('.static-preview');
-                        if (staticPreview) {
-                            staticPreview.style.display = 'flex';
-                            staticPreview.style.opacity = '1';
-                        }
-                        
-                        // Remove iframe completely to free WebGL contexts
-                        iframe.remove();
-                        
-                        // Remove from active contexts tracking
-                        activeWebGLContexts.delete(card);
-                        console.log(`🧹 WebGL context freed - Active: ${activeWebGLContexts.size}/${MAX_WEBGL_CONTEXTS}`);
+            const container = card.querySelector('[data-preview-container]');
+            if (container) {
+                const iframe = container.querySelector('iframe');
+                if (iframe) {
+                    console.log('🧹 IMMEDIATE WebGL cleanup - destroying iframe to free contexts');
+                    
+                    // Show static preview again
+                    const staticPreview = container.querySelector('.static-preview');
+                    if (staticPreview) {
+                        staticPreview.style.display = 'flex';
+                        staticPreview.style.opacity = '1';
                     }
+                    
+                    // Remove iframe completely to free WebGL contexts
+                    iframe.remove();
+                    
+                    // Remove from active contexts tracking
+                    activeWebGLContexts.delete(card);
+                    console.log(`🧹 WebGL context freed - Active: ${activeWebGLContexts.size}/${MAX_WEBGL_CONTEXTS}`);
                 }
-            // NO DELAY - immediate cleanup to prevent WebGL context overflow
+            }
         };
         
         window.handleMobileTouch = function(card, event) {
