@@ -170,7 +170,7 @@
         
         .card-preview {
             width: 100%;
-            height: 180px;
+            height: 200px;
             border-radius: 12px;
             overflow: hidden;
             margin-bottom: 15px;
@@ -184,6 +184,9 @@
             height: 100%;
             border: none;
             pointer-events: none;
+            transform-origin: top left;
+            /* Fix aspect ratio to be more square, not widescreen */
+            transform: scale(1.0) translateY(0px);
         }
         
         .static-preview {
@@ -608,22 +611,37 @@
             
             const timeoutId = setTimeout(() => {
                 const iframe = document.createElement('iframe');
-                iframe.style.cssText = 'width: 100%; height: 100%; border: none; border-radius: 12px; background: #000;';
+                iframe.style.cssText = `
+                    width: 100%; 
+                    height: 100%; 
+                    border: none; 
+                    border-radius: 12px; 
+                    background: #000;
+                    transform-origin: top left;
+                `;
                 
                 iframe.onload = function() {
+                    // Wait longer for system to fully load and stabilize
                     setTimeout(() => {
                         const staticPreview = container.querySelector('.static-preview');
                         if (staticPreview) {
-                            staticPreview.style.display = 'none';
+                            staticPreview.style.opacity = '0';
+                            staticPreview.style.transition = 'opacity 0.5s ease';
+                            setTimeout(() => staticPreview.style.display = 'none', 500);
                         }
-                    }, 300);
+                    }, 1000); // Increased wait time for proper loading
+                };
+                
+                iframe.onerror = function() {
+                    console.warn('Gallery preview iframe failed to load');
                 };
                 
                 container.appendChild(iframe);
                 
                 const system = card.getAttribute('data-system') || 'faceted';
-                iframe.src = `index.html?${params}&hideui=true&system=${system}`;
-            }, 100);
+                // Ensure hideui parameter comes first and system switching has time
+                iframe.src = `index.html?hideui=true&system=${system}&${params}`;
+            }, 200); // Slightly longer initial delay
             
             hoverTimeouts.set(card, timeoutId);
         };

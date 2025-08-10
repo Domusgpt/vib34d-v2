@@ -283,15 +283,15 @@ export class QuantumCardGenerator extends CardGeneratorBase {
                     
                     gl.useProgram(program);
                     
-                    // Set uniforms (MATCHING QUANTUM ENGINE EXACTLY)
+                    // Set uniforms (enhanced for quantum effects)
                     gl.uniform2f(uniforms.resolution, canvas.width, canvas.height);
                     gl.uniform1f(uniforms.time, time);
                     gl.uniform1f(uniforms.geometry, parseFloat(params.geometry) || 0);
-                    gl.uniform1f(uniforms.gridDensity, parseFloat(params.gridDensity) || 15); // EXACT match to engine
+                    gl.uniform1f(uniforms.gridDensity, (parseFloat(params.gridDensity) || 15) * 0.8); // Adjusted for quantum
                     gl.uniform1f(uniforms.hue, parseFloat(params.hue) || 200);
-                    gl.uniform1f(uniforms.intensity, parseFloat(params.intensity) || 0.5); // EXACT match to engine
+                    gl.uniform1f(uniforms.intensity, (parseFloat(params.intensity) || 0.5) * 1.2); // Enhanced intensity
                     gl.uniform1f(uniforms.morphFactor, parseFloat(params.morphFactor) || 1.0);
-                    gl.uniform1f(uniforms.chaos, parseFloat(params.chaos) || 0.2); // EXACT match to engine
+                    gl.uniform1f(uniforms.chaos, (parseFloat(params.chaos) || 0.2) * 1.5); // Enhanced chaos
                     gl.uniform1f(uniforms.rot4dXW, parseFloat(params.rot4dXW) || 0);
                     gl.uniform1f(uniforms.rot4dYW, parseFloat(params.rot4dYW) || 0);
                     gl.uniform1f(uniforms.rot4dZW, parseFloat(params.rot4dZW) || 0);

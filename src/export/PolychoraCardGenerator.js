@@ -1,12 +1,12 @@
 /**
- * Quantum Trading Card Generator
- * Specializes in enhanced 3D lattice with complex holographic effects
+ * Polychora Trading Card Generator  
+ * Specializes in 4D polytope mathematics with glassmorphic rendering
  */
 import { CardGeneratorBase } from './CardGeneratorBase.js';
 
-export class QuantumCardGenerator extends CardGeneratorBase {
+export class PolychoraCardGenerator extends CardGeneratorBase {
     constructor() {
-        super('Quantum');
+        super('Polychora');
     }
     
     getSystemShaders() {
@@ -32,7 +32,7 @@ export class QuantumCardGenerator extends CardGeneratorBase {
                 uniform float u_rot4dYW;
                 uniform float u_rot4dZW;
                 
-                // Enhanced 4D rotation matrices
+                // 4D rotation matrices for polytopes
                 mat4 rotateXW(float theta) {
                     float c = cos(theta);
                     float s = sin(theta);
@@ -51,58 +51,50 @@ export class QuantumCardGenerator extends CardGeneratorBase {
                     return mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, c, -s, 0, 0, s, c);
                 }
                 
+                // 4D to 3D projection with perspective
                 vec3 project4Dto3D(vec4 p) {
-                    float w = 2.5 / (2.5 + p.w);
-                    return vec3(p.x * w, p.y * w, p.z * w);
+                    float perspective = 3.0 / (3.0 + p.w);
+                    return vec3(p.x * perspective, p.y * perspective, p.z * perspective);
                 }
                 
-                // Enhanced quantum lattice patterns
-                float quantumLattice(vec3 p, float gridSize) {
-                    vec3 q = fract(p * gridSize) - 0.5;
+                // 4D polytope distance functions
+                float polytope5Cell(vec4 p) {
+                    // 5-cell (4D tetrahedron)
+                    vec4 a = vec4(1.0, 1.0, 1.0, -1.0/sqrt(5.0));
+                    vec4 b = vec4(1.0, -1.0, -1.0, -1.0/sqrt(5.0));
+                    vec4 c = vec4(-1.0, 1.0, -1.0, -1.0/sqrt(5.0));
+                    vec4 d = vec4(-1.0, -1.0, 1.0, -1.0/sqrt(5.0));
+                    vec4 e = vec4(0.0, 0.0, 0.0, sqrt(5.0)/sqrt(5.0));
                     
-                    // Base structure
-                    float d1 = length(q);
-                    float d2 = length(q - vec3(0.4, 0.0, 0.0));
-                    float d3 = length(q - vec3(0.0, 0.4, 0.0));
-                    float d4 = length(q - vec3(0.0, 0.0, 0.4));
-                    float vertices = 1.0 - smoothstep(0.0, 0.05, min(min(d1, d2), min(d3, d4)));
+                    float d1 = length(p - a);
+                    float d2 = length(p - b);
+                    float d3 = length(p - c);
+                    float d4 = length(p - d);
+                    float d5 = length(p - e);
                     
-                    // Enhanced edges with shimmer
-                    float edges = 0.0;
-                    edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.xy) - 0.25 + sin(u_time * 0.001) * 0.05)));
-                    edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.yz) - 0.25 + cos(u_time * 0.0012) * 0.05)));
-                    edges = max(edges, 1.0 - smoothstep(0.0, 0.02, abs(length(q.xz) - 0.25 + sin(u_time * 0.0008) * 0.05)));
-                    
-                    // Quantum interference patterns
-                    float interference = sin(d1 * 20.0 + u_time * 0.002) * sin(d2 * 18.0 + u_time * 0.0015);
-                    
-                    return max(vertices, edges * 0.7) + interference * 0.1;
+                    return min(min(min(d1, d2), min(d3, d4)), d5);
                 }
                 
-                float getQuantumGeometry(vec3 p, float geometryType) {
-                    vec3 q = fract(p * u_gridDensity * 0.12) - 0.5;
+                float polytopeTesseract(vec4 p) {
+                    // 8-cell (tesseract)
+                    vec4 q = abs(p);
+                    return max(max(q.x, q.y), max(q.z, q.w)) - 1.0;
+                }
+                
+                float polytope16Cell(vec4 p) {
+                    // 16-cell (hyperoctahedron)
+                    return abs(p.x) + abs(p.y) + abs(p.z) + abs(p.w) - 1.0;
+                }
+                
+                float getPolytope(vec4 p, float polytypeType) {
+                    int polyType = int(mod(polytypeType, 6.0));
                     
-                    int geom = int(mod(geometryType, 8.0));
-                    
-                    if (geom == 0) {
-                        return quantumLattice(p, u_gridDensity * 0.15);
-                    }
-                    else if (geom == 1) {
-                        // Quantum hypercube with shimmer
-                        vec3 grid = abs(q);
-                        float shimmer = sin(grid.x * 30.0 + u_time * 0.001) * sin(grid.y * 25.0 + u_time * 0.0012);
-                        return (1.0 - smoothstep(0.0, 0.02, min(min(grid.x, grid.y), grid.z) - 0.4)) + shimmer * 0.1;
-                    }
-                    else if (geom == 2) {
-                        // Quantum sphere with volumetric effects
-                        float r = length(q);
-                        float volume = sin(r * 15.0 + u_time * 0.001) * 0.1;
-                        return (1.0 - smoothstep(0.2, 0.45, r)) + volume;
-                    }
-                    else {
-                        // Enhanced patterns for other geometries
-                        return quantumLattice(p, u_gridDensity * 0.1 + sin(u_time * 0.0005) * 0.02);
-                    }
+                    if (polyType == 0) return polytope5Cell(p);
+                    else if (polyType == 1) return polytopeTesseract(p);
+                    else if (polyType == 2) return polytope16Cell(p);
+                    else if (polyType == 3) return polytope5Cell(p * 1.2); // 24-cell approximation
+                    else if (polyType == 4) return polytope16Cell(p * 0.8); // 600-cell approximation
+                    else return polytopeTesseract(p * 0.6); // 120-cell approximation
                 }
                 
                 vec3 hsv2rgb(vec3 c) {
@@ -111,63 +103,59 @@ export class QuantumCardGenerator extends CardGeneratorBase {
                     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
                 }
                 
-                // RGB glitch effect
-                vec3 rgbGlitch(vec3 color, vec2 uv, float intensity) {
-                    vec2 offset = vec2(intensity * 0.008, 0.0);
-                    float r = color.r + sin(uv.y * 40.0 + u_time * 0.001) * intensity * 0.08;
-                    float g = color.g + sin(uv.y * 38.0 + u_time * 0.0015) * intensity * 0.08;
-                    float b = color.b + sin(uv.y * 42.0 + u_time * 0.0008) * intensity * 0.08;
-                    return vec3(r, g, b);
-                }
-                
                 void main() {
                     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
                     float aspectRatio = u_resolution.x / u_resolution.y;
                     uv.x *= aspectRatio;
                     uv -= 0.5;
                     
-                    float time = u_time * 0.0008;
+                    float time = u_time * 0.0006;
                     
-                    // Enhanced 4D transformations
-                    vec4 p4d = vec4(uv, 
-                                   sin(time * 0.4 + uv.x * 2.0) * 0.25, 
-                                   cos(time * 0.3 + uv.y * 2.0) * 0.2);
+                    // 4D point in space
+                    vec4 p4d = vec4(uv * u_gridDensity * 0.1, 
+                                   sin(time * 0.7) * 0.3, 
+                                   cos(time * 0.5) * 0.25);
                     
-                    // Enhanced rotations with quantum effects
-                    p4d = rotateXW(u_rot4dXW + time * 0.2 + sin(time * 2.0) * 0.1) * p4d;
-                    p4d = rotateYW(u_rot4dYW + time * 0.25 + cos(time * 1.5) * 0.1) * p4d;
-                    p4d = rotateZW(u_rot4dZW + time * 0.3 + sin(time * 1.2) * 0.1) * p4d;
+                    // Apply 4D rotations
+                    p4d = rotateXW(u_rot4dXW + time * 0.3) * p4d;
+                    p4d = rotateYW(u_rot4dYW + time * 0.4) * p4d;
+                    p4d = rotateZW(u_rot4dZW + time * 0.5) * p4d;
                     
-                    vec3 p = project4Dto3D(p4d);
+                    // Apply morphing
+                    p4d += vec4(sin(p4d.yxz * 5.0 + time) * u_morphFactor * 0.1, 0.0);
                     
-                    // Enhanced morphing
-                    p += vec3(
-                        sin(p.y * 12.0 + time * 2.0) * u_morphFactor * 0.15,
-                        cos(p.x * 10.0 + time * 1.5) * u_morphFactor * 0.12,
-                        sin(p.z * 14.0 + time * 1.8) * u_morphFactor * 0.1
-                    );
+                    // Get polytope distance
+                    float dist = getPolytope(p4d, u_geometry);
                     
-                    float pattern = getQuantumGeometry(p, u_geometry);
+                    // Create glassmorphic effect
+                    float edge = 1.0 - smoothstep(0.0, 0.1, abs(dist));
+                    float interior = 1.0 - smoothstep(0.0, 0.3, abs(dist + 0.2));
                     
-                    // Enhanced quantum color scheme
-                    vec3 baseColor = hsv2rgb(vec3(u_hue / 360.0, 0.9, u_intensity));
-                    vec3 quantumColor = hsv2rgb(vec3((u_hue + 60.0) / 360.0, 0.7, u_intensity * 0.8));
+                    // Project to 3D for additional effects
+                    vec3 p3d = project4Dto3D(p4d);
                     
-                    vec3 color = mix(baseColor, quantumColor, pattern * 0.6) * (0.4 + pattern * 0.8);
+                    // Glass refraction simulation
+                    vec2 refraction = uv + normalize(p3d.xy) * edge * 0.02;
                     
-                    // Enhanced quantum effects
-                    color += vec3(pattern * 0.5) * baseColor;
-                    color += quantumColor * sin(length(uv) * 10.0 + time * 3.0) * 0.1;
+                    // Color composition
+                    vec3 baseColor = hsv2rgb(vec3(u_hue / 360.0, 0.7, u_intensity));
+                    vec3 glassColor = hsv2rgb(vec3((u_hue + 30.0) / 360.0, 0.4, u_intensity * 0.8));
                     
-                    // Enhanced chaos/glitch
-                    color = rgbGlitch(color, uv, u_chaos);
-                    color += vec3(sin(uv.x * 25.0 + time * 2.0) * u_chaos * 0.08);
+                    vec3 color = mix(glassColor * interior * 0.3, baseColor * edge, edge);
                     
-                    // Quantum shimmer overlay
-                    float shimmer = sin(length(uv) * 20.0 + time * 4.0) * 0.05;
-                    color += vec3(shimmer) * baseColor;
+                    // Add glassmorphic highlights
+                    float highlight = pow(edge, 3.0) * u_intensity;
+                    color += vec3(highlight) * 0.5;
                     
-                    gl_FragColor = vec4(color, 1.0);
+                    // Chaos as glass distortion
+                    float distortion = sin(length(uv) * 20.0 + time * 2.0) * u_chaos * 0.1;
+                    color += vec3(distortion) * baseColor * 0.3;
+                    
+                    // Depth fade for 4D effect
+                    float depth = 1.0 - length(p4d) * 0.2;
+                    color *= (0.5 + depth * 0.5);
+                    
+                    gl_FragColor = vec4(color, 0.9);
                 }
             `
         };
@@ -176,38 +164,45 @@ export class QuantumCardGenerator extends CardGeneratorBase {
     getSystemStyles() {
         return `
             .visualization-area {
-                border: 2px solid rgba(0, 255, 255, 0.4);
+                border: 2px solid rgba(255, 150, 0, 0.4);
                 box-shadow: 
-                    0 0 30px rgba(0, 255, 255, 0.3),
-                    inset 0 0 20px rgba(0, 255, 255, 0.1);
-                background: rgba(0, 255, 255, 0.02);
+                    0 0 30px rgba(255, 150, 0, 0.3),
+                    inset 0 0 20px rgba(255, 150, 0, 0.1);
+                background: rgba(255, 150, 0, 0.02);
+                backdrop-filter: blur(5px);
             }
             
             .card-title {
-                color: #00ffff;
-                text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+                color: #ff9600;
+                text-shadow: 0 0 20px rgba(255, 150, 0, 0.8);
             }
             
-            .system-badge.quantum {
-                box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-                animation: quantum-glow 2s ease-in-out infinite alternate;
+            .system-badge.polychora {
+                box-shadow: 0 0 15px rgba(255, 150, 0, 0.5);
+                animation: polytope-glow 3s ease-in-out infinite alternate;
             }
             
-            @keyframes quantum-glow {
-                from { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
-                to { box-shadow: 0 0 25px rgba(0, 255, 255, 0.8); }
+            @keyframes polytope-glow {
+                from { 
+                    box-shadow: 0 0 15px rgba(255, 150, 0, 0.5);
+                    transform: rotateY(0deg);
+                }
+                to { 
+                    box-shadow: 0 0 25px rgba(255, 150, 0, 0.8);
+                    transform: rotateY(5deg);
+                }
             }
         `;
     }
     
     generateSystemContent(parameters) {
-        return `<canvas id="quantum-canvas"></canvas>`;
+        return `<canvas id="polychora-canvas"></canvas>`;
     }
     
     getSystemJavaScript() {
         return `
             function initializeCard(params) {
-                const canvas = document.getElementById('quantum-canvas');
+                const canvas = document.getElementById('polychora-canvas');
                 const gl = canvas.getContext('webgl');
                 
                 if (!gl) {
@@ -223,7 +218,7 @@ export class QuantumCardGenerator extends CardGeneratorBase {
                 window.addEventListener('resize', resize);
                 resize();
                 
-                // Create shader program (same as faceted but with quantum shaders)
+                // Create shader program
                 function createShader(type, source) {
                     const shader = gl.createShader(type);
                     gl.shaderSource(shader, source);
@@ -283,15 +278,15 @@ export class QuantumCardGenerator extends CardGeneratorBase {
                     
                     gl.useProgram(program);
                     
-                    // Set uniforms (MATCHING QUANTUM ENGINE EXACTLY)
+                    // Set uniforms (optimized for 4D polytopes)
                     gl.uniform2f(uniforms.resolution, canvas.width, canvas.height);
                     gl.uniform1f(uniforms.time, time);
-                    gl.uniform1f(uniforms.geometry, parseFloat(params.geometry) || 0);
-                    gl.uniform1f(uniforms.gridDensity, parseFloat(params.gridDensity) || 15); // EXACT match to engine
-                    gl.uniform1f(uniforms.hue, parseFloat(params.hue) || 200);
-                    gl.uniform1f(uniforms.intensity, parseFloat(params.intensity) || 0.5); // EXACT match to engine
+                    gl.uniform1f(uniforms.geometry, parseFloat(params.polytope) || parseFloat(params.geometry) || 0);
+                    gl.uniform1f(uniforms.gridDensity, parseFloat(params.gridDensity) || 15);
+                    gl.uniform1f(uniforms.hue, parseFloat(params.hue) || 30); // Default orange
+                    gl.uniform1f(uniforms.intensity, parseFloat(params.intensity) || 0.6);
                     gl.uniform1f(uniforms.morphFactor, parseFloat(params.morphFactor) || 1.0);
-                    gl.uniform1f(uniforms.chaos, parseFloat(params.chaos) || 0.2); // EXACT match to engine
+                    gl.uniform1f(uniforms.chaos, parseFloat(params.chaos) || 0.1); // Lower chaos for mathematical precision
                     gl.uniform1f(uniforms.rot4dXW, parseFloat(params.rot4dXW) || 0);
                     gl.uniform1f(uniforms.rot4dYW, parseFloat(params.rot4dYW) || 0);
                     gl.uniform1f(uniforms.rot4dZW, parseFloat(params.rot4dZW) || 0);
@@ -302,14 +297,23 @@ export class QuantumCardGenerator extends CardGeneratorBase {
                 }
                 
                 render();
-                console.log('✅ Quantum trading card initialized');
+                console.log('✅ Polychora trading card initialized');
             }
         `;
     }
     
     getCardTitle(parameters) {
-        return `QUANTUM ${this.getGeometryName(parameters)} ENHANCED`;
+        const polytopeNames = ['5-CELL', 'TESSERACT', '16-CELL', '24-CELL', '600-CELL', '120-CELL'];
+        const polytopeIndex = parameters.polytope || parameters.geometry || 0;
+        const polytopeName = polytopeNames[polytopeIndex] || '4D-POLYTOPE';
+        return `${polytopeName} GLASSMORPHIC`;
+    }
+    
+    getGeometryName(parameters) {
+        const polytopeNames = ['5-CELL', 'TESSERACT', '16-CELL', '24-CELL', '600-CELL', '120-CELL'];
+        const polytopeIndex = parameters.polytope || parameters.geometry || 0;
+        return polytopeNames[polytopeIndex] || '4D-POLYTOPE';
     }
 }
 
-export default QuantumCardGenerator;
+export default PolychoraCardGenerator;
