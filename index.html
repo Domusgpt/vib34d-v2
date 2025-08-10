@@ -650,10 +650,43 @@
         // Parse URL parameters immediately
         parseURLParameters();
         
+        // SURGICAL FIX: Smart Canvas Management
+        class CanvasLayerManager {
+            static switchSystem(targetSystem) {
+                const systems = ['faceted', 'quantum', 'holographic', 'polychora'];
+                let activeCanvases = 0;
+                
+                systems.forEach(sys => {
+                    const layerId = sys === 'faceted' ? 'vib34dLayers' : `${sys}Layers`;
+                    const layers = document.getElementById(layerId);
+                    if (layers) {
+                        const shouldShow = sys === targetSystem;
+                        
+                        // Optimize display changes
+                        if (shouldShow) {
+                            layers.style.display = 'block';
+                            layers.style.visibility = 'visible';
+                            layers.style.opacity = '1';
+                            activeCanvases += layers.children.length;
+                        } else {
+                            layers.style.display = 'none';
+                            layers.style.visibility = 'hidden';
+                            layers.style.opacity = '0';
+                        }
+                    }
+                });
+                
+                console.log(`🎯 Canvas Manager: ${targetSystem} active (${activeCanvases} contexts)`);
+            }
+        }
+        
         // Global system switching function - accessible to HTML onclick handlers
         window.switchSystem = async function(system) {
             console.log(`🎯 switchSystem called with: ${system}`);
             console.log(`🔍 Current state: moduleReady=${!!window.moduleReady}, currentSystem=${window.currentSystem}`);
+            
+            // SURGICAL FIX: Use smart canvas management immediately
+            CanvasLayerManager.switchSystem(system);
             
             // CRITICAL FIX: Wait for ES6 module OR timeout after 10 seconds for gallery preview
             if (!window.moduleReady) {
@@ -1148,58 +1181,38 @@
                 }
             }
             
-            // Enhanced parameter updates with comprehensive error handling
+            // SURGICAL FIX: Unified parameter router - eliminates scope confusion
             try {
-                // CRITICAL FIX: Use window.currentSystem instead of local currentSystem variable
-                const activeSystem = window.currentSystem || currentSystem || 'faceted';
+                const activeSystem = window.currentSystem || 'faceted';
+                const engines = {
+                    faceted: window.engine,
+                    quantum: window.quantumEngine,
+                    holographic: window.holographicSystem,
+                    polychora: window.polychoraSystem
+                };
                 
-                if (activeSystem === 'faceted' && window.engine) {
-                    // For VIB34DIntegratedEngine, update parameter manager and call updateFromControls
-                    window.engine.parameterManager.setParameter(param, parseFloat(value));
-                    window.engine.updateVisualizers();
-                    
-                } else if (activeSystem === 'quantum' && window.quantumEngine) {
-                    // For Quantum Engine, use enhanced parameter updates
-                    window.quantumEngine.updateParameter(param, parseFloat(value));
-                    
-                } else if (activeSystem === 'holographic' && window.holographicSystem) {
-                    // For Holographic system, use direct parameter names (mapping handled in visualizer)
-                    window.holographicSystem.updateParameter(param, parseFloat(value));
-                    
-                } else if (activeSystem === 'polychora' && window.polychoraSystem) {
-                    window.polychoraSystem.updateParameters({ [param]: parseFloat(value) });
-                } else {
-                    console.warn(`⚠️ Parameter update failed: ${activeSystem} system not available or not initialized`);
-                    console.warn(`   Active system: ${activeSystem}`);
-                    console.warn(`   Local currentSystem: ${currentSystem}`);
-                    console.warn(`   Window currentSystem: ${window.currentSystem}`);
-                    console.warn(`   Available engines:`, {
-                        engine: !!window.engine,
-                        quantumEngine: !!window.quantumEngine, 
-                        holographicSystem: !!window.holographicSystem,
-                        polychoraSystem: !!window.polychoraSystem
-                    });
+                const engine = engines[activeSystem];
+                if (!engine) {
+                    console.warn(`⚠️ System ${activeSystem} not available - engines:`, Object.keys(engines).map(k => `${k}:${!!engines[k]}`).join(', '));
                     return;
+                }
+                
+                // Route to appropriate engine method
+                if (activeSystem === 'faceted') {
+                    engine.parameterManager.setParameter(param, parseFloat(value));
+                    engine.updateVisualizers();
+                } else if (activeSystem === 'quantum') {
+                    engine.updateParameter(param, parseFloat(value));
+                } else if (activeSystem === 'holographic') {
+                    engine.updateParameter(param, parseFloat(value));
+                } else if (activeSystem === 'polychora') {
+                    engine.updateParameters({ [param]: parseFloat(value) });
                 }
                 
                 console.log(`📊 ${activeSystem.toUpperCase()}: ${param} = ${value}`);
                 
-                // Extra debugging for gallery previews
-                if (window.isGalleryPreview) {
-                    console.log(`🎨 GALLERY PREVIEW - Parameter update details:`);
-                    console.log(`   activeSystem: ${activeSystem}`);
-                    console.log(`   window.currentSystem: ${window.currentSystem}`);
-                    console.log(`   param: ${param}, value: ${value}`);
-                    console.log(`   Engine availability:`, {
-                        engine: !!window.engine,
-                        quantumEngine: !!window.quantumEngine,
-                        holographicSystem: !!window.holographicSystem,
-                        polychoraSystem: !!window.polychoraSystem
-                    });
-                }
-                
             } catch (error) {
-                console.error(`❌ Parameter update error in ${currentSystem} for ${param}:`, error);
+                console.error(`❌ Parameter update error in ${window.currentSystem || 'unknown'} for ${param}:`, error);
                 // Don't break the UI, just log the error
             }
         }
