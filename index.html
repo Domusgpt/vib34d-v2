@@ -982,6 +982,42 @@
                     await switchSystem('faceted');
                 }
                 
+                // SURGICAL FIX: Gallery iframe reactivity - listen for mouse/click data
+                if (window.isGalleryPreview) {
+                    window.addEventListener('message', (event) => {
+                        if (event.data && event.data.type === 'mouseMove') {
+                            // Send mouse data to active engine
+                            const activeSystem = window.currentSystem || 'faceted';
+                            const engines = {
+                                faceted: window.engine,
+                                quantum: window.quantumEngine,
+                                holographic: window.holographicSystem,
+                                polychora: window.polychoraSystem
+                            };
+                            
+                            const engine = engines[activeSystem];
+                            if (engine && engine.updateMouseState) {
+                                engine.updateMouseState(event.data.x, event.data.y, event.data.intensity);
+                            }
+                        } else if (event.data && event.data.type === 'click') {
+                            // Send click data to active engine  
+                            const activeSystem = window.currentSystem || 'faceted';
+                            const engines = {
+                                faceted: window.engine,
+                                quantum: window.quantumEngine,
+                                holographic: window.holographicSystem,
+                                polychora: window.polychoraSystem
+                            };
+                            
+                            const engine = engines[activeSystem];
+                            if (engine && engine.triggerClick) {
+                                engine.triggerClick(event.data.intensity);
+                            }
+                        }
+                    });
+                    console.log('🎯 Gallery iframe reactivity enabled');
+                }
+                
                 return true;
             } catch (error) {
                 console.error('❌ Failed to initialize engine:', error);
