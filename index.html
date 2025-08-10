@@ -982,14 +982,30 @@
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
             
-            // CRITICAL FIX: For quantum system, ensure it's active
+            // CRITICAL FIX: Force engine activation with proper delays for gallery previews
             if (previewData.system === 'quantum' && window.quantumEngine) {
-                console.log('⚛️ Ensuring quantum engine is active...');
-                if (!window.quantumEngine.isActive) {
-                    console.log('⚛️ Quantum engine was not active, activating now...');
-                    window.quantumEngine.setActive(true);
-                }
+                console.log('⚛️ GALLERY PREVIEW: Activating quantum engine...');
+                window.quantumEngine.setActive(true);
+                await new Promise(resolve => setTimeout(resolve, 300)); // Wait for activation
+                console.log('⚛️ Quantum engine activated for gallery preview');
+            } else if (previewData.system === 'holographic' && window.holographicSystem) {
+                console.log('🌌 GALLERY PREVIEW: Activating holographic system...');
+                window.holographicSystem.setActive(true);
+                await new Promise(resolve => setTimeout(resolve, 300)); // Wait for activation  
+                console.log('🌌 Holographic system activated for gallery preview');
             }
+            
+            // CRITICAL FIX: Force canvas layer visibility for gallery previews
+            const systems = ['faceted', 'quantum', 'holographic'];
+            systems.forEach(sys => {
+                const layerId = sys === 'faceted' ? 'vib34dLayers' : `${sys}Layers`;
+                const layers = document.getElementById(layerId);
+                if (layers) {
+                    const shouldShow = sys === previewData.system;
+                    layers.style.display = shouldShow ? 'block' : 'none';
+                    console.log(`🎯 GALLERY PREVIEW: ${sys} layers → ${shouldShow ? 'VISIBLE' : 'HIDDEN'}`);
+                }
+            });
             
             // CRITICAL: Double-check system switch was successful
             if (window.currentSystem !== previewData.system) {

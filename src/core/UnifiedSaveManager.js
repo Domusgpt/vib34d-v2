@@ -190,38 +190,58 @@ export class UnifiedSaveManager {
             return localResult;
         }
         
-        // Create collection format for gallery
-        const collection = {
-            name: `Gallery Collection - ${new Date().toLocaleDateString()}`,
-            description: `Saved variation: ${variation.name}`,
-            version: '1.0',
-            type: 'holographic-collection',
-            profileName: 'VIB34D Gallery',
-            totalVariations: 1,
-            created: variation.created,
-            variations: [{
-                id: 0,
-                name: variation.name,
-                isCustom: true,
-                globalId: variation.id,
-                system: variation.system,
-                parameters: this.normalizeParameters(variation.parameters)
-            }]
+        // CRITICAL FIX: Group custom saves by date instead of individual collections
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+        const collectionKey = `custom-saves-${today}`;
+        const todayFormatted = new Date().toLocaleDateString();
+        
+        // Get or create today's collection
+        let todaysCollection = this.collections.get(collectionKey);
+        
+        if (!todaysCollection) {
+            // Create new daily collection
+            console.log(`📅 Creating new daily collection: ${collectionKey}`);
+            todaysCollection = {
+                name: `Custom Saves - ${todayFormatted}`,
+                description: `Custom variations saved on ${todayFormatted}`,
+                version: '1.0',
+                type: 'holographic-collection',
+                profileName: 'VIB34D User',
+                totalVariations: 0,
+                created: variation.created,
+                updated: variation.created,
+                filename: collectionKey,
+                variations: []
+            };
+            this.collections.set(collectionKey, todaysCollection);
+        }
+        
+        // Add variation to today's collection (not individual collection)
+        const variationInCollection = {
+            id: todaysCollection.variations.length,
+            name: variation.name,
+            isCustom: true,
+            globalId: variation.id,
+            system: variation.system,
+            parameters: this.normalizeParameters(variation.parameters)
         };
         
-        // Save collection
-        const filename = `gallery-${variation.id}.json`;
-        this.collections.set(filename, collection);
+        todaysCollection.variations.push(variationInCollection);
+        todaysCollection.totalVariations = todaysCollection.variations.length;
+        todaysCollection.updated = new Date().toISOString();
+        
+        console.log(`📝 Added variation to daily collection. Total in ${collectionKey}: ${todaysCollection.totalVariations}`);
         
         // Update localStorage collections
         this.saveCollectionsToStorage();
         
-        // Show success notification
+        // Show success notification with date grouping info
         if (this.engine.statusManager) {
             this.engine.statusManager.success(
                 `✅ Saved to Gallery!<br>` +
                 `<strong>${variation.name}</strong><br>` +
-                `ID: ${variation.id}<br>` +
+                `Added to: ${todaysCollection.name}<br>` +
+                `Total today: ${todaysCollection.totalVariations}<br>` +
                 `<small>Gallery will update automatically</small>`
             );
         }
@@ -229,7 +249,7 @@ export class UnifiedSaveManager {
         // Emit event for real-time gallery update
         this.emitGalleryUpdate(variation);
         
-        return { success: true, id: variation.id, filename };
+        return { success: true, id: variation.id, collection: collectionKey, totalInCollection: todaysCollection.totalVariations };
     }
     
     /**
