@@ -982,33 +982,48 @@
                     await switchSystem('faceted');
                 }
                 
-                // SURGICAL FIX: Gallery iframe reactivity - listen for mouse/click data
+                // SURGICAL FIX: Force gallery preview to start animating immediately
                 if (window.isGalleryPreview) {
+                    console.log('🎬 GALLERY PREVIEW MODE: Forcing immediate animation start');
+                    
+                    // Force the active system to start rendering immediately
+                    const activeSystem = window.currentSystem || 'faceted';
+                    const engines = {
+                        faceted: window.engine,
+                        quantum: window.quantumEngine,
+                        holographic: window.holographicSystem,
+                        polychora: window.polychoraSystem
+                    };
+                    
+                    const engine = engines[activeSystem];
+                    if (engine) {
+                        // Force start rendering for gallery preview
+                        if (engine.startRenderLoop && typeof engine.startRenderLoop === 'function') {
+                            console.log(`🎬 Starting render loop for ${activeSystem} in gallery preview`);
+                            engine.startRenderLoop();
+                        }
+                        
+                        // For holographic system, ensure it's actually running
+                        if (activeSystem === 'holographic' && engine.ensureRunning) {
+                            engine.ensureRunning();
+                        }
+                        
+                        // Force immediate parameter update to ensure visuals show
+                        if (engine.updateVisualizers) {
+                            engine.updateVisualizers();
+                        } else if (engine.render) {
+                            engine.render();
+                        }
+                    }
+                    
+                    // Gallery iframe reactivity - listen for mouse/click data
                     window.addEventListener('message', (event) => {
                         if (event.data && event.data.type === 'mouseMove') {
-                            // Send mouse data to active engine
-                            const activeSystem = window.currentSystem || 'faceted';
-                            const engines = {
-                                faceted: window.engine,
-                                quantum: window.quantumEngine,
-                                holographic: window.holographicSystem,
-                                polychora: window.polychoraSystem
-                            };
-                            
                             const engine = engines[activeSystem];
                             if (engine && engine.updateMouseState) {
                                 engine.updateMouseState(event.data.x, event.data.y, event.data.intensity);
                             }
                         } else if (event.data && event.data.type === 'click') {
-                            // Send click data to active engine  
-                            const activeSystem = window.currentSystem || 'faceted';
-                            const engines = {
-                                faceted: window.engine,
-                                quantum: window.quantumEngine,
-                                holographic: window.holographicSystem,
-                                polychora: window.polychoraSystem
-                            };
-                            
                             const engine = engines[activeSystem];
                             if (engine && engine.triggerClick) {
                                 engine.triggerClick(event.data.intensity);
