@@ -5,6 +5,8 @@
 
 export class HolographicCardGeneratorMultiLayer {
     static generateCard(params, canvasId = 'trading-card-canvas') {
+        console.log('🌌 HolographicCardGeneratorMultiLayer received parameters:', params);
+        
         const geometryNames = {
             0: 'tetrahedron', 1: 'hypercube', 2: 'sphere', 3: 'torus',
             4: 'klein', 5: 'fractal', 6: 'wave', 7: 'crystal'
@@ -12,6 +14,20 @@ export class HolographicCardGeneratorMultiLayer {
         
         const geometryName = geometryNames[params.geometry] || 'hypercube';
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        
+        console.log('🌌 Using geometry:', params.geometry, '→', geometryName);
+        console.log('🌌 GridDensity parameter:', params.gridDensity);
+        console.log('🌌 Template literal values that will be baked into HTML:');
+        console.log('   geometry:', params.geometry || 0);
+        console.log('   speed:', params.speed || 1.0);
+        console.log('   intensity:', params.intensity || 0.6);
+        console.log('   hue:', params.hue || 320);
+        console.log('   saturation:', params.saturation || 0.8);
+        console.log('   morphFactor:', params.morphFactor || 1.0);
+        console.log('   chaos:', params.chaos || 0.2);
+        console.log('   rot4dXW:', params.rot4dXW || 0.0);
+        console.log('   rot4dYW:', params.rot4dYW || 0.0);
+        console.log('   rot4dZW:', params.rot4dZW || 0.0);
         
         // Use EXACT shader from HolographicVisualizer (WebGL 1.0 compatible)
         const fragmentShader = `precision highp float;
