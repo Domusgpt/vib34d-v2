@@ -920,12 +920,19 @@
                     // Handle slider parameters
                     const slider = document.getElementById(actualParam);
                     if (slider) {
+                        console.log(`✅ Found slider for ${actualParam}, setting value: ${value}`);
                         slider.value = value;
                         // Use longer delay for holographic system to ensure parameters are applied correctly
-                        const delay = previewData.system === 'holographic' ? 200 : 50;
-                        setTimeout(() => updateParameter(actualParam, value), delay);
+                        const delay = previewData.system === 'holographic' ? 300 : 50;
+                        setTimeout(() => {
+                            console.log(`🎯 Applying parameter ${actualParam}=${value} to ${previewData.system} system`);
+                            updateParameter(actualParam, value);
+                        }, delay);
                     } else {
                         console.warn(`⚠️ No slider found for parameter: ${actualParam} (original: ${param})`);
+                        // Try to find similar sliders for debugging
+                        const allSliders = Array.from(document.querySelectorAll('input[type="range"]')).map(s => s.id);
+                        console.log(`Available sliders:`, allSliders);
                     }
                 }
             });

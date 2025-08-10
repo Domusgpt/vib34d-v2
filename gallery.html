@@ -170,7 +170,8 @@
         
         .card-preview {
             width: 100%;
-            /* Make preview container square using aspect-ratio */
+            /* Make preview container larger and square */
+            height: 280px;
             aspect-ratio: 1 / 1;
             border-radius: 12px;
             overflow: hidden;
@@ -181,13 +182,13 @@
         }
         
         .card-preview iframe {
-            width: 120%; /* Scale up to fill square container */
-            height: 120%; /* Scale up to fill square container */
+            width: 100%;
+            height: 100%;
             border: none;
             pointer-events: none;
             transform-origin: center center;
-            /* Center the iframe content and scale to fit square aspect ratio */
-            transform: scale(0.85) translate(-10%, -10%);
+            /* Minimal scaling to fit square container properly */
+            transform: scale(1.0);
             position: absolute;
             top: 0;
             left: 0;
