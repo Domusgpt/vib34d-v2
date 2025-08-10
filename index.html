@@ -1281,6 +1281,12 @@
                 const engine = engines[activeSystem];
                 if (!engine) {
                     console.warn(`⚠️ System ${activeSystem} not available - engines:`, Object.keys(engines).map(k => `${k}:${!!engines[k]}`).join(', '));
+                    
+                    // RETRY: Gallery previews might call this before engines are ready
+                    setTimeout(() => {
+                        console.log(`🔄 Retrying parameter ${param} = ${value} for ${activeSystem}`);
+                        window.updateParameter(param, value);
+                    }, 100);
                     return;
                 }
                 

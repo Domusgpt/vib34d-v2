@@ -1064,9 +1064,15 @@
             });
             
             // Navigate to viewer (same tab for memory optimization)
-            window.location.href = viewerUrl.toString();
+            console.log('🎯 About to navigate to:', viewerUrl.toString());
             
-            console.log('✅ Navigating to viewer:', viewerUrl.toString());
+            // TEST: Try direct viewer.html first to check if it exists
+            if (viewerUrl.toString().includes('viewer.html')) {
+                console.log('✅ Attempting navigation to viewer.html');
+                window.location.href = viewerUrl.toString();
+            } else {
+                console.error('❌ Invalid viewer URL generated');
+            }
         };
         
         window.loadIntoEngine = function(card, event) {
