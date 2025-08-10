@@ -1115,37 +1115,69 @@
                 console.log(`✅ System switch successful: ${previewData.system}`);
             }
             
-            // Apply all parameters from URL with proper timing
-            Object.entries(previewData.parameters).forEach(([param, value]) => {
-                if (param === 'geometry' || param === 'geometryType' || param === 'polytope') {
-                    // Handle geometry selection
-                    const geometryIndex = parseInt(value);
-                    if (!isNaN(geometryIndex)) {
-                        selectGeometry(geometryIndex);
-                    }
-                } else {
-                    // Parameter name mapping for gallery preview
-                    const parameterMapping = {
-                        'geometryType': 'geometry',
-                        'density': 'gridDensity', 
-                        'morph': 'morphFactor'
-                    };
-                    
-                    const actualParam = parameterMapping[param] || param;
-                    
-                    // Handle slider parameters
-                    const slider = document.getElementById(actualParam);
-                    if (slider) {
-                        slider.value = value;
-                        // Apply with delay to ensure system is ready
-                        setTimeout(() => {
-                            updateParameter(actualParam, value);
-                        }, 100);
-                    }
-                }
-            });
+            // CRITICAL: Apply all parameters from URL with aggressive timing and retries
+            console.log('🔧 FORCING parameter application for gallery preview:', previewData.parameters);
             
-            console.log('✅ Gallery preview parameters applied successfully');
+            // Apply parameters multiple times to ensure they stick in iframe mode
+            for (let attempt = 0; attempt < 2; attempt++) {
+                Object.entries(previewData.parameters).forEach(([param, value]) => {
+                    if (param === 'geometry' || param === 'geometryType' || param === 'polytope') {
+                        // Handle geometry selection
+                        const geometryIndex = parseInt(value);
+                        if (!isNaN(geometryIndex)) {
+                            selectGeometry(geometryIndex);
+                            console.log(`✅ Attempt ${attempt + 1}: Geometry set to ${geometryIndex}`);
+                        }
+                    } else {
+                        // Parameter name mapping for gallery preview
+                        const parameterMapping = {
+                            'geometryType': 'geometry',
+                            'density': 'gridDensity', 
+                            'morph': 'morphFactor'
+                        };
+                    
+                        const actualParam = parameterMapping[param] || param;
+                        
+                        // Handle slider parameters with immediate application
+                        const slider = document.getElementById(actualParam);
+                        if (slider) {
+                            slider.value = value;
+                            // IMMEDIATE application for iframe preview
+                            updateParameter(actualParam, value);
+                            console.log(`✅ Attempt ${attempt + 1}: ${actualParam} = ${value}`);
+                        } else {
+                            console.warn(`⚠️ Slider not found for parameter: ${actualParam}`);
+                        }
+                    }
+                });
+                
+                // Force render after each parameter batch
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+            
+            // FINAL FORCE: Ensure the active system is actually rendering
+            const engines = {
+                faceted: window.engine,
+                quantum: window.quantumEngine,
+                holographic: window.holographicSystem,
+                polychora: window.polychoraSystem
+            };
+            
+            const finalEngine = engines[previewData.system];
+            if (finalEngine) {
+                if (typeof finalEngine.startRenderLoop === 'function') {
+                    finalEngine.startRenderLoop();
+                    console.log(`🎬 FINAL: Started render loop for ${previewData.system}`);
+                } else if (typeof finalEngine.render === 'function') {
+                    // Call render multiple times to ensure animation starts
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => finalEngine.render(), i * 100);
+                    }
+                    console.log(`🎬 FINAL: Triggered multiple renders for ${previewData.system}`);
+                }
+            }
+            
+            console.log('✅ Gallery preview parameters applied with FORCED ANIMATION');
         }
         
         // Initialize Polychora when needed
