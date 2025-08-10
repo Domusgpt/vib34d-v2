@@ -800,7 +800,7 @@
                      data-system="${system}"
                      data-global-id="${globalId}"
                      data-params="${parametersQuery}"
-                     ${isMobile ? 'onclick="handleMobileTouch(this, event)"' : 'onclick="openVariation(this)" onmouseenter="startPreview(this, \''+parametersQuery+'\')"'}>
+                     ${isMobile ? 'onclick="handleMobileTouch(this, event)"' : 'onclick="openVariation(this)" onmouseenter="startPreview(this, \'' + parametersQuery.replace(/'/g, '&apos;').replace(/"/g, '&quot;') + '\')" ontouchstart="startPreview(this, \'' + parametersQuery.replace(/'/g, '&apos;').replace(/"/g, '&quot;') + '\')"'}>
                     
                     <div class="system-badge ${system}">${sysInfo.name}</div>
                     
@@ -902,10 +902,14 @@
         let currentPreviewCard = null; // Track currently previewing card
         
         window.startPreview = function(card, params) {
+            console.log('🎬 startPreview called for card:', card, 'params:', params);
             const container = card.querySelector('[data-preview-container]');
             
+            // Remove existing iframe first to allow refresh
             if (container && container.querySelector('iframe')) {
-                return;
+                console.log('🔄 Removing existing iframe for refresh');
+                const existingIframe = container.querySelector('iframe');
+                existingIframe.remove();
             }
             
             // Stop previous preview when starting a new one
@@ -924,6 +928,7 @@
             }
             
             const timeoutId = setTimeout(() => {
+                console.log('⏰ Creating iframe after timeout for system:', system);
                 const iframe = document.createElement('iframe');
                 iframe.style.cssText = `
                     width: 100%; 
@@ -937,9 +942,11 @@
                 `;
                 
                 iframe.onload = function() {
+                    console.log('✅ Iframe loaded successfully for system:', system);
                     // Wait for the iframe content to fully load and apply hideui
                     setTimeout(() => {
                         iframe.style.opacity = '1';
+                        console.log('👁️ Iframe visible, opacity set to 1');
                     }, 30); // Much faster loading - 1/10 of previous delay
                     // INSTANT LOADING: Show animated canvas immediately
                     setTimeout(() => {
@@ -959,8 +966,10 @@
                     }, 600); // RESTORED: Proper delay to prevent WebGL context explosion
                 };
                 
-                iframe.onerror = function() {
-                    console.warn('Gallery preview iframe failed to load');
+                iframe.onerror = function(error) {
+                    console.error('❌ Gallery preview iframe FAILED to load:', error);
+                    console.error('❌ Failed URL:', iframe.src);
+                    console.error('❌ System:', system, 'Params:', params);
                 };
                 
                 container.appendChild(iframe);
@@ -969,7 +978,7 @@
                 // CRITICAL FIX: Put system parameter FIRST so it gets processed before other parameters
                 iframe.src = `index.html?system=${system}&hideui=true&${params}`;
                 console.log(`🎯 Loading preview: system=${system}, URL: ${iframe.src}`);
-            }, 100); // REDUCED: Faster preview loading for better responsiveness
+            }, 50); // ULTRA FAST: Immediate preview loading
             
             hoverTimeouts.set(card, timeoutId);
             
