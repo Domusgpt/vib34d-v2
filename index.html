@@ -620,6 +620,9 @@
                 
                 console.log('🎨 Gallery preview mode detected:', window.galleryPreviewData);
                 console.log('🎨 URL that triggered this:', window.location.href);
+                console.log('🎨 Parameters parsed:', parameters);
+                console.log('🎨 System to switch to:', targetSystem);
+                window.isGalleryPreview = true;
             }
         }
         
@@ -1143,6 +1146,20 @@
                 }
                 
                 console.log(`📊 ${activeSystem.toUpperCase()}: ${param} = ${value}`);
+                
+                // Extra debugging for gallery previews
+                if (window.isGalleryPreview) {
+                    console.log(`🎨 GALLERY PREVIEW - Parameter update details:`);
+                    console.log(`   activeSystem: ${activeSystem}`);
+                    console.log(`   window.currentSystem: ${window.currentSystem}`);
+                    console.log(`   param: ${param}, value: ${value}`);
+                    console.log(`   Engine availability:`, {
+                        engine: !!window.engine,
+                        quantumEngine: !!window.quantumEngine,
+                        holographicSystem: !!window.holographicSystem,
+                        polychoraSystem: !!window.polychoraSystem
+                    });
+                }
                 
             } catch (error) {
                 console.error(`❌ Parameter update error in ${currentSystem} for ${param}:`, error);
