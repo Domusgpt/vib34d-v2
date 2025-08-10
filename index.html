@@ -387,7 +387,7 @@
     <!-- Canvas Container -->
     <div class="canvas-container" id="canvasContainer">
         <!-- VIB34D Faceted System Canvases -->
-        <div class="holographic-layers" id="vib34dLayers">
+        <div class="holographic-layers" id="vib34dLayers" style="display: none;">
             <canvas id="background-canvas" class="visualization-canvas"></canvas>
             <canvas id="shadow-canvas" class="visualization-canvas"></canvas>
             <canvas id="content-canvas" class="visualization-canvas"></canvas>
@@ -623,6 +623,27 @@
                 console.log('🎨 Parameters parsed:', parameters);
                 console.log('🎨 System to switch to:', targetSystem);
                 window.isGalleryPreview = true;
+                
+                // CRITICAL FIX: Show correct system canvas layers immediately to prevent wrong visualizer flash
+                const showCorrectSystemLayers = () => {
+                    const systems = ['faceted', 'quantum', 'holographic', 'polychora'];
+                    systems.forEach(sys => {
+                        const layerId = sys === 'faceted' ? 'vib34dLayers' : `${sys}Layers`;
+                        const layers = document.getElementById(layerId);
+                        if (layers) {
+                            const shouldShow = sys === targetSystem;
+                            layers.style.display = shouldShow ? 'block' : 'none';
+                            console.log(`🎯 EARLY CANVAS CONTROL: ${sys} layers → ${shouldShow ? 'VISIBLE' : 'HIDDEN'}`);
+                        }
+                    });
+                };
+                
+                // Apply immediately if DOM ready, otherwise wait for it
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', showCorrectSystemLayers);
+                } else {
+                    showCorrectSystemLayers();
+                }
             }
         }
         
@@ -923,7 +944,9 @@
                     console.log('✅ Gallery preview data found, calling applyGalleryPreviewData...');
                     await applyGalleryPreviewData();
                 } else {
-                    console.log('ℹ️ No gallery preview data found');
+                    console.log('ℹ️ No gallery preview data found - normal index.html usage');
+                    // For normal usage, show the default system
+                    await switchSystem('faceted');
                 }
                 
                 return true;
