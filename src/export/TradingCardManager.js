@@ -59,7 +59,7 @@ export class TradingCardManager {
         const generatorMap = {
             'faceted': () => import('./FacetedCardGeneratorExact.js'),
             'quantum': () => import('./QuantumCardGeneratorExact.js'),
-            'holographic': () => import('./HolographicCardGenerator.js'),
+            'holographic': () => import('./HolographicCardGeneratorExact.js'),
             'polychora': () => import('./PolychoraCardGenerator.js')
         };
         
