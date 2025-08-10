@@ -583,11 +583,24 @@
                 const targetSystem = urlParams.get('system');
                 const hideUI = urlParams.get('hideui') === 'true';
                 
-                // Hide UI for clean preview
+                // Hide UI for clean preview (with DOM ready check)
                 if (hideUI) {
-                    document.querySelector('.top-bar').style.display = 'none';
-                    document.querySelector('.control-panel').style.display = 'none';
-                    document.querySelector('.canvas-container').style.right = '0';
+                    // Wait for DOM to be ready before trying to hide elements
+                    const hideUIElements = () => {
+                        const topBar = document.querySelector('.top-bar');
+                        const controlPanel = document.querySelector('.control-panel');
+                        const canvasContainer = document.querySelector('.canvas-container');
+                        
+                        if (topBar) topBar.style.display = 'none';
+                        if (controlPanel) controlPanel.style.display = 'none';
+                        if (canvasContainer) canvasContainer.style.right = '0';
+                    };
+                    
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', hideUIElements);
+                    } else {
+                        hideUIElements();
+                    }
                 }
                 
                 // Load parameters from URL
@@ -606,6 +619,7 @@
                 };
                 
                 console.log('🎨 Gallery preview mode detected:', window.galleryPreviewData);
+                console.log('🎨 URL that triggered this:', window.location.href);
             }
         }
         

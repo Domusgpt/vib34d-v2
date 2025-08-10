@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Gallery Preview</title>
+    <style>
+        body { background: #000; color: #fff; font-family: monospace; padding: 20px; }
+        .log { margin: 5px 0; padding: 5px; background: #333; border-left: 3px solid #0ff; }
+        .error { border-left-color: #f00; }
+        .success { border-left-color: #0f0; }
+    </style>
+</head>
+<body>
+    <h1>Gallery Preview Debug Test</h1>
+    <div id="logs"></div>
+    
+    <script>
+        const logContainer = document.getElementById('logs');
+        
+        function addLog(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            logContainer.appendChild(div);
+        }
+        
+        addLog('🚀 Debug test started');
+        addLog('📍 Current URL: ' + window.location.href);
+        
+        // Test URL parameter parsing
+        const urlParams = new URLSearchParams(window.location.search);
+        addLog('🔍 URL Parameters found: ' + urlParams.toString());
+        
+        if (urlParams.has('system')) {
+            addLog('✅ System parameter found: ' + urlParams.get('system'), 'success');
+            
+            const parameters = {};
+            urlParams.forEach((value, key) => {
+                if (!['system', 'hideui'].includes(key)) {
+                    parameters[key] = value;
+                }
+            });
+            
+            addLog('📊 Parameters extracted: ' + JSON.stringify(parameters, null, 2));
+            
+            // Test what should happen
+            window.galleryPreviewData = {
+                system: urlParams.get('system'),
+                parameters: parameters,
+                hideUI: urlParams.get('hideui') === 'true'
+            };
+            
+            addLog('🎯 Preview data created: ' + JSON.stringify(window.galleryPreviewData, null, 2), 'success');
+            
+        } else {
+            addLog('❌ No system parameter found', 'error');
+        }
+        
+        addLog('🔚 Debug test complete');
+    </script>
+</body>
+</html>
