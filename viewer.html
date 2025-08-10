@@ -495,21 +495,17 @@
                 window.currentSystem = params.system || 'faceted';
                 
                 const generator = new TradingCardGenerator(mockEngine);
-                const result = await generator.generateTradingCard('classic');
+                const result = await generator.generateCardHTML('classic');
                 
                 if (result.success) {
-                    // Download the trading card
+                    // Navigate to the trading card (same tab)
                     const blob = new Blob([result.html], { type: 'text/html' });
                     const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = result.filename;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
                     
-                    console.log('✅ Trading card generated and downloaded');
+                    // Navigate to trading card in same tab
+                    window.location.href = url;
+                    
+                    console.log('✅ Trading card generated and navigating');
                 } else {
                     throw new Error(result.error || 'Generation failed');
                 }

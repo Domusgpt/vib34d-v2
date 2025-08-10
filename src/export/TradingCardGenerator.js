@@ -99,6 +99,28 @@ export class TradingCardGenerator {
     }
     
     /**
+     * Generate trading card HTML without downloading (for viewer.html compatibility)
+     * @param {string} format - Card format ('classic' or 'social')
+     * @returns {Promise<{success: boolean, html: string}>} Card HTML for navigation
+     */
+    async generateCardHTML(format = 'classic') {
+        console.log('🎴 Generating trading card HTML for navigation...');
+        
+        // Capture current parameters
+        const state = this.captureCurrentState();
+        
+        // Capture the actual canvas visual as base64 image
+        const canvasImage = await this.captureCanvasImage();
+        
+        // Generate card HTML based on format
+        const cardHTML = format === 'social' ? 
+            this.generateSocialCard(state, canvasImage) : 
+            this.generateClassicCard(state, canvasImage);
+        
+        return { success: true, html: cardHTML };
+    }
+    
+    /**
      * Capture ALL 5 layers from the current active system and composite them properly
      */
     async captureCanvasImage() {
