@@ -786,9 +786,8 @@
                 container.appendChild(iframe);
                 
                 const system = card.getAttribute('data-system') || 'faceted';
-                // CRITICAL FIX: Put system parameter FIRST so it gets processed before other parameters
-                iframe.src = `index.html?system=${system}&hideui=true&${params}`;
-                console.log(`🎯 Loading preview: system=${system}, URL: ${iframe.src}`);
+                // Ensure hideui parameter comes first and system switching has time
+                iframe.src = `index.html?hideui=true&system=${system}&${params}`;
             }, 200); // Slightly longer initial delay
             
             hoverTimeouts.set(card, timeoutId);

@@ -814,9 +814,10 @@
         import { TradingCardGenerator } from './src/export/TradingCardGenerator.js';
         import universalReactivity from './src/interactions/UniversalReactivitySystem.js';
         
-        // Global state - CRITICAL FIX: Ensure window.currentSystem is properly set
-        let currentSystem = 'faceted';
-        window.currentSystem = currentSystem; // Make available to UnifiedSaveManager
+        // Global state - CRITICAL FIX: Check for gallery preview data FIRST
+        let currentSystem = window.galleryPreviewData ? window.galleryPreviewData.system : 'faceted';
+        window.currentSystem = currentSystem;
+        console.log(`🚀 Initial system determined: ${currentSystem} (gallery preview: ${!!window.galleryPreviewData})`);
         let audioEnabled = false;
         let interactivityVisible = false;
         let engine = null;
@@ -886,6 +887,12 @@
                 // Initialize Holographic system
                 holographicSystem = new RealHolographicSystem();
                 console.log('✅ Holographic System ready');
+                
+                // CRITICAL FIX: If gallery preview, don't activate default system yet
+                if (window.galleryPreviewData) {
+                    console.log(`🎯 Gallery preview detected - skipping default system activation`);
+                    console.log(`🎯 Will activate ${window.galleryPreviewData.system} system in applyGalleryPreviewData()`);
+                }
                 
                 // Initialize Collection Manager for portfolio
                 collectionManager = new CollectionManager();
