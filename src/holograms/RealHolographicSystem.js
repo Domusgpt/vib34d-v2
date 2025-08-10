@@ -61,17 +61,36 @@ export class RealHolographicSystem {
             { id: 'holo-accent-canvas', role: 'accent', reactivity: 1.5 }
         ];
         
+        let successfulLayers = 0;
         layers.forEach(layer => {
             try {
+                // Check if canvas element exists
+                const canvas = document.getElementById(layer.id);
+                if (!canvas) {
+                    console.error(`❌ Canvas not found: ${layer.id}`);
+                    return;
+                }
+                
+                console.log(`🔍 Creating holographic visualizer for: ${layer.id}`);
                 const visualizer = new HolographicVisualizer(layer.id, layer.role, layer.reactivity, this.currentVariant);
-                this.visualizers.push(visualizer);
-                console.log(`✅ Created REAL holographic layer: ${layer.role}`);
+                
+                if (visualizer.gl) {
+                    this.visualizers.push(visualizer);
+                    successfulLayers++;
+                    console.log(`✅ Created REAL holographic layer: ${layer.role} (${layer.id})`);
+                } else {
+                    console.error(`❌ No WebGL context for: ${layer.id}`);
+                }
             } catch (error) {
-                console.warn(`Failed to create REAL holographic layer ${layer.id}:`, error);
+                console.error(`❌ Failed to create REAL holographic layer ${layer.id}:`, error);
             }
         });
         
-        console.log(`✅ Created REAL 5-layer holographic system with elaborate effects`);
+        console.log(`✅ Created ${successfulLayers}/5 REAL holographic layers`);
+        
+        if (successfulLayers === 0) {
+            console.error('🚨 NO HOLOGRAPHIC VISUALIZERS CREATED! Check canvas elements and WebGL support.');
+        }
     }
     
     setActive(active) {
@@ -99,22 +118,6 @@ export class RealHolographicSystem {
         }
     }
     
-    updateVariant(newVariant) {
-        if (newVariant < 0) newVariant = this.totalVariants - 1;
-        if (newVariant >= this.totalVariants) newVariant = 0;
-        
-        this.currentVariant = newVariant;
-        
-        // Update all visualizers with new variant parameters
-        this.visualizers.forEach(visualizer => {
-            visualizer.variant = this.currentVariant;
-            visualizer.variantParams = visualizer.generateVariantParams(this.currentVariant);
-            visualizer.roleParams = visualizer.generateRoleParams(visualizer.role);
-        });
-        
-        this.updateVariantDisplay();
-        console.log(`🔄 REAL Holograms switched to variant ${this.currentVariant + 1}: ${this.variantNames[this.currentVariant]}`);
-    }
     
     updateVariantDisplay() {
         // This will be called by the main UI system
@@ -150,31 +153,40 @@ export class RealHolographicSystem {
         }
         this.customParams[param] = value;
         
+        console.log(`🌌 Updating holographic ${param}: ${value} (${this.visualizers.length} visualizers)`);
+        
         // CRITICAL FIX: Call updateParameters method on ALL visualizers for immediate render
-        this.visualizers.forEach(visualizer => {
-            if (visualizer.updateParameters) {
-                // Use new updateParameters method with proper parameter mapping
-                const params = {};
-                params[param] = value;
-                visualizer.updateParameters(params);
-            } else {
-                // Fallback for older method (direct parameter setting)
-                if (visualizer.variantParams) {
-                    visualizer.variantParams[param] = value;
-                    
-                    // If it's a geometry type change, regenerate role params with new geometry
-                    if (param === 'geometryType') {
-                        visualizer.roleParams = visualizer.generateRoleParams(visualizer.role);
-                    }
-                    
-                    // Force manual render for older visualizers
-                    if (visualizer.render) {
-                        visualizer.render();
+        this.visualizers.forEach((visualizer, index) => {
+            try {
+                if (visualizer.updateParameters) {
+                    // Use new updateParameters method with proper parameter mapping
+                    const params = {};
+                    params[param] = value;
+                    visualizer.updateParameters(params);
+                    console.log(`✅ Updated holographic layer ${index} (${visualizer.role}) with ${param}=${value}`);
+                } else {
+                    console.warn(`⚠️ Holographic layer ${index} missing updateParameters method, using fallback`);
+                    // Fallback for older method (direct parameter setting)
+                    if (visualizer.variantParams) {
+                        visualizer.variantParams[param] = value;
+                        
+                        // If it's a geometry type change, regenerate role params with new geometry
+                        if (param === 'geometryType') {
+                            visualizer.roleParams = visualizer.generateRoleParams(visualizer.role);
+                        }
+                        
+                        // Force manual render for older visualizers
+                        if (visualizer.render) {
+                            visualizer.render();
+                        }
                     }
                 }
+            } catch (error) {
+                console.error(`❌ Failed to update holographic layer ${index}:`, error);
             }
         });
-        console.log(`🌌 Updated holographic ${param}: ${value}`);
+        
+        console.log(`🔄 Holographic parameter update complete: ${param}=${value}`);
     }
     
     // Override updateVariant to preserve custom parameters
