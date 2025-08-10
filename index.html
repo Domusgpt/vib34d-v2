@@ -990,65 +990,14 @@
                 faceted: !!window.engine
             });
             
-            // CRITICAL FIX FOR OLD VARIATIONS: Force deactivate ALL other engines first
-            if (window.quantumEngine && window.quantumEngine.setActive) {
-                window.quantumEngine.setActive(false);
-                console.log('⚛️ GALLERY PREVIEW: Deactivated quantum engine');
-            }
-            if (window.holographicSystem && window.holographicSystem.setActive) {
-                window.holographicSystem.setActive(false);
-                console.log('🌌 GALLERY PREVIEW: Deactivated holographic system');
-            }
-            if (window.engine && window.engine.setActive) {
-                window.engine.setActive(false);
-                console.log('🔷 GALLERY PREVIEW: Deactivated faceted engine');
-            }
+            // REAL FIX: Use the actual switchSystem function like the main interface does
+            console.log(`🎯 GALLERY PREVIEW: Switching to ${previewData.system} using switchSystem()`);
+            await switchSystem(previewData.system);
             
-            // Wait for deactivation to complete
-            await new Promise(resolve => setTimeout(resolve, 200));
+            // Wait for the switch to complete properly
+            await new Promise(resolve => setTimeout(resolve, 300));
             
-            // Now activate the target engine with extra verification
-            if (previewData.system === 'quantum' && window.quantumEngine) {
-                console.log('⚛️ GALLERY PREVIEW: Activating quantum engine...');
-                window.quantumEngine.setActive(true);
-                await new Promise(resolve => setTimeout(resolve, 800)); // Extra long wait for old variations
-                console.log('⚛️ Quantum engine activated for gallery preview');
-                
-                // CRITICAL: Verify quantum is actually active
-                let verification = 0;
-                while (verification < 10 && (!window.quantumEngine.isActive || !window.quantumEngine.isActive())) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    verification++;
-                }
-                console.log(`⚛️ Quantum verification complete (${verification} attempts)`);
-                
-            } else if (previewData.system === 'holographic' && window.holographicSystem) {
-                console.log('🌌 GALLERY PREVIEW: Activating holographic system...');
-                window.holographicSystem.setActive(true);
-                await new Promise(resolve => setTimeout(resolve, 800)); // Extra long wait for old variations
-                console.log('🌌 Holographic system activated for gallery preview');
-                
-                // CRITICAL: Wait for visualizers to be ready
-                let visualizerWait = 0;
-                while (visualizerWait < 20 && (!window.holographicSystem.visualizers || window.holographicSystem.visualizers.length === 0)) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    visualizerWait++;
-                }
-                console.log(`🌌 Holographic visualizers ready (${window.holographicSystem.visualizers?.length || 0} layers)`);
-                
-            } else if (previewData.system === 'faceted' && window.engine) {
-                console.log('🔷 GALLERY PREVIEW: Activating faceted engine...');
-                if (window.engine.setActive) {
-                    window.engine.setActive(true);
-                } 
-                await new Promise(resolve => setTimeout(resolve, 400));
-                console.log('🔷 Faceted engine activated for gallery preview');
-            }
-            
-            // CRITICAL FIX FOR OLD VARIATIONS: Ensure currentSystem is set correctly for both scopes
-            window.currentSystem = previewData.system;
-            currentSystem = previewData.system; // Update the ES6 module variable
-            console.log(`🎯 FINAL SYSTEM STATE: window.currentSystem = ${window.currentSystem}, module currentSystem = ${currentSystem}`);
+            console.log(`🎯 FINAL SYSTEM STATE: window.currentSystem = ${window.currentSystem}`);
             
             // CRITICAL FIX: Force canvas layer visibility for gallery previews WITH verification
             const systems = ['faceted', 'quantum', 'holographic'];
