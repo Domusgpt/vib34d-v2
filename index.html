@@ -871,6 +871,26 @@
                 }
             }
             
+            // CRITICAL FIX: For holographic system, wait for visualizers to be fully ready
+            if (previewData.system === 'holographic' && window.holographicSystem) {
+                console.log('🌌 Waiting for holographic visualizers to be fully initialized...');
+                let waitCount = 0;
+                const maxWait = 50; // 5 seconds max wait
+                while (waitCount < maxWait && window.holographicSystem.visualizers.length === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    waitCount++;
+                }
+                
+                if (window.holographicSystem.visualizers.length > 0) {
+                    console.log(`✅ Holographic visualizers ready (${window.holographicSystem.visualizers.length} layers)`);
+                } else {
+                    console.warn('⚠️ Holographic visualizers not ready after 5 seconds, proceeding anyway');
+                }
+                
+                // Additional wait for WebGL contexts to be fully ready
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
             // Apply all parameters from URL
             Object.entries(previewData.parameters).forEach(([param, value]) => {
                 if (param === 'geometry' || param === 'geometryType' || param === 'polytope') {
@@ -884,8 +904,9 @@
                     const slider = document.getElementById(param);
                     if (slider) {
                         slider.value = value;
-                        // Use a small delay to ensure system is ready
-                        setTimeout(() => updateParameter(param, value), 50);
+                        // Use longer delay for holographic system to ensure parameters are applied correctly
+                        const delay = previewData.system === 'holographic' ? 200 : 50;
+                        setTimeout(() => updateParameter(param, value), delay);
                     }
                 }
             });

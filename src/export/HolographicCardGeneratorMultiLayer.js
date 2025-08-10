@@ -455,9 +455,24 @@ export class HolographicCardGeneratorMultiLayer {
             return [(r + m), (g + m), (b + m)];
         }
         
-        // Base parameters
-        const mappedGridDensity = 0.6 + (parseFloat(${params.gridDensity || 15}) - 5) / 95 * 6.9;
+        // Base parameters with EXACT engine scaling - MUST match HolographicVisualizer.js line 723-724
+        const rawGridDensity = parseFloat(${params.gridDensity || 15});
+        const mappedBaseDensity = 0.6 + (rawGridDensity - 5) / 95 * 6.9; // EXACT same formula as engine
         const baseHue = ${params.hue || 320};
+        
+        console.log('🔧 Trading card density mapping: gridDensity=' + rawGridDensity + ' → mappedBaseDensity=' + mappedBaseDensity.toFixed(3));
+        
+        // EXACT role density calculations from HolographicVisualizer.js generateRoleParams() method
+        // These MUST match the engine's dynamic calculations exactly
+        const roleDensityCalculations = {
+            'background': 0.4,  // Static from engine
+            'shadow': 0.8,      // Static from engine
+            'content': mappedBaseDensity,  // Dynamic: vp.density from engine
+            'highlight': 1.5 + (mappedBaseDensity * 0.3),  // Dynamic: 1.5 + (vp.density * 0.3) from engine
+            'accent': 2.5 + (mappedBaseDensity * 0.5)       // Dynamic: 2.5 + (vp.density * 0.5) from engine
+        };
+        
+        console.log('🔧 Role density calculations:', roleDensityCalculations);
         
         // Initialize all layers
         const visualizers = [];
@@ -540,16 +555,18 @@ export class HolographicCardGeneratorMultiLayer {
                 gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
                 gl.useProgram(program);
                 
-                // Set uniforms with layer-specific role parameters
+                // Set uniforms with EXACT layer-specific role parameters from engine
+                const exactRoleDensity = roleDensityCalculations[layer.role] || mappedBaseDensity;
+                
                 gl.uniform2f(uniforms.resolution, gl.canvas.width, gl.canvas.height);
                 gl.uniform1f(uniforms.time, time);
                 gl.uniform2f(uniforms.mouse, 0.5, 0.5);
                 gl.uniform1f(uniforms.geometry, ${params.geometry || 0});
-                gl.uniform1f(uniforms.density, mappedGridDensity);
+                gl.uniform1f(uniforms.density, mappedBaseDensity);
                 gl.uniform1f(uniforms.speed, ${params.speed || 1.0});
                 gl.uniform3fv(uniforms.color, color);
                 gl.uniform1f(uniforms.intensity, (${params.intensity || 0.6}) * layer.intensityMult);
-                gl.uniform1f(uniforms.roleDensity, layer.densityMult);
+                gl.uniform1f(uniforms.roleDensity, exactRoleDensity); // EXACT from engine
                 gl.uniform1f(uniforms.roleSpeed, layer.speedMult);
                 gl.uniform1f(uniforms.colorShift, layer.colorShift);
                 gl.uniform1f(uniforms.chaosIntensity, ${params.chaos || 0.2});
