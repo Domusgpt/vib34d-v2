@@ -161,8 +161,8 @@
                 0 0 40px rgba(255, 0, 255, 0.4);
             transform: 
                 perspective(800px)
-                rotateY(calc(15deg * var(--bend-intensity)))
-                rotateX(calc(5deg * (var(--mouse-y) - 50) / 50))
+                rotateY(calc((var(--mouse-x) - 50) * 0.25deg * var(--bend-intensity)))
+                rotateX(calc((var(--mouse-y) - 50) * 0.12deg * var(--bend-intensity)))
                 translateZ(calc(var(--bend-intensity) * 30px))
                 translateY(-10px);
             backdrop-filter: blur(20px);
@@ -206,8 +206,8 @@
                 perspective(1000px)
                 translateZ(30px)
                 scale(1.05)
-                rotateY(calc((var(--mouse-x) - 50) * -0.15deg))
-                rotateX(calc((50 - var(--mouse-y)) * 0.1deg));
+                rotateY(calc((var(--mouse-x) - 50) * 0.2deg))
+                rotateX(calc((var(--mouse-y) - 50) * 0.15deg));
             box-shadow: 
                 0 0 50px rgba(0, 255, 255, 0.6),
                 0 0 100px rgba(255, 0, 255, 0.4),
@@ -236,7 +236,7 @@
             transition: transform 0.1s ease-out; /* Smooth real-time response */
         }
         
-        /* Holographic shimmer effect overlay */
+        /* Holographic shimmer effect overlay - DIRECTIONAL BASED ON MOUSE */
         .card-preview::after {
             content: '';
             position: absolute;
@@ -245,20 +245,20 @@
             width: 200%;
             height: 200%;
             background: linear-gradient(
-                45deg,
+                calc(45deg + (var(--mouse-x) - 50) * 0.4deg),
                 transparent 30%,
                 rgba(0, 255, 255, 0.1) 50%,
                 rgba(255, 0, 255, 0.1) 52%,
                 transparent 70%
             );
-            transform: translateX(-100%) rotate(45deg);
+            transform: translateX(calc(-100% + (var(--mouse-x) - 50) * 0.4%)) rotate(calc(45deg + (var(--mouse-x) - 50) * 0.2deg));
             transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             pointer-events: none;
             opacity: 0;
         }
         
         .variation-card:hover .card-preview::after {
-            transform: translateX(100%) rotate(45deg);
+            transform: translateX(calc(100% - (var(--mouse-x) - 50) * 0.4%)) rotate(calc(45deg + (var(--mouse-x) - 50) * 0.2deg));
             opacity: 1;
         }
         
@@ -527,6 +527,63 @@
             perspective: 2000px;
             perspective-origin: center center;
         }
+        
+        /* Loading animation for instant feedback */
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        .preview-hint {
+            transition: all 0.2s ease;
+        }
+        
+        /* Enhanced date-based organization styling */
+        .date-section {
+            margin-bottom: 30px;
+        }
+        
+        .date-header {
+            padding: 20px 0 15px 0;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+            margin-bottom: 20px;
+        }
+        
+        .date-title {
+            color: #00ffff;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        .date-meta {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+        
+        .collection-description {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.8rem;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .collection-timestamp {
+            color: rgba(0, 255, 255, 0.8);
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 3px;
+        }
+        
+        .collection-filename {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -628,27 +685,82 @@
                 return;
             }
             
-            collections.forEach((collection, collectionIndex) => {
-                const section = document.createElement('div');
-                section.className = 'collection-section';
-                section.innerHTML = `
-                    <div class="collection-header">
-                        <div>
-                            <div class="collection-title">${escapeHtml(collection.name)}</div>
-                            <div style="color: rgba(255,255,255,0.6); font-size: 0.8rem; margin-top: 5px;">${escapeHtml(collection.description || '')}</div>
+            // ENHANCED ORGANIZATION: Sort collections by date and group by time periods
+            const sortedCollections = collections.sort((a, b) => {
+                const dateA = new Date(a.created || a.timestamp || 0);
+                const dateB = new Date(b.created || b.timestamp || 0);
+                return dateB - dateA; // Newest first
+            });
+            
+            // Group collections by date for better organization
+            const collectionsByDate = {};
+            sortedCollections.forEach(collection => {
+                const date = new Date(collection.created || collection.timestamp || Date.now());
+                const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+                const displayDate = date.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                
+                if (!collectionsByDate[dateKey]) {
+                    collectionsByDate[dateKey] = { 
+                        displayDate, 
+                        collections: [], 
+                        totalVariations: 0 
+                    };
+                }
+                collectionsByDate[dateKey].collections.push(collection);
+                collectionsByDate[dateKey].totalVariations += collection.variations.length;
+            });
+            
+            // Render organized collections by date
+            Object.entries(collectionsByDate).forEach(([dateKey, dateGroup]) => {
+                // Create date section header
+                const dateSection = document.createElement('div');
+                dateSection.className = 'date-section';
+                dateSection.innerHTML = `
+                    <div class="date-header">
+                        <h3 class="date-title">${dateGroup.displayDate}</h3>
+                        <div class="date-meta">
+                            ${dateGroup.collections.length} collection${dateGroup.collections.length !== 1 ? 's' : ''} • 
+                            ${dateGroup.totalVariations} variation${dateGroup.totalVariations !== 1 ? 's' : ''}
                         </div>
-                        <div class="collection-meta">
-                            ${collection.variations.length} variations<br>
-                            <span style="font-size: 0.7rem; opacity: 0.7;">${collection.filename}</span>
-                        </div>
-                    </div>
-                    <div class="variations-grid">
-                        ${collection.variations.map((variation, variationIndex) => 
-                            createVariationCard(variation, collectionIndex, variationIndex)
-                        ).join('')}
                     </div>
                 `;
-                container.appendChild(section);
+                container.appendChild(dateSection);
+                
+                // Render collections for this date
+                dateGroup.collections.forEach((collection, collectionIndex) => {
+                    const section = document.createElement('div');
+                    section.className = 'collection-section';
+                    const createdTime = new Date(collection.created || collection.timestamp || Date.now());
+                    const timeString = createdTime.toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit'
+                    });
+                    
+                    section.innerHTML = `
+                        <div class="collection-header">
+                            <div>
+                                <div class="collection-title">${escapeHtml(collection.name)}</div>
+                                <div class="collection-description">${escapeHtml(collection.description || '')}</div>
+                                <div class="collection-timestamp">Created at ${timeString}</div>
+                            </div>
+                            <div class="collection-meta">
+                                ${collection.variations.length} variations<br>
+                                <span class="collection-filename">${collection.filename}</span>
+                            </div>
+                        </div>
+                        <div class="variations-grid">
+                            ${collection.variations.map((variation, variationIndex) => 
+                                createVariationCard(variation, collectionIndex, variationIndex)
+                            ).join('')}
+                        </div>
+                    `;
+                    container.appendChild(section);
+                });
             });
         }
         
@@ -787,15 +899,22 @@
                 `;
                 
                 iframe.onload = function() {
-                    // FASTER LOADING: Reduced delay for immediate feedback
+                    // INSTANT LOADING: Show animated canvas immediately
                     setTimeout(() => {
                         const staticPreview = container.querySelector('.static-preview');
                         if (staticPreview) {
                             staticPreview.style.opacity = '0';
-                            staticPreview.style.transition = 'opacity 0.3s ease';
-                            setTimeout(() => staticPreview.style.display = 'none', 300);
+                            staticPreview.style.transition = 'opacity 0.15s ease';
+                            setTimeout(() => staticPreview.style.display = 'none', 150);
                         }
-                    }, 400); // Much faster - was 1000ms, now 400ms
+                        
+                        // Force iframe to start animation immediately
+                        try {
+                            iframe.contentWindow.postMessage({ action: 'startAnimation' }, '*');
+                        } catch (e) {
+                            console.log('🎬 Animation start message sent to iframe');
+                        }
+                    }, 100); // Ultra-fast: 100ms instead of 400ms
                 };
                 
                 iframe.onerror = function() {
@@ -808,9 +927,19 @@
                 // CRITICAL FIX: Put system parameter FIRST so it gets processed before other parameters
                 iframe.src = `index.html?system=${system}&hideui=true&${params}`;
                 console.log(`🎯 Loading preview: system=${system}, URL: ${iframe.src}`);
-            }, 100); // FASTER: Reduced from 200ms to 100ms
+            }, 25); // INSTANT: Reduced to 25ms for immediate response
             
             hoverTimeouts.set(card, timeoutId);
+            
+            // Show loading state immediately
+            const staticPreview = container.querySelector('.static-preview');
+            if (staticPreview) {
+                const previewHint = staticPreview.querySelector('.preview-hint');
+                if (previewHint) {
+                    previewHint.textContent = 'LOADING...';
+                    previewHint.style.animation = 'pulse 1s infinite';
+                }
+            }
         };
         
         window.stopPreview = function(card) {

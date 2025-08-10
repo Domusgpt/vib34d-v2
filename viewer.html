@@ -51,8 +51,8 @@
                 0 0 40px rgba(255, 0, 255, 0.4);
             transform: 
                 perspective(800px)
-                rotateY(calc(15deg * var(--bend-intensity)))
-                rotateX(calc(5deg * (var(--mouse-y) - 50) / 50))
+                rotateY(calc((var(--mouse-x) - 50) * 0.3deg * var(--bend-intensity)))
+                rotateX(calc((var(--mouse-y) - 50) * 0.15deg * var(--bend-intensity)))
                 translateZ(calc(var(--bend-intensity) * 30px))
                 translateY(-10px);
             backdrop-filter: blur(20px);
@@ -120,7 +120,7 @@
             background: #000;
         }
         
-        /* Holographic shimmer effect overlay - EXACT COPY */
+        /* Holographic shimmer effect overlay - DIRECTIONAL BASED ON MOUSE */
         .card-preview::after {
             content: '';
             position: absolute;
@@ -129,20 +129,20 @@
             width: 200%;
             height: 200%;
             background: linear-gradient(
-                45deg,
+                calc(45deg + (var(--mouse-x) - 50) * 0.5deg),
                 transparent 30%,
                 rgba(0, 255, 255, 0.1) 50%,
                 rgba(255, 0, 255, 0.1) 52%,
                 transparent 70%
             );
-            transform: translateX(-100%) rotate(45deg);
+            transform: translateX(calc(-100% + (var(--mouse-x) - 50) * 0.5%)) rotate(calc(45deg + (var(--mouse-x) - 50) * 0.3deg));
             transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             pointer-events: none;
             opacity: 0;
         }
         
         .variation-card:hover .card-preview::after {
-            transform: translateX(100%) rotate(45deg);
+            transform: translateX(calc(100% - (var(--mouse-x) - 50) * 0.5%)) rotate(calc(45deg + (var(--mouse-x) - 50) * 0.3deg));
             opacity: 1;
         }
         
