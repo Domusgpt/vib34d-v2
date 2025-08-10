@@ -994,10 +994,10 @@
             console.log(`🎯 GALLERY PREVIEW: Switching to ${previewData.system} using switchSystem()`);
             await switchSystem(previewData.system);
             
-            // Wait for the switch to complete properly
-            await new Promise(resolve => setTimeout(resolve, 300));
+            // CRITICAL: Wait longer for the system to fully initialize before applying parameters
+            await new Promise(resolve => setTimeout(resolve, 800)); // Increased wait time
             
-            console.log(`🎯 FINAL SYSTEM STATE: window.currentSystem = ${window.currentSystem}`);
+            console.log(`🎯 SYSTEM SWITCH COMPLETE: window.currentSystem = ${window.currentSystem}`);
             
             // CRITICAL FIX: Force canvas layer visibility for gallery previews WITH verification
             const systems = ['faceted', 'quantum', 'holographic'];
@@ -1052,17 +1052,22 @@
                 console.log(`✅ System switch successful: ${previewData.system}`);
             }
             
-            // Apply all parameters from URL
-            Object.entries(previewData.parameters).forEach(([param, value]) => {
+            // CRITICAL: Wait additional time to ensure system is fully ready for parameter application
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            console.log(`🎯 APPLYING PARAMETERS to ${previewData.system} system:`, previewData.parameters);
+            
+            // Apply all parameters from URL - SYNCHRONOUSLY after system is ready
+            for (const [param, value] of Object.entries(previewData.parameters)) {
                 if (param === 'geometry' || param === 'geometryType' || param === 'polytope') {
                     // Handle geometry selection
                     const geometryIndex = parseInt(value);
                     if (!isNaN(geometryIndex)) {
+                        console.log(`🔧 Setting geometry: ${geometryIndex}`);
                         selectGeometry(geometryIndex);
                     }
                 } else {
-                    // CRITICAL FIX: Parameter name mapping for gallery preview
-                    // UnifiedSaveManager normalizes parameter names, but we need to map them back
+                    // Parameter name mapping for gallery preview
                     const parameterMapping = {
                         'geometryType': 'geometry',
                         'density': 'gridDensity', 
@@ -1070,35 +1075,22 @@
                     };
                     
                     const actualParam = parameterMapping[param] || param;
-                    console.log(`🔄 Gallery parameter mapping: ${param} → ${actualParam} = ${value}`);
+                    console.log(`🔄 Parameter: ${param} → ${actualParam} = ${value}`);
                     
                     // Handle slider parameters
                     const slider = document.getElementById(actualParam);
                     if (slider) {
-                        console.log(`✅ Found slider for ${actualParam}, setting value: ${value}`);
                         slider.value = value;
-                        // Use longer delay for holographic system to ensure parameters are applied correctly
-                        const delay = previewData.system === 'holographic' ? 500 : 100;
-                        setTimeout(() => {
-                            console.log(`🎯 Applying parameter ${actualParam}=${value} to ${previewData.system} system`);
-                            console.log(`🔍 Current system state: window.currentSystem=${window.currentSystem}, expected=${previewData.system}`);
-                            
-                            // CRITICAL FIX: Verify system is correct before applying parameter
-                            if (window.currentSystem !== previewData.system) {
-                                console.warn(`⚠️ System mismatch! Expected ${previewData.system}, got ${window.currentSystem}. Delaying parameter application...`);
-                                setTimeout(() => updateParameter(actualParam, value), 500);
-                            } else {
-                                updateParameter(actualParam, value);
-                            }
-                        }, delay);
+                        console.log(`🔧 Applying parameter ${actualParam}=${value} to ${window.currentSystem} system`);
+                        updateParameter(actualParam, value);
+                        
+                        // Small delay between parameter applications for stability
+                        await new Promise(resolve => setTimeout(resolve, 50));
                     } else {
                         console.warn(`⚠️ No slider found for parameter: ${actualParam} (original: ${param})`);
-                        // Try to find similar sliders for debugging
-                        const allSliders = Array.from(document.querySelectorAll('input[type="range"]')).map(s => s.id);
-                        console.log(`Available sliders:`, allSliders);
                     }
                 }
-            });
+            }
             
             console.log('✅ Gallery preview parameters applied successfully');
         }
