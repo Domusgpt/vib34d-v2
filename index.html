@@ -574,6 +574,44 @@
     
     <!-- CRITICAL BUG FIX: Move switchSystem function outside ES6 module for global access -->
     <script>
+        // CRITICAL FIX: Parse URL parameters FIRST, before any ES6 module loading
+        function parseURLParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Check if this is a gallery preview
+            if (urlParams.has('system')) {
+                const targetSystem = urlParams.get('system');
+                const hideUI = urlParams.get('hideui') === 'true';
+                
+                // Hide UI for clean preview
+                if (hideUI) {
+                    document.querySelector('.top-bar').style.display = 'none';
+                    document.querySelector('.control-panel').style.display = 'none';
+                    document.querySelector('.canvas-container').style.right = '0';
+                }
+                
+                // Load parameters from URL
+                const parameters = {};
+                urlParams.forEach((value, key) => {
+                    if (!['system', 'hideui'].includes(key)) {
+                        parameters[key] = parseFloat(value) || value;
+                    }
+                });
+                
+                // Store for initialization
+                window.galleryPreviewData = {
+                    system: targetSystem,
+                    parameters: parameters,
+                    hideUI: hideUI
+                };
+                
+                console.log('🎨 Gallery preview mode detected:', window.galleryPreviewData);
+            }
+        }
+        
+        // Parse URL parameters immediately
+        parseURLParameters();
+        
         // Global system switching function - accessible to HTML onclick handlers
         window.switchSystem = async function(system) {
             console.log(`🎯 switchSystem called with: ${system}`);
@@ -787,8 +825,7 @@
         
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
-            // Parse URL parameters for gallery preview mode
-            parseURLParameters();
+            // URL parameters already parsed outside the module
             
             setupGeometry('faceted');
             const success = await initializeEngine();
@@ -810,40 +847,7 @@
             console.log('🚀 VIB34D Clean Interface Ready - All systems initialized');
         });
         
-        // Parse URL parameters for gallery preview integration
-        function parseURLParameters() {
-            const urlParams = new URLSearchParams(window.location.search);
-            
-            // Check if this is a gallery preview
-            if (urlParams.has('system')) {
-                const targetSystem = urlParams.get('system');
-                const hideUI = urlParams.get('hideui') === 'true';
-                
-                // Hide UI for clean preview
-                if (hideUI) {
-                    document.querySelector('.top-bar').style.display = 'none';
-                    document.querySelector('.control-panel').style.display = 'none';
-                    document.querySelector('.canvas-container').style.right = '0';
-                }
-                
-                // Load parameters from URL
-                const parameters = {};
-                urlParams.forEach((value, key) => {
-                    if (!['system', 'hideui'].includes(key)) {
-                        parameters[key] = parseFloat(value) || value;
-                    }
-                });
-                
-                // Store for initialization
-                window.galleryPreviewData = {
-                    system: targetSystem,
-                    parameters: parameters,
-                    hideUI: hideUI
-                };
-                
-                console.log('🎨 Gallery preview mode detected:', window.galleryPreviewData);
-            }
-        }
+        // URL parameters already parsed outside the ES6 module
         
         // Initialize VIB34D Engine
         async function initializeEngine() {
