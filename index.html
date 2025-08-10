@@ -1304,9 +1304,9 @@
         
         // Action functions
         window.openGallery = function() {
-            console.log('🖼️ Opening gallery...');
-            // CRITICAL FIX: Store reference to gallery window for cross-window communication
-            window.galleryWindow = window.open('./gallery.html', 'vib34d-gallery', 'width=1200,height=800');
+            console.log('🖼️ Navigating to gallery...');
+            // MEMORY OPTIMIZATION: Navigate in same tab instead of opening new window
+            window.location.href = './gallery.html';
             
             // Listen for gallery window close
             if (window.galleryWindow) {

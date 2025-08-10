@@ -234,12 +234,13 @@
         /* Canvas tilts dramatically based on mouse X/Y with 2x expansion */
         .variation-card:hover .card-preview iframe {
             transform: 
+                translate(-50%, -50%)
                 perspective(600px)
                 scale(2.0)
                 rotateY(calc((var(--mouse-x) - 50) * 0.6deg))
                 rotateX(calc((50 - var(--mouse-y)) * 0.4deg))
                 translateZ(40px);
-            transform-origin: center center; /* CRITICAL: Ensure centering */
+            transform-origin: center center; /* CRITICAL: Scale from true center */
             filter: brightness(1.3) contrast(1.1) saturate(1.2);
             border-radius: 8px;
             box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
@@ -279,11 +280,11 @@
             border: none;
             pointer-events: none;
             transform-origin: center center;
-            /* Minimal scaling to fit square container properly */
-            transform: scale(1.0);
+            /* CENTER the iframe properly for hover scaling */
+            transform: translate(-50%, -50%) scale(1.0);
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 50%;
+            left: 50%;
         }
         
         .static-preview {
@@ -887,12 +888,32 @@
         let activeIframes = new Map();
         let hoverTimeouts = new WeakMap();
         
+        // CRITICAL: WebGL context management to prevent overflow
+        const MAX_WEBGL_CONTEXTS = 4; // Conservative limit
+        let activeWebGLContexts = new Set();
+        
+        function enforceWebGLLimit() {
+            if (activeWebGLContexts.size >= MAX_WEBGL_CONTEXTS) {
+                console.log(`⚠️ WebGL limit reached (${activeWebGLContexts.size}/${MAX_WEBGL_CONTEXTS}). Cleaning oldest context.`);
+                const oldestCard = activeWebGLContexts.values().next().value;
+                if (oldestCard) {
+                    stopPreview(oldestCard);
+                    activeWebGLContexts.delete(oldestCard);
+                }
+            }
+        }
+        
         window.startPreview = function(card, params) {
             const container = card.querySelector('[data-preview-container]');
             
             if (container && container.querySelector('iframe')) {
                 return;
             }
+            
+            // CRITICAL: Enforce WebGL context limit before creating new iframe
+            enforceWebGLLimit();
+            activeWebGLContexts.add(card);
+            console.log(`🎬 Starting preview - Active contexts: ${activeWebGLContexts.size}/${MAX_WEBGL_CONTEXTS}`);
             
             if (hoverTimeouts.has(card)) {
                 clearTimeout(hoverTimeouts.get(card));
@@ -925,7 +946,7 @@
                         } catch (e) {
                             console.log('🎬 Animation start message sent to iframe');
                         }
-                    }, 100); // Ultra-fast: 100ms instead of 400ms
+                    }, 600); // RESTORED: Proper delay to prevent WebGL context explosion
                 };
                 
                 iframe.onerror = function() {
@@ -938,7 +959,7 @@
                 // CRITICAL FIX: Put system parameter FIRST so it gets processed before other parameters
                 iframe.src = `index.html?system=${system}&hideui=true&${params}`;
                 console.log(`🎯 Loading preview: system=${system}, URL: ${iframe.src}`);
-            }, 25); // INSTANT: Reduced to 25ms for immediate response
+            }, 300); // RESTORED: Smart loading delay to prevent WebGL context overflow
             
             hoverTimeouts.set(card, timeoutId);
             
@@ -959,13 +980,13 @@
                 hoverTimeouts.delete(card);
             }
             
-            // CRITICAL FIX: Smart iframe cleanup with 0.25s delay to prevent canvas overload
+            // CRITICAL FIX: IMMEDIATE WebGL context cleanup to prevent overflow
             setTimeout(() => {
                 const container = card.querySelector('[data-preview-container]');
                 if (container) {
                     const iframe = container.querySelector('iframe');
                     if (iframe) {
-                        console.log('🧹 Unloading gallery preview iframe to prevent canvas overload');
+                        console.log('🧹 IMMEDIATE WebGL cleanup - destroying iframe to free contexts');
                         
                         // Show static preview again
                         const staticPreview = container.querySelector('.static-preview');
@@ -976,9 +997,13 @@
                         
                         // Remove iframe completely to free WebGL contexts
                         iframe.remove();
+                        
+                        // Remove from active contexts tracking
+                        activeWebGLContexts.delete(card);
+                        console.log(`🧹 WebGL context freed - Active: ${activeWebGLContexts.size}/${MAX_WEBGL_CONTEXTS}`);
                     }
                 }
-            }, 250); // Exactly 0.25s as requested
+            // NO DELAY - immediate cleanup to prevent WebGL context overflow
         };
         
         window.handleMobileTouch = function(card, event) {
