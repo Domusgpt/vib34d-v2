@@ -222,6 +222,35 @@ export class RealHolographicSystem {
         };
     }
     
+    /**
+     * Get current parameters for saving/export (CRITICAL for gallery saving)
+     */
+    getParameters() {
+        // Collect parameters from UI sliders - same as other systems
+        const params = {
+            geometry: Math.floor(this.currentVariant / 4), // Extract geometry from variant
+            gridDensity: parseFloat(document.getElementById('gridDensity')?.value || 15),
+            morphFactor: parseFloat(document.getElementById('morphFactor')?.value || 1.0),
+            chaos: parseFloat(document.getElementById('chaos')?.value || 0.2),
+            speed: parseFloat(document.getElementById('speed')?.value || 1.0),
+            hue: parseFloat(document.getElementById('hue')?.value || 320),
+            intensity: parseFloat(document.getElementById('intensity')?.value || 0.6),
+            saturation: parseFloat(document.getElementById('saturation')?.value || 0.8),
+            rot4dXW: parseFloat(document.getElementById('rot4dXW')?.value || 0.0),
+            rot4dYW: parseFloat(document.getElementById('rot4dYW')?.value || 0.0),
+            rot4dZW: parseFloat(document.getElementById('rot4dZW')?.value || 0.0),
+            variant: this.currentVariant
+        };
+        
+        // Apply any custom parameter overrides
+        if (this.customParams) {
+            Object.assign(params, this.customParams);
+        }
+        
+        console.log('🌌 Holographic system getParameters:', params);
+        return params;
+    }
+    
     async initAudio() {
         try {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();

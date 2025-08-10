@@ -77,6 +77,15 @@ export class UnifiedSaveManager {
                 // Fallback to manual parameter capture
                 state.parameters = this.captureManualParameters();
             }
+        } else if (currentSys === 'quantum') {
+            // Get parameters from quantum system
+            if (window.quantumEngine?.getParameters) {
+                state.parameters = window.quantumEngine.getParameters();
+                console.log('🔵 Captured quantum parameters:', state.parameters);
+            } else {
+                console.warn('⚠️ Quantum system not available');
+                state.parameters = this.captureManualParameters();
+            }
         } else if (currentSys === 'holographic') {
             // Get parameters from holographic system
             if (window.holographicSystem?.getParameters) {
