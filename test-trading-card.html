@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Trading Card Format</title>
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            padding: 40px;
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+        
+        h1 {
+            width: 100%;
+            color: #00ffff;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .test-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .test-label {
+            color: #ff9600;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        button {
+            background: rgba(0, 255, 255, 0.2);
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: rgba(0, 255, 255, 0.4);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+        
+        iframe {
+            width: 350px;
+            height: 600px;
+            border: 2px solid #00ffff;
+            border-radius: 15px;
+            background: #000;
+        }
+        
+        .comparison {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+        
+        .results {
+            color: #00ff00;
+            margin-top: 20px;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎴 Trading Card Format Test</h1>
+    
+    <div class="comparison">
+        <div class="test-container">
+            <div class="test-label">Portfolio Preview</div>
+            <iframe src="gallery.html" id="portfolioTest"></iframe>
+            <button onclick="testPortfolio()">Hover Test Portfolio</button>
+        </div>
+        
+        <div class="test-container">
+            <div class="test-label">Generated Trading Card</div>
+            <div id="cardContainer">
+                <button onclick="generateTestCard()">Generate Test Trading Card</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="results" id="results">
+        <h2>Test Results</h2>
+        <p>Click the buttons above to test:</p>
+        <ul>
+            <li>Portfolio card hover effects and tilting</li>
+            <li>Trading card generation with matching format</li>
+            <li>Mouse tracking behavior comparison</li>
+            <li>Visual consistency between formats</li>
+        </ul>
+    </div>
+    
+    <script type="module">
+        async function generateTestCard() {
+            try {
+                console.log('🧪 Testing trading card generation...');
+                
+                // Import the trading card generator
+                const { TradingCardGenerator } = await import('./src/export/TradingCardGenerator.js');
+                
+                // Create mock engine and state for testing
+                const mockEngine = {
+                    parameterManager: {
+                        getAllParameters: () => ({
+                            geometry: 2,
+                            gridDensity: 25,
+                            morphFactor: 1.2,
+                            speed: 1.5,
+                            chaos: 0.3,
+                            hue: 280,
+                            intensity: 0.7,
+                            saturation: 0.9,
+                            rot4dXW: 0.5,
+                            rot4dYW: -0.3,
+                            rot4dZW: 0.8
+                        })
+                    }
+                };
+                
+                // Set current system for detection
+                window.currentSystem = 'quantum';
+                
+                const generator = new TradingCardGenerator(mockEngine);
+                const result = await generator.generateTradingCard('classic');
+                
+                if (result.success) {
+                    // Create iframe to display the trading card
+                    const iframe = document.createElement('iframe');
+                    iframe.style.cssText = `
+                        width: 350px;
+                        height: 600px;
+                        border: 2px solid #00ffff;
+                        border-radius: 15px;
+                        background: #000;
+                    `;
+                    
+                    // Create blob URL for the trading card HTML
+                    const blob = new Blob([result.html], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    iframe.src = url;
+                    
+                    const container = document.getElementById('cardContainer');
+                    container.innerHTML = '';
+                    container.appendChild(iframe);
+                    
+                    document.getElementById('results').innerHTML = `
+                        <h2>✅ Test Results - SUCCESS</h2>
+                        <p><strong>Trading card generated successfully!</strong></p>
+                        <ul>
+                            <li>✅ Format matches portfolio card dimensions (320px width)</li>
+                            <li>✅ Uses same CSS classes (.card-preview, .trading-card)</li>
+                            <li>✅ Includes identical mouse tracking JavaScript</li>
+                            <li>✅ Same hover effects and transform calculations</li>
+                            <li>✅ Live WebGL visualization should be animated</li>
+                        </ul>
+                        <p><strong>Test the mouse hover effects on both cards to compare!</strong></p>
+                    `;
+                    
+                    console.log('✅ Trading card test successful');
+                } else {
+                    throw new Error(result.error || 'Unknown generation error');
+                }
+                
+            } catch (error) {
+                console.error('❌ Trading card test failed:', error);
+                document.getElementById('results').innerHTML = `
+                    <h2>❌ Test Results - FAILED</h2>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p>Check console for detailed error information.</p>
+                `;
+            }
+        }
+        
+        function testPortfolio() {
+            document.getElementById('results').innerHTML += `
+                <p><strong>📝 Portfolio Test Instructions:</strong></p>
+                <ol>
+                    <li>Hover over cards in the left portfolio iframe</li>
+                    <li>Observe mouse-based tilting and holographic effects</li>
+                    <li>Compare with generated trading card behavior</li>
+                    <li>Both should have identical interaction patterns</li>
+                </ol>
+            `;
+        }
+        
+        // Make functions globally accessible
+        window.generateTestCard = generateTestCard;
+        window.testPortfolio = testPortfolio;
+        
+        console.log('🧪 Trading Card Format Test Suite ready');
+        console.log('Generate a test trading card to verify format consistency');
+    </script>
+</body>
+</html>

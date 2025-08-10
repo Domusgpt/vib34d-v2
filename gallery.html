@@ -864,8 +864,13 @@
         window.openVariation = function(card) {
             const params = card.getAttribute('data-params');
             const system = card.getAttribute('data-system');
-            // Use same tab instead of new tab to avoid WebGL context issues
-            window.location.href = `index.html?${params}&system=${system}`;
+            const globalId = card.getAttribute('data-global-id');
+            const variationName = card.querySelector('h3').textContent.split('#')[0].trim();
+            
+            // FIXED: Load individual viewer instead of full engine
+            // Create viewer URL with all parameters
+            const viewerUrl = `viewer.html?${params}&system=${system}&name=${encodeURIComponent(variationName)}&id=${globalId}`;
+            window.location.href = viewerUrl;
         };
         
         window.loadIntoEngine = function(card, event) {
