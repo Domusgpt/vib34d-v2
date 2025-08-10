@@ -333,9 +333,70 @@ export class VIB34DIntegratedEngine {
     }
     
     /**
+     * Update audio reactivity (for universal reactivity system)
+     */
+    updateAudioReactivity(audioData) {
+        this.visualizers.forEach(visualizer => {
+            if (visualizer.updateAudio) {
+                visualizer.updateAudio(audioData);
+            }
+        });
+        
+        // Apply audio data to parameter modulation
+        if (audioData.energy > 0.3) {
+            // Temporarily boost intensity based on audio energy
+            this.parameterManager.setParameter('intensity', Math.min(1.0, 0.5 + audioData.energy * 0.5));
+        }
+        
+        if (audioData.bass > 0.4) {
+            // Temporarily boost grid density on bass hits
+            const currentDensity = this.parameterManager.getParameter('gridDensity') || 15;
+            this.parameterManager.setParameter('gridDensity', Math.min(100, currentDensity + audioData.bass * 20));
+        }
+    }
+    
+    /**
+     * Update click effects (for universal reactivity system)
+     */
+    updateClick(intensity) {
+        // Trigger click intensity on all visualizers
+        this.clickIntensity = Math.min(1.0, this.clickIntensity + intensity);
+        
+        this.visualizers.forEach(visualizer => {
+            if (visualizer.triggerClick) {
+                visualizer.triggerClick(intensity);
+            }
+        });
+    }
+    
+    /**
+     * Update scroll effects (for universal reactivity system)
+     */
+    updateScroll(velocity) {
+        this.visualizers.forEach(visualizer => {
+            if (visualizer.updateScroll) {
+                visualizer.updateScroll(velocity);
+            }
+        });
+        
+        // Apply scroll to parameter modulation
+        const scrollIntensity = Math.abs(velocity);
+        if (scrollIntensity > 0.1) {
+            // Temporarily adjust morph factor based on scroll
+            const currentMorph = this.parameterManager.getParameter('morphFactor') || 1.0;
+            this.parameterManager.setParameter('morphFactor', Math.max(0.1, currentMorph + velocity * 0.5));
+        }
+    }
+    
+    /**
      * Clean up resources
      */
     destroy() {
+        // Disconnect from universal reactivity
+        if (window.universalReactivity) {
+            window.universalReactivity.disconnectSystem('faceted');
+        }
+        
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
         }

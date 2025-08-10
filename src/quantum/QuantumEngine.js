@@ -188,9 +188,47 @@ export class QuantumEngine {
     }
     
     /**
+     * Update audio reactivity (for universal reactivity system)
+     */
+    updateAudioReactivity(audioData) {
+        this.visualizers.forEach(visualizer => {
+            if (visualizer.updateAudio) {
+                visualizer.updateAudio(audioData);
+            }
+        });
+    }
+    
+    /**
+     * Update click effects (for universal reactivity system)
+     */
+    updateClick(intensity) {
+        this.visualizers.forEach(visualizer => {
+            if (visualizer.triggerClick) {
+                visualizer.triggerClick(0.5, 0.5, intensity); // Click at center with intensity
+            }
+        });
+    }
+    
+    /**
+     * Update scroll effects (for universal reactivity system)
+     */
+    updateScroll(velocity) {
+        this.visualizers.forEach(visualizer => {
+            if (visualizer.updateScroll) {
+                visualizer.updateScroll(velocity);
+            }
+        });
+    }
+    
+    /**
      * Clean up resources
      */
     destroy() {
+        // Disconnect from universal reactivity
+        if (window.universalReactivity) {
+            window.universalReactivity.disconnectSystem('quantum');
+        }
+        
         this.visualizers.forEach(visualizer => {
             if (visualizer.destroy) {
                 visualizer.destroy();

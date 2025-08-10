@@ -708,6 +708,7 @@
         import { UnifiedSaveManager } from './src/core/UnifiedSaveManager.js';
         import { ParameterMapper } from './src/core/ParameterMapper.js';
         import { TradingCardGenerator } from './src/export/TradingCardGenerator.js';
+        import universalReactivity from './src/interactions/UniversalReactivitySystem.js';
         
         // Global state - CRITICAL FIX: Ensure window.currentSystem is properly set
         let currentSystem = 'faceted';
@@ -829,6 +830,13 @@
                 engine.unifiedSaveManager = unifiedSaveManager;
                 engine.parameterMapper = parameterMapper;
                 console.log('✅ Unified Save System ready');
+                
+                // Connect systems to universal reactivity
+                universalReactivity.connectSystem(engine, 'faceted');
+                universalReactivity.connectSystem(quantumEngine, 'quantum');
+                // Note: holographic system already has its own reactivity, so we don't connect it
+                universalReactivity.setupUniversalInteractions();
+                console.log('🎵 Universal Reactivity System connected to all systems');
                 
                 // Apply gallery preview parameters if present
                 if (window.galleryPreviewData) {
