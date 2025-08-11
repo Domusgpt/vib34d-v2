@@ -943,15 +943,22 @@
         // Mobile debugging system for Android
         window.mobileDebug = {
             logs: [],
+            debugVisible: false,
             log: function(message) {
                 const timestamp = new Date().toLocaleTimeString();
                 const logEntry = `[${timestamp}] ${message}`;
                 this.logs.push(logEntry);
                 console.log(logEntry);
                 
-                // Show critical errors on mobile
-                if (message.includes('WebGL') || message.includes('error') || message.includes('❌')) {
+                // Show critical errors on mobile, or success messages initially
+                if (message.includes('WebGL') || message.includes('error') || message.includes('❌') || 
+                    message.includes('✅') || message.includes('📱') || message.includes('🚀')) {
                     this.showMobileError(logEntry);
+                }
+                
+                // Auto-hide debug overlay after successful initialization
+                if (message.includes('VIB34D Clean Interface Ready')) {
+                    setTimeout(() => this.hideDebugOverlay(), 3000);
                 }
             },
             showMobileError: function(message) {
@@ -974,10 +981,24 @@
                         max-height: 200px;
                         overflow-y: auto;
                         font-family: monospace;
+                        transition: opacity 0.5s ease;
                     `;
                     document.body.appendChild(debugDiv);
                 }
                 debugDiv.innerHTML = this.logs.slice(-10).join('<br>');
+                this.debugVisible = true;
+            },
+            hideDebugOverlay: function() {
+                const debugDiv = document.getElementById('mobile-debug');
+                if (debugDiv && this.debugVisible) {
+                    debugDiv.style.opacity = '0';
+                    setTimeout(() => {
+                        if (debugDiv && debugDiv.parentNode) {
+                            debugDiv.parentNode.removeChild(debugDiv);
+                        }
+                        this.debugVisible = false;
+                    }, 500);
+                }
             }
         };
         
@@ -988,64 +1009,92 @@
             window.mobileDebug.log('❌ ERROR: ' + args.join(' '));
         };
         
-        // EMERGENCY ANDROID FIX: Force canvas dimensions immediately on page load
+        // MOBILE OPTIMIZATION: Initialize only active system (5 canvases instead of 20)
         document.addEventListener('DOMContentLoaded', function() {
             const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             if (isMobile) {
-                window.mobileDebug.log('🚨 EMERGENCY: Running immediate Android canvas fix');
+                window.mobileDebug.log('📱 MOBILE: Optimized single-system initialization');
                 
-                // Try multiple times with delays
-                const fixCanvases = () => {
-                    const allCanvases = document.querySelectorAll('canvas');
+                // Define canvas groups per system
+                const systemCanvases = {
+                    faceted: ['background-canvas', 'shadow-canvas', 'content-canvas', 'highlight-canvas', 'accent-canvas'],
+                    quantum: ['quantum-background-canvas', 'quantum-shadow-canvas', 'quantum-content-canvas', 'quantum-highlight-canvas', 'quantum-accent-canvas'],
+                    holographic: ['holo-background-canvas', 'holo-shadow-canvas', 'holo-content-canvas', 'holo-highlight-canvas', 'holo-accent-canvas'],
+                    polychora: ['polychora-background-canvas', 'polychora-shadow-canvas', 'polychora-content-canvas', 'polychora-highlight-canvas', 'polychora-accent-canvas']
+                };
+                
+                // Determine active system (gallery preview or default)
+                const activeSystem = window.galleryPreviewData ? window.galleryPreviewData.system : 'faceted';
+                window.mobileDebug.log(`📱 Active system: ${activeSystem}`);
+                
+                // Only fix canvases for the active system
+                const fixActiveCanvases = () => {
+                    const activeCanvases = systemCanvases[activeSystem];
                     const viewWidth = window.innerWidth || screen.width;
                     const viewHeight = window.innerHeight || screen.height;
                     const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                    let fixedCount = 0;
                     
-                    allCanvases.forEach(canvas => {
-                        // Force immediate style
-                        canvas.style.cssText = `
-                            position: absolute !important;
-                            top: 0 !important;
-                            left: 0 !important;
-                            width: 100% !important;
-                            height: 100% !important;
-                            min-width: ${viewWidth}px !important;
-                            min-height: ${viewHeight}px !important;
-                        `;
-                        
-                        // Force canvas buffer size
-                        canvas.width = viewWidth * dpr;
-                        canvas.height = viewHeight * dpr;
-                        
-                        window.mobileDebug.log(`🚨 EMERGENCY fixed ${canvas.id}: ${canvas.width}x${canvas.height}`);
+                    activeCanvases.forEach(canvasId => {
+                        const canvas = document.getElementById(canvasId);
+                        if (canvas) {
+                            // Force immediate style
+                            canvas.style.cssText = `
+                                position: absolute !important;
+                                top: 0 !important;
+                                left: 0 !important;
+                                width: 100% !important;
+                                height: 100% !important;
+                                min-width: ${viewWidth}px !important;
+                                min-height: ${viewHeight}px !important;
+                            `;
+                            
+                            // Force canvas buffer size
+                            canvas.width = viewWidth * dpr;
+                            canvas.height = viewHeight * dpr;
+                            fixedCount++;
+                            
+                            window.mobileDebug.log(`📱 Fixed ${canvasId}: ${canvas.width}x${canvas.height}`);
+                        }
                     });
                     
-                    return allCanvases.length;
+                    // Hide inactive system canvases to prevent WebGL context creation
+                    Object.keys(systemCanvases).forEach(system => {
+                        if (system !== activeSystem) {
+                            systemCanvases[system].forEach(canvasId => {
+                                const canvas = document.getElementById(canvasId);
+                                if (canvas) {
+                                    canvas.style.display = 'none';
+                                }
+                            });
+                        }
+                    });
+                    
+                    return fixedCount;
                 };
                 
-                // Run immediately
-                const count1 = fixCanvases();
-                window.mobileDebug.log(`🚨 Pass 1: Fixed ${count1} canvases`);
+                // Run mobile optimization passes
+                const count1 = fixActiveCanvases();
+                window.mobileDebug.log(`📱 Pass 1: Fixed ${count1}/${systemCanvases[activeSystem].length} canvases for ${activeSystem} system`);
                 
-                // Run again after 250ms
                 setTimeout(() => {
-                    const count2 = fixCanvases();
-                    window.mobileDebug.log(`🚨 Pass 2: Fixed ${count2} canvases`);
+                    const count2 = fixActiveCanvases();
+                    window.mobileDebug.log(`📱 Pass 2: Fixed ${count2} canvases`);
                 }, 250);
                 
-                // Run again after 500ms
                 setTimeout(() => {
-                    const count3 = fixCanvases();
-                    window.mobileDebug.log(`🚨 Pass 3: Fixed ${count3} canvases`);
+                    const count3 = fixActiveCanvases();
+                    window.mobileDebug.log(`📱 Pass 3: Fixed ${count3} canvases - optimization complete`);
                     
                     // Test render to verify fix
-                    const testCanvas = document.querySelector('canvas');
+                    const testCanvasId = systemCanvases[activeSystem][0];
+                    const testCanvas = document.getElementById(testCanvasId);
                     if (testCanvas) {
                         const ctx = testCanvas.getContext('2d');
                         if (ctx) {
                             ctx.fillStyle = '#00ffff';
                             ctx.fillRect(10, 10, 100, 100);
-                            window.mobileDebug.log(`✅ Test render successful on ${testCanvas.id}`);
+                            window.mobileDebug.log(`✅ Mobile optimization successful - ${activeSystem} system ready`);
                         }
                     }
                 }, 500);
@@ -1118,6 +1167,11 @@
             // Module ready flag already set earlier for performance
             
             console.log('🚀 VIB34D Clean Interface Ready - All systems initialized');
+            
+            // Mobile debug system auto-hide on successful initialization
+            if (window.mobileDebug) {
+                window.mobileDebug.log('🚀 VIB34D Clean Interface Ready - All systems initialized');
+            }
         });
         
         // URL parameters already parsed outside the ES6 module
@@ -1176,30 +1230,42 @@
                     throw new Error('Mobile WebGL not available');
                 }
                 
-                // CRITICAL ANDROID FIX: Force all canvas dimensions immediately
+                // CRITICAL ANDROID FIX: Only initialize active system canvases to avoid WebGL context limit
                 const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                 if (isMobile) {
-                    const allCanvases = document.querySelectorAll('canvas');
-                    const viewWidth = window.innerWidth;
-                    const viewHeight = window.innerHeight;
-                    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                    // Determine active system first
+                    const activeSystem = window.galleryPreviewData?.system || window.currentSystem || 'faceted';
+                    const activeLayerId = activeSystem === 'faceted' ? 'vib34dLayers' : `${activeSystem}Layers`;
                     
-                    allCanvases.forEach(canvas => {
-                        // Force canvas style dimensions first
-                        canvas.style.width = '100%';
-                        canvas.style.height = '100%';
-                        canvas.style.position = 'absolute';
-                        canvas.style.top = '0';
-                        canvas.style.left = '0';
+                    // Show only the active system layers
+                    const activeLayers = document.getElementById(activeLayerId);
+                    if (activeLayers) {
+                        activeLayers.style.display = 'block';
+                        activeLayers.style.visibility = 'visible';
+                        activeLayers.style.opacity = '1';
                         
-                        // Then force actual canvas dimensions
-                        canvas.width = viewWidth * dpr;
-                        canvas.height = viewHeight * dpr;
+                        const activeCanvases = activeLayers.querySelectorAll('canvas');
+                        const viewWidth = window.innerWidth;
+                        const viewHeight = window.innerHeight;
+                        const dpr = Math.min(window.devicePixelRatio || 1, 2);
                         
-                        window.mobileDebug.log(`🚀 Pre-init canvas ${canvas.id}: ${canvas.width}x${canvas.height}`);
-                    });
-                    
-                    window.mobileDebug.log(`📱 Forced ${allCanvases.length} canvas dimensions before engine init`);
+                        activeCanvases.forEach(canvas => {
+                            // Force canvas style dimensions first
+                            canvas.style.width = '100%';
+                            canvas.style.height = '100%';
+                            canvas.style.position = 'absolute';
+                            canvas.style.top = '0';
+                            canvas.style.left = '0';
+                            
+                            // Then force actual canvas dimensions
+                            canvas.width = viewWidth * dpr;
+                            canvas.height = viewHeight * dpr;
+                            
+                            window.mobileDebug.log(`🚀 Pre-init canvas ${canvas.id}: ${canvas.width}x${canvas.height}`);
+                        });
+                        
+                        window.mobileDebug.log(`📱 Mobile optimized: Only ${activeCanvases.length} canvas contexts (${activeSystem} system)`);
+                    }
                 }
                 
                 // Initialize Faceted engine (auto-initializes in constructor)
