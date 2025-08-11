@@ -593,7 +593,15 @@
                         
                         if (topBar) topBar.style.display = 'none';
                         if (controlPanel) controlPanel.style.display = 'none';
-                        if (canvasContainer) canvasContainer.style.right = '0';
+                        if (canvasContainer) {
+                            canvasContainer.style.right = '0';
+                            canvasContainer.style.top = '0';
+                            // Force square aspect ratio for gallery previews
+                            canvasContainer.style.aspectRatio = '1 / 1';
+                            canvasContainer.style.margin = 'auto';
+                            canvasContainer.style.maxWidth = '100vh';
+                            canvasContainer.style.maxHeight = '100vw';
+                        }
                     };
                     
                     if (document.readyState === 'loading') {
