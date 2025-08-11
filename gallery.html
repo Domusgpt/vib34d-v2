@@ -148,6 +148,7 @@
             border: 2px solid rgba(0, 255, 255, 0.3);
             border-radius: 15px;
             padding: 20px;
+            padding-bottom: 15px; /* Reduced since no buttons */
             transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             cursor: pointer;
             position: relative;
@@ -830,11 +831,11 @@
                      data-system="${system}"
                      data-global-id="${globalId}"
                      data-params="${parametersQuery}"
-                     ${isMobile ? 'onclick="handleMobileTouch(this, event)"' : 'onclick="openVariation(this)" onmouseenter="startPreview(this, \'' + parametersQuery.replace(/'/g, '&apos;').replace(/"/g, '&quot;') + '\')" ontouchstart="startPreview(this, \'' + parametersQuery.replace(/'/g, '&apos;').replace(/"/g, '&quot;') + '\')"'}>
+                     ${isMobile ? 'onclick="handleMobileTouch(this, event)"' : 'onmouseenter="startPreview(this, \'' + parametersQuery.replace(/'/g, '&apos;').replace(/"/g, '&quot;') + '\')"'}>
                     
                     <div class="system-badge ${system}">${sysInfo.name}</div>
                     
-                    <div class="card-preview" data-preview-container>
+                    <div class="card-preview" data-preview-container ondblclick="openVariation(this.parentElement)">
                         <div class="static-preview">
                             <div class="preview-id" style="color: hsl(${hue}, ${saturation}%, 60%);">
                                 #${globalId}
@@ -861,10 +862,7 @@
                         </div>
                     </div>
                     
-                    <div class="card-controls">
-                        <button class="card-btn primary" onclick="loadIntoEngine(this.parentElement.parentElement, event)">Load Engine</button>
-                        <button class="card-btn" onclick="openFullscreen(this.parentElement.parentElement, event)">Fullscreen</button>
-                    </div>
+                    <!-- Buttons removed - card click opens viewer -->
                 </div>
             `;
         }
@@ -1097,23 +1095,35 @@
             }
         };
         
+        // Double-tap handler for mobile
+        let lastTapTime = 0;
+        let lastTappedCard = null;
+        
         window.handleMobileTouch = function(card, event) {
             event.preventDefault();
             
-            // CRITICAL FIX: Clean up all other active previews before starting new one
-            document.querySelectorAll('.variation-card').forEach(otherCard => {
-                if (otherCard !== card) {
-                    stopPreview(otherCard);
-                }
-            });
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTapTime;
             
-            const container = card.querySelector('[data-preview-container]');
-            
-            if (container && container.querySelector('iframe')) {
+            // If double-tap on same card (within 500ms)
+            if (tapLength < 500 && tapLength > 0 && lastTappedCard === card) {
                 openVariation(card);
+                lastTapTime = 0;
+                lastTappedCard = null;
             } else {
+                // Single tap - start preview
+                // Clean up all other active previews before starting new one
+                document.querySelectorAll('.variation-card').forEach(otherCard => {
+                    if (otherCard !== card) {
+                        stopPreview(otherCard);
+                    }
+                });
+                
                 const params = card.getAttribute('data-params');
                 startPreview(card, params);
+                
+                lastTapTime = currentTime;
+                lastTappedCard = card;
             }
         };
         
