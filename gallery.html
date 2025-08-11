@@ -173,8 +173,8 @@
                 0 0 40px rgba(255, 0, 255, 0.4);
             transform: 
                 perspective(1200px)
-                rotateY(calc((var(--mouse-x) - 50) * 0.4deg * var(--bend-intensity)))
-                rotateX(calc((var(--mouse-y) - 50) * -0.3deg * var(--bend-intensity)))
+                rotateY(calc((var(--mouse-x) - 50) * 0.2deg * var(--bend-intensity)))
+                rotateX(calc((50 - var(--mouse-y)) * 0.15deg * var(--bend-intensity)))
                 translateZ(calc(var(--bend-intensity) * 35px))
                 translateY(-10px)
                 scale(1.01);
@@ -1126,7 +1126,8 @@
                 });
                 
                 // CRITICAL FIX: Put system parameter FIRST so it gets processed before other parameters
-                iframe.src = `index.html?system=${system}&hideui=true&${params}`;
+                // Add alllayers=true to ensure all 5 canvas layers render with full fidelity
+                iframe.src = `index.html?system=${system}&hideui=true&alllayers=true&highquality=true&${params}`;
                 console.log(`🎯 Loading preview: system=${system}, URL: ${iframe.src}`);
             }, 20); // ULTRA FAST: Immediate preview loading
             

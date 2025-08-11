@@ -629,10 +629,19 @@
                 // Load parameters from URL
                 const parameters = {};
                 urlParams.forEach((value, key) => {
-                    if (!['system', 'hideui'].includes(key)) {
+                    if (!['system', 'hideui', 'alllayers', 'highquality'].includes(key)) {
                         parameters[key] = parseFloat(value) || value;
                     }
                 });
+                
+                // Enable all layers for gallery preview if requested
+                const allLayers = urlParams.get('alllayers') === 'true';
+                const highQuality = urlParams.get('highquality') === 'true';
+                if (allLayers || highQuality) {
+                    window.forceAllLayers = true;
+                    window.forceHighQuality = true;
+                    console.log('🎨 Gallery preview: Forcing all 5 layers with high quality');
+                }
                 
                 // Store for initialization
                 window.galleryPreviewData = {
