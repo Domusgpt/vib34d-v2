@@ -12,6 +12,26 @@ export class IntegratedHolographicVisualizer {
         this.reactivity = reactivity;
         this.variant = variant;
         
+        // Mobile-specific canvas setup
+        if (!this.canvas) {
+            console.error(`Canvas ${canvasId} not found`);
+            if (window.mobileDebug) {
+                window.mobileDebug.log(`❌ Canvas ${canvasId} not found in DOM`);
+            }
+            return;
+        }
+        
+        // Set proper canvas dimensions for mobile
+        const rect = this.canvas.getBoundingClientRect();
+        const devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2x for performance
+        
+        this.canvas.width = rect.width * devicePixelRatio;
+        this.canvas.height = rect.height * devicePixelRatio;
+        
+        if (window.mobileDebug) {
+            window.mobileDebug.log(`📐 Canvas ${canvasId}: ${this.canvas.width}x${this.canvas.height} (DPR: ${devicePixelRatio})`);
+        }
+        
         // Mobile-friendly WebGL context creation with fallbacks
         const contextOptions = {
             alpha: true,
@@ -31,9 +51,17 @@ export class IntegratedHolographicVisualizer {
         
         if (!this.gl) {
             console.error(`WebGL not supported for ${canvasId}`);
+            if (window.mobileDebug) {
+                window.mobileDebug.log(`❌ WebGL context failed for ${canvasId}`);
+            }
             // Show user-friendly error instead of white screen
             this.showWebGLError();
             return;
+        } else {
+            if (window.mobileDebug) {
+                const version = this.gl.getParameter(this.gl.VERSION);
+                window.mobileDebug.log(`✅ WebGL context created for ${canvasId}: ${version}`);
+            }
         }
         
         this.mouseX = 0.5;
@@ -340,17 +368,65 @@ void main() {
      */
     showWebGLError() {
         if (!this.canvas) return;
+        
+        // Try 2D canvas fallback
         const ctx = this.canvas.getContext('2d');
         if (ctx) {
-            ctx.fillStyle = '#000';
+            this.canvas.width = this.canvas.clientWidth;
+            this.canvas.height = this.canvas.clientHeight;
+            
+            ctx.fillStyle = '#1a0033';
             ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            ctx.fillStyle = '#00ffff';
-            ctx.font = '16px Orbitron, monospace';
+            
+            // Mobile-friendly error display
+            ctx.fillStyle = '#ff6b6b';
+            ctx.font = `${Math.min(20, this.canvas.width / 15)}px sans-serif`;
             ctx.textAlign = 'center';
-            ctx.fillText('WebGL Required', this.canvas.width / 2, this.canvas.height / 2);
-            ctx.fillStyle = '#888';
-            ctx.font = '12px Orbitron, monospace';
-            ctx.fillText('Please enable WebGL in your browser', this.canvas.width / 2, this.canvas.height / 2 + 25);
+            ctx.fillText('⚠️ WebGL Error', this.canvas.width / 2, this.canvas.height / 2 - 30);
+            
+            ctx.fillStyle = '#ffd93d';
+            ctx.font = `${Math.min(14, this.canvas.width / 20)}px sans-serif`;
+            
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobile) {
+                ctx.fillText('Mobile device detected', this.canvas.width / 2, this.canvas.height / 2);
+                ctx.fillText('Enable hardware acceleration', this.canvas.width / 2, this.canvas.height / 2 + 20);
+                ctx.fillText('or try Chrome/Firefox', this.canvas.width / 2, this.canvas.height / 2 + 40);
+            } else {
+                ctx.fillText('Please enable WebGL', this.canvas.width / 2, this.canvas.height / 2);
+                ctx.fillText('in your browser settings', this.canvas.width / 2, this.canvas.height / 2 + 20);
+            }
+            
+            // Log to mobile debug
+            if (window.mobileDebug) {
+                window.mobileDebug.log(`📱 WebGL error fallback shown for canvas ${this.canvas.id}`);
+            }
+        } else {
+            // Even 2D canvas failed - create HTML fallback
+            const errorDiv = document.createElement('div');
+            errorDiv.innerHTML = `
+                <div style="
+                    position: absolute;
+                    top: 0; left: 0; right: 0; bottom: 0;
+                    background: #1a0033;
+                    color: #ff6b6b;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    font-family: sans-serif;
+                    text-align: center;
+                    padding: 20px;
+                ">
+                    <div style="font-size: 24px; margin-bottom: 10px;">⚠️</div>
+                    <div style="font-size: 18px; margin-bottom: 10px;">Graphics Error</div>
+                    <div style="font-size: 14px; color: #ffd93d;">
+                        Your device doesn't support<br>
+                        the required graphics features
+                    </div>
+                </div>
+            `;
+            this.canvas.parentNode.insertBefore(errorDiv, this.canvas.nextSibling);
         }
     }
     

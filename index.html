@@ -893,6 +893,54 @@
         // Global flag to indicate module readiness
         window.moduleReady = false;
         window.currentSystem = 'faceted';
+        
+        // Mobile debugging system for Android
+        window.mobileDebug = {
+            logs: [],
+            log: function(message) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `[${timestamp}] ${message}`;
+                this.logs.push(logEntry);
+                console.log(logEntry);
+                
+                // Show critical errors on mobile
+                if (message.includes('WebGL') || message.includes('error') || message.includes('❌')) {
+                    this.showMobileError(logEntry);
+                }
+            },
+            showMobileError: function(message) {
+                // Create or update mobile debug overlay
+                let debugDiv = document.getElementById('mobile-debug');
+                if (!debugDiv) {
+                    debugDiv = document.createElement('div');
+                    debugDiv.id = 'mobile-debug';
+                    debugDiv.style.cssText = `
+                        position: fixed;
+                        top: 10px;
+                        left: 10px;
+                        right: 10px;
+                        background: rgba(255, 0, 0, 0.9);
+                        color: white;
+                        padding: 10px;
+                        border-radius: 5px;
+                        font-size: 12px;
+                        z-index: 10000;
+                        max-height: 200px;
+                        overflow-y: auto;
+                        font-family: monospace;
+                    `;
+                    document.body.appendChild(debugDiv);
+                }
+                debugDiv.innerHTML = this.logs.slice(-10).join('<br>');
+            }
+        };
+        
+        // Override console.error for mobile debugging
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+            originalConsoleError.apply(console, args);
+            window.mobileDebug.log('❌ ERROR: ' + args.join(' '));
+        };
     </script>
     
     <script type="module">
@@ -964,11 +1012,63 @@
         
         // URL parameters already parsed outside the ES6 module
         
+        // Mobile WebGL diagnostic function
+        function checkMobileWebGL() {
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            window.mobileDebug.log(`📱 Device check: Mobile=${isMobile}, UserAgent=${navigator.userAgent}`);
+            
+            if (isMobile) {
+                // Test WebGL availability on mobile
+                const testCanvas = document.createElement('canvas');
+                const contextOptions = {
+                    alpha: true,
+                    depth: false,
+                    stencil: false,
+                    antialias: false,
+                    premultipliedAlpha: false,
+                    preserveDrawingBuffer: false,
+                    powerPreference: 'default',
+                    failIfMajorPerformanceCaveat: false
+                };
+                
+                const testGL = testCanvas.getContext('webgl2', contextOptions) ||
+                              testCanvas.getContext('webgl', contextOptions) ||
+                              testCanvas.getContext('experimental-webgl', contextOptions);
+                
+                if (!testGL) {
+                    window.mobileDebug.log('❌ CRITICAL: WebGL not available on mobile device');
+                    return false;
+                } else {
+                    const renderer = testGL.getParameter(testGL.RENDERER);
+                    const vendor = testGL.getParameter(testGL.VENDOR);
+                    const version = testGL.getParameter(testGL.VERSION);
+                    
+                    window.mobileDebug.log(`✅ Mobile WebGL OK: ${version}`);
+                    window.mobileDebug.log(`🎮 GPU: ${renderer} (${vendor})`);
+                    
+                    // Check for common mobile WebGL issues
+                    const maxTextureSize = testGL.getParameter(testGL.MAX_TEXTURE_SIZE);
+                    const maxViewport = testGL.getParameter(testGL.MAX_VIEWPORT_DIMS);
+                    
+                    window.mobileDebug.log(`📊 Max texture: ${maxTextureSize}, Max viewport: ${maxViewport[0]}x${maxViewport[1]}`);
+                    
+                    return true;
+                }
+            }
+            return true;
+        }
+        
         // Initialize VIB34D Engine
         async function initializeEngine() {
             try {
+                // Check mobile WebGL before initializing engines
+                if (!checkMobileWebGL()) {
+                    throw new Error('Mobile WebGL not available');
+                }
+                
                 // Initialize Faceted engine (auto-initializes in constructor)
                 engine = new VIB34DIntegratedEngine();
+                window.mobileDebug.log('✅ VIB34D Faceted Engine initialized');
                 console.log('✅ VIB34D Faceted Engine initialized');
                 
                 // Initialize Quantum engine
