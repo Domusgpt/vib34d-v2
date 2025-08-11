@@ -8,9 +8,27 @@ export class HolographicVisualizer {
         this.role = role;
         this.reactivity = reactivity;
         this.variant = variant;
-        this.gl = this.canvas.getContext('webgl');
+        
+        // Mobile-friendly WebGL context creation with fallbacks
+        const contextOptions = {
+            alpha: true,
+            depth: true,
+            stencil: false,
+            antialias: false,  // Disable antialiasing on mobile for performance
+            premultipliedAlpha: true,
+            preserveDrawingBuffer: false,
+            powerPreference: 'high-performance',
+            failIfMajorPerformanceCaveat: false  // Don't fail on mobile
+        };
+        
+        // Try WebGL2 first (better mobile support), then WebGL1
+        this.gl = this.canvas.getContext('webgl2', contextOptions) || 
+                  this.canvas.getContext('webgl', contextOptions) ||
+                  this.canvas.getContext('experimental-webgl', contextOptions);
         
         if (!this.gl) {
+            console.error(`WebGL not supported for ${canvasId}`);
+            this.showWebGLError();
             throw new Error(`WebGL not supported for ${canvasId}`);
         }
         
@@ -531,9 +549,36 @@ export class HolographicVisualizer {
     }
     
     resize() {
-        this.canvas.width = this.canvas.clientWidth;
-        this.canvas.height = this.canvas.clientHeight;
-        this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        // Mobile-optimized canvas sizing
+        const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2x for mobile performance
+        const width = this.canvas.clientWidth;
+        const height = this.canvas.clientHeight;
+        
+        // Only resize if dimensions actually changed (mobile optimization)
+        if (this.canvas.width !== width * dpr || this.canvas.height !== height * dpr) {
+            this.canvas.width = width * dpr;
+            this.canvas.height = height * dpr;
+            this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        }
+    }
+    
+    /**
+     * Show user-friendly WebGL error message
+     */
+    showWebGLError() {
+        if (!this.canvas) return;
+        const ctx = this.canvas.getContext('2d');
+        if (ctx) {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            ctx.fillStyle = '#ff64ff';
+            ctx.font = '16px Orbitron, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('WebGL Required', this.canvas.width / 2, this.canvas.height / 2);
+            ctx.fillStyle = '#888';
+            ctx.font = '12px Orbitron, monospace';
+            ctx.fillText('Please enable WebGL in your browser', this.canvas.width / 2, this.canvas.height / 2 + 25);
+        }
     }
     
     updateInteraction(mouseX, mouseY, intensity) {
