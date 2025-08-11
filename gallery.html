@@ -273,7 +273,7 @@
         .static-preview {
             width: 100%;
             height: 100%;
-            background: #000;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
             border-radius: 12px;
             position: relative;
             overflow: hidden;
@@ -281,7 +281,31 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border: 1px solid rgba(0, 255, 255, 0.2);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            box-shadow: inset 0 0 30px rgba(0, 255, 255, 0.1);
+        }
+        
+        /* Enhanced loading state */
+        .static-preview.loading {
+            background: 
+                radial-gradient(circle at 30% 30%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 70%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { 
+                box-shadow: 
+                    inset 0 0 30px rgba(0, 255, 255, 0.1),
+                    0 0 20px rgba(0, 255, 255, 0.2);
+            }
+            50% { 
+                box-shadow: 
+                    inset 0 0 30px rgba(0, 255, 255, 0.3),
+                    0 0 30px rgba(0, 255, 255, 0.4);
+            }
         }
         
         .preview-id {
@@ -927,6 +951,9 @@
                 clearTimeout(hoverTimeouts.get(card));
             }
             
+            // Get system before setTimeout to avoid scope issues
+            const system = card.getAttribute('data-system') || 'faceted';
+            
             const timeoutId = setTimeout(() => {
                 console.log('⏰ Creating iframe after timeout for system:', system);
                 const iframe = document.createElement('iframe');
@@ -952,6 +979,7 @@
                     setTimeout(() => {
                         const staticPreview = container.querySelector('.static-preview');
                         if (staticPreview) {
+                            staticPreview.classList.remove('loading');
                             staticPreview.style.opacity = '0';
                             staticPreview.style.transition = 'opacity 0.15s ease';
                             setTimeout(() => staticPreview.style.display = 'none', 150);
@@ -974,7 +1002,6 @@
                 
                 container.appendChild(iframe);
                 
-                const system = card.getAttribute('data-system') || 'faceted';
                 // CRITICAL FIX: Put system parameter FIRST so it gets processed before other parameters
                 iframe.src = `index.html?system=${system}&hideui=true&${params}`;
                 console.log(`🎯 Loading preview: system=${system}, URL: ${iframe.src}`);
@@ -982,13 +1009,16 @@
             
             hoverTimeouts.set(card, timeoutId);
             
-            // Show loading state immediately
+            // Show enhanced loading state immediately
             const staticPreview = container.querySelector('.static-preview');
             if (staticPreview) {
+                staticPreview.classList.add('loading');
                 const previewHint = staticPreview.querySelector('.preview-hint');
                 if (previewHint) {
-                    previewHint.textContent = 'LOADING...';
-                    previewHint.style.animation = 'pulse 1s infinite';
+                    previewHint.textContent = 'LOADING VISUALIZER...';
+                    previewHint.style.fontWeight = '700';
+                    previewHint.style.color = '#00ffff';
+                    previewHint.style.textShadow = '0 0 15px currentColor';
                 }
             }
         };
@@ -1009,6 +1039,7 @@
                     // Show static preview again
                     const staticPreview = container.querySelector('.static-preview');
                     if (staticPreview) {
+                        staticPreview.classList.remove('loading');
                         staticPreview.style.display = 'flex';
                         staticPreview.style.opacity = '1';
                     }
