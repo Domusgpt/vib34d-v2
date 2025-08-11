@@ -42,14 +42,27 @@
             }
         }
         
-        /* PREMIUM ENHANCED viewer card styling */
+        /* PREMIUM ENHANCED viewer card styling with METALLIC FOIL */
         .variation-card {
             background: 
                 linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(10, 10, 30, 0.9) 50%, rgba(20, 20, 40, 0.85) 100%),
                 radial-gradient(circle at top left, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at bottom right, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
-            border: 3px solid;
-            border-image: linear-gradient(45deg, #00ffff, #ff64ff, #ff9600, #00ffff) 1;
+            border: 4px solid;
+            border-image: linear-gradient(
+                45deg,
+                #fff 0%,
+                #00ffff 10%,
+                #fff 20%,
+                #ff64ff 35%,
+                #fff 45%,
+                #ff9600 60%,
+                #fff 70%,
+                #64ff96 85%,
+                #fff 95%,
+                #00ffff 100%
+            ) 1;
+            animation: border-metallic-rotate 8s linear infinite;
             border-radius: 20px;
             padding: 25px;
             transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -114,7 +127,7 @@
             height: 380px; /* Much larger for premium viewing */
             aspect-ratio: 1 / 1;
             border-radius: 16px;
-            overflow: visible;
+            overflow: visible; /* Allow expansion beyond boundaries */
             margin-bottom: 20px;
             background: 
                 linear-gradient(135deg, #111 0%, #1a1a2e 50%, #16213e 100%);
@@ -148,14 +161,67 @@
             transition: transform 0.1s ease-out;
         }
         
-        /* Canvas visualization container inside preview - EXACT MATCH */
+        /* Canvas visualization container inside preview - EXPANDED */
         .visualization-container {
-            width: 100%;
-            height: 100%;
-            position: relative;
+            width: 120%; /* Expand beyond boundaries */
+            height: 120%;
+            position: absolute;
+            left: -10%;
+            top: -10%;
             border-radius: 12px;
-            overflow: hidden;
+            overflow: visible;
             background: #000;
+            filter: drop-shadow(0 0 30px rgba(0, 255, 255, 0.5));
+            transition: all 0.6s ease;
+        }
+        
+        .variation-card:hover .visualization-container {
+            width: 140%; /* Expand even more on hover */
+            height: 140%;
+            left: -20%;
+            top: -20%;
+            filter: 
+                drop-shadow(0 0 50px rgba(0, 255, 255, 0.8))
+                drop-shadow(5px 5px 0 rgba(255, 0, 0, 0.3))
+                drop-shadow(-5px -5px 0 rgba(0, 255, 0, 0.3))
+                drop-shadow(0 0 100px rgba(255, 0, 255, 0.4));
+        }
+        
+        /* RGB Moire Offset Effect */
+        .visualization-container::before,
+        .visualization-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            mix-blend-mode: screen;
+            opacity: 0.15;
+            border-radius: 12px;
+        }
+        
+        .visualization-container::before {
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 2px,
+                rgba(255, 0, 0, 0.3) 2px,
+                rgba(255, 0, 0, 0.3) 4px
+            );
+            transform: translate(2px, -2px);
+        }
+        
+        .visualization-container::after {
+            background: repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 255, 0.3) 2px,
+                rgba(0, 255, 255, 0.3) 4px
+            );
+            transform: translate(-2px, 2px);
         }
         
         /* Holographic shimmer effect overlay - DIRECTIONAL BASED ON MOUSE */
@@ -221,7 +287,19 @@
         }
         
         .card-info h3 {
-            background: linear-gradient(45deg, #00ffff, #64ff96, #ff64ff);
+            background: linear-gradient(
+                125deg,
+                #fff 0%,
+                #00ffff 20%,
+                #fff 25%,
+                #64ff96 45%,
+                #fff 50%,
+                #ff64ff 70%,
+                #fff 75%,
+                #ff9600 90%,
+                #fff 100%
+            );
+            background-size: 200% 200%;
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -230,13 +308,64 @@
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 2px;
-            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
-            animation: title-glow 3s ease-in-out infinite;
+            text-shadow: 
+                0 0 30px rgba(0, 255, 255, 0.5),
+                0 2px 4px rgba(0, 0, 0, 0.5);
+            animation: metallic-shine 4s ease-in-out infinite;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        
+        @keyframes metallic-shine {
+            0%, 100% { 
+                background-position: 0% 50%;
+                text-shadow: 
+                    0 0 30px rgba(0, 255, 255, 0.5),
+                    0 2px 4px rgba(0, 0, 0, 0.5);
+            }
+            50% { 
+                background-position: 100% 50%;
+                text-shadow: 
+                    0 0 40px rgba(255, 100, 255, 0.7),
+                    0 2px 6px rgba(0, 0, 0, 0.7);
+            }
         }
         
         @keyframes title-glow {
             0%, 100% { text-shadow: 0 0 30px rgba(0, 255, 255, 0.5); }
             50% { text-shadow: 0 0 40px rgba(255, 100, 255, 0.7); }
+        }
+        
+        @keyframes border-metallic-rotate {
+            0% {
+                border-image: linear-gradient(
+                    45deg,
+                    #fff, #00ffff, #fff, #ff64ff, #fff, #ff9600, #fff, #64ff96, #fff
+                ) 1;
+            }
+            25% {
+                border-image: linear-gradient(
+                    90deg,
+                    #fff, #ff64ff, #fff, #ff9600, #fff, #64ff96, #fff, #00ffff, #fff
+                ) 1;
+            }
+            50% {
+                border-image: linear-gradient(
+                    135deg,
+                    #fff, #ff9600, #fff, #64ff96, #fff, #00ffff, #fff, #ff64ff, #fff
+                ) 1;
+            }
+            75% {
+                border-image: linear-gradient(
+                    180deg,
+                    #fff, #64ff96, #fff, #00ffff, #fff, #ff64ff, #fff, #ff9600, #fff
+                ) 1;
+            }
+            100% {
+                border-image: linear-gradient(
+                    45deg,
+                    #fff, #00ffff, #fff, #ff64ff, #fff, #ff9600, #fff, #64ff96, #fff
+                ) 1;
+            }
         }
         
         .card-params {

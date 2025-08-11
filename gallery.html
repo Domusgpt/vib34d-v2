@@ -965,6 +965,7 @@
                     transform-origin: center center;
                     opacity: 0;
                     transition: opacity 0.1s ease;
+                    pointer-events: auto; /* Enable mouse interaction with iframe content */
                 `;
                 
                 iframe.onload = function() {
@@ -973,6 +974,17 @@
                     setTimeout(() => {
                         iframe.style.opacity = '1';
                         console.log('👁️ Iframe visible, opacity set to 1');
+                        
+                        // Enable mouse interaction pass-through to iframe
+                        try {
+                            // Send message to iframe to enable interactivity
+                            iframe.contentWindow.postMessage({
+                                type: 'enableInteractivity',
+                                galleryPreview: true
+                            }, '*');
+                        } catch (e) {
+                            console.log('Could not post message to iframe:', e);
+                        }
                     }, 30); // Much faster loading - 1/10 of previous delay
                     // INSTANT LOADING: Show animated canvas immediately
                     setTimeout(() => {
@@ -1000,6 +1012,31 @@
                 };
                 
                 container.appendChild(iframe);
+                
+                // Forward mouse events to iframe for visualizer interactivity
+                container.addEventListener('mousemove', (e) => {
+                    const rect = container.getBoundingClientRect();
+                    const x = (e.clientX - rect.left) / rect.width;
+                    const y = (e.clientY - rect.top) / rect.height;
+                    
+                    try {
+                        iframe.contentWindow.postMessage({
+                            type: 'mouseMove',
+                            x: x,
+                            y: y,
+                            intensity: 1.0
+                        }, '*');
+                    } catch (err) {}
+                });
+                
+                container.addEventListener('click', (e) => {
+                    try {
+                        iframe.contentWindow.postMessage({
+                            type: 'mouseClick',
+                            intensity: 1.0
+                        }, '*');
+                    } catch (err) {}
+                });
                 
                 // CRITICAL FIX: Put system parameter FIRST so it gets processed before other parameters
                 iframe.src = `index.html?system=${system}&hideui=true&${params}`;

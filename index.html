@@ -594,17 +594,31 @@
                         if (topBar) topBar.style.display = 'none';
                         if (controlPanel) controlPanel.style.display = 'none';
                         if (canvasContainer) {
-                            // IFRAME-COMPATIBLE centering for gallery previews
+                            // Fix half-centered issue - use flex centering within iframe
                             canvasContainer.style.cssText = `
-                                position: absolute !important;
-                                top: 50% !important;
-                                left: 50% !important;
-                                transform: translate(-50%, -50%) !important;
-                                width: 100vmin !important;
-                                height: 100vmin !important;
-                                display: block !important;
-                                background: #000 !important;
+                                position: fixed !important;
+                                top: 0 !important;
+                                left: 0 !important;
+                                width: 100% !important;
+                                height: 100% !important;
+                                display: flex !important;
+                                align-items: center !important;
+                                justify-content: center !important;
+                                background: transparent !important;
                             `;
+                            
+                            // Find all canvas layers and center them
+                            const allCanvases = canvasContainer.querySelectorAll('canvas');
+                            allCanvases.forEach(canvas => {
+                                canvas.style.position = 'absolute';
+                                canvas.style.left = '50%';
+                                canvas.style.top = '50%';
+                                canvas.style.transform = 'translate(-50%, -50%)';
+                                canvas.style.width = '100%';
+                                canvas.style.height = '100%';
+                                canvas.style.maxWidth = '100vmin';
+                                canvas.style.maxHeight = '100vmin';
+                            });
                         }
                     };
                     
@@ -1596,6 +1610,55 @@
         // Initialize mobile interface on load
         document.addEventListener('DOMContentLoaded', () => {
             setupMobileInterface();
+        });
+        
+        // Listen for mouse events from gallery iframe for visualizer interactivity
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type) {
+                if (event.data.type === 'mouseMove') {
+                    // Update all visualizers with mouse position
+                    const updateMouseForSystem = (system) => {
+                        if (system && system.visualizers) {
+                            system.visualizers.forEach(vis => {
+                                if (vis) {
+                                    vis.mouseX = event.data.x;
+                                    vis.mouseY = event.data.y;
+                                    vis.mouseIntensity = event.data.intensity || 0.5;
+                                }
+                            });
+                        }
+                    };
+                    
+                    // Update the active system's visualizers
+                    if (window.currentSystem === 'faceted' && window.engine) {
+                        updateMouseForSystem(window.engine);
+                    } else if (window.currentSystem === 'quantum' && window.quantumEngine) {
+                        updateMouseForSystem(window.quantumEngine);
+                    } else if (window.currentSystem === 'holographic' && window.holographicSystem) {
+                        updateMouseForSystem(window.holographicSystem);
+                    }
+                } else if (event.data.type === 'mouseClick') {
+                    // Trigger click effects on all visualizers
+                    const triggerClickForSystem = (system) => {
+                        if (system && system.visualizers) {
+                            system.visualizers.forEach(vis => {
+                                if (vis) {
+                                    vis.clickIntensity = event.data.intensity || 1.0;
+                                }
+                            });
+                        }
+                    };
+                    
+                    // Trigger click on active system
+                    if (window.currentSystem === 'faceted' && window.engine) {
+                        triggerClickForSystem(window.engine);
+                    } else if (window.currentSystem === 'quantum' && window.quantumEngine) {
+                        triggerClickForSystem(window.quantumEngine);
+                    } else if (window.currentSystem === 'holographic' && window.holographicSystem) {
+                        triggerClickForSystem(window.holographicSystem);
+                    }
+                }
+            }
         });
         
         // Keyboard shortcuts
