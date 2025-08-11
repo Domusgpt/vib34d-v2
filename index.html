@@ -1282,25 +1282,17 @@
                     }
                 }
                 
-                // CRITICAL MOBILE FIX: Force mobile to use faceted system only
+                // Create all engines for both mobile and desktop
+                // Mobile WebGL proven to work - let users choose their system
+                engine = new VIB34DIntegratedEngine();
+                quantumEngine = new QuantumEngine();
+                holographicSystem = new RealHolographicSystem();
+                
                 if (isMobile) {
-                    window.mobileDebug.log(`📱 MOBILE OVERRIDE: Forcing faceted system (activeSystem was: ${activeSystem})`);
-                    window.mobileDebug.log(`📱 Timestamp: ${new Date().toISOString()}`);
-                    
-                    // Create only faceted engine on mobile to avoid WebGL context limits
-                    engine = new VIB34DIntegratedEngine();
-                    window.mobileDebug.log(`✅ Mobile Faceted Engine: ${engine.visualizers ? engine.visualizers.length : 0} visualizers created`);
-                    
-                    // Create minimal stubs for other engines to prevent errors
-                    quantumEngine = { visualizers: [], setActive: () => {}, updateParameter: () => {}, isActive: false };
-                    holographicSystem = { setActive: () => {}, updateParameter: () => {}, ensureRunning: () => {}, isActive: false };
-                    
-                    window.mobileDebug.log(`📱 Mobile optimization: Only faceted engine created, others stubbed`);
+                    window.mobileDebug.log(`📱 Mobile: All engines created (faceted, quantum, holographic)`);
+                    window.mobileDebug.log(`📱 Faceted: ${engine.visualizers ? engine.visualizers.length : 0} visualizers`);
+                    window.mobileDebug.log(`📱 Quantum: ${quantumEngine.visualizers ? quantumEngine.visualizers.length : 0} visualizers`);
                 } else {
-                    // Desktop: Create all engines as normal
-                    engine = new VIB34DIntegratedEngine();
-                    quantumEngine = new QuantumEngine();
-                    holographicSystem = new RealHolographicSystem();
                     console.log('✅ All engines initialized for desktop');
                 }
                 
