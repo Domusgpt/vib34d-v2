@@ -836,7 +836,7 @@
                     <div class="system-badge ${system}">${sysInfo.name}</div>
                     
                     <div class="card-preview" data-preview-container ondblclick="openVariation(this.parentElement)">
-                        <div class="static-preview">
+                        <div class="static-preview" ondblclick="openVariation(this.parentElement.parentElement)">
                             <div class="preview-id" style="color: hsl(${hue}, ${saturation}%, 60%);">
                                 #${globalId}
                             </div>
@@ -970,7 +970,7 @@
                     transform-origin: center center;
                     opacity: 0;
                     transition: opacity 0.1s ease;
-                    pointer-events: auto; /* Enable mouse interaction with iframe content */
+                    pointer-events: auto; /* Enable interaction but handle double-clicks specially */
                 `;
                 
                 iframe.onload = function() {
@@ -1034,6 +1034,7 @@
                     } catch (err) {}
                 });
                 
+                // Single click for interaction
                 container.addEventListener('click', (e) => {
                     try {
                         iframe.contentWindow.postMessage({
@@ -1041,6 +1042,18 @@
                             intensity: 1.0
                         }, '*');
                     } catch (err) {}
+                });
+                
+                // Double-click handler for opening viewer
+                container.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    openVariation(card);
+                });
+                
+                // Also add double-click directly to iframe
+                iframe.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    openVariation(card);
                 });
                 
                 // CRITICAL FIX: Put system parameter FIRST so it gets processed before other parameters
