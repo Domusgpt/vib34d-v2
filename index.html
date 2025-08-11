@@ -1085,8 +1085,8 @@
             if (previewData.system !== window.currentSystem) {
                 console.log(`🔄 Switching from ${window.currentSystem} to ${previewData.system} for gallery preview`);
                 await switchSystem(previewData.system);
-                // Standard wait for system switch
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // Minimal wait for system switch
+                await new Promise(resolve => setTimeout(resolve, 100));
             }
             
             // CRITICAL FIX: Force canvas layer visibility for gallery previews WITH verification
@@ -1105,8 +1105,8 @@
                 }
             });
             
-            // CRITICAL: Additional wait for visual system to fully render
-            await new Promise(resolve => setTimeout(resolve, 800)); // Extra time for rendering
+            // Quick render wait
+            await new Promise(resolve => setTimeout(resolve, 50)); // Minimal render time
             console.log(`✅ GALLERY PREVIEW: ${previewData.system} system should now be fully active`);
             
             // CRITICAL: Double-check system switch was successful
@@ -1179,7 +1179,7 @@
                 });
                 
                 // Force render after each parameter batch
-                await new Promise(resolve => setTimeout(resolve, 50));
+                await new Promise(resolve => setTimeout(resolve, 10));
             }
             
             // FINAL FORCE: Ensure the active system is actually rendering
@@ -1198,7 +1198,7 @@
                 } else if (typeof finalEngine.render === 'function') {
                     // Call render multiple times to ensure animation starts
                     for (let i = 0; i < 5; i++) {
-                        setTimeout(() => finalEngine.render(), i * 100);
+                        setTimeout(() => finalEngine.render(), i * 10);
                     }
                     console.log(`🎬 FINAL: Triggered multiple renders for ${previewData.system}`);
                 }
@@ -1206,7 +1206,7 @@
             
             console.log('✅ Gallery preview parameters applied with FORCED ANIMATION');
             
-            // CRITICAL: Force engine activation for gallery previews
+            // Immediate engine activation for gallery previews
             setTimeout(() => {
                 console.log('🚀 FORCING engine activation for gallery preview');
                 if (previewData.system === 'quantum' && window.quantumEngine) {
@@ -1290,7 +1290,7 @@
                     }
                 }
                 console.log('✅ Engine activation complete for gallery preview');
-            }, 1000); // Wait for engines to be fully initialized
+            }, 10); // Immediate activation
         }
         
         // Initialize Polychora when needed
@@ -1395,7 +1395,7 @@
                     setTimeout(() => {
                         console.log(`🔄 Retrying parameter ${param} = ${value} for ${activeSystem} (attempt 2)`);
                         window.updateParameter(param, value);
-                    }, 500); // Longer delay for engine initialization
+                    }, 100); // Quick retry
                     return;
                 }
                 
@@ -1506,7 +1506,7 @@
         window.randomizeEverything = function() {
             // Full randomization: parameters + geometry + hue
             randomizeParameters();
-            setTimeout(() => randomizeGeometryAndHue(), 50);
+            setTimeout(() => randomizeGeometryAndHue(), 10);
         }
         
         function randomizeParameters() {
@@ -1681,7 +1681,7 @@
                     if (data.system && data.system !== currentSystem) {
                         switchSystem(data.system);
                         // Wait for system switch to complete
-                        setTimeout(() => loadGalleryParameters(data), 100);
+                        setTimeout(() => loadGalleryParameters(data), 20);
                     } else {
                         loadGalleryParameters(data);
                     }

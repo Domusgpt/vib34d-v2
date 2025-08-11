@@ -14,6 +14,8 @@
             color: #fff;
             font-family: 'Orbitron', monospace;
             overflow-x: hidden;
+            overscroll-behavior: contain; /* Prevent scroll chaining */
+            touch-action: pan-y; /* Allow vertical scrolling */
             background: radial-gradient(ellipse at center, #1a0033 0%, #000000 70%);
         }
         
@@ -156,6 +158,7 @@
             transform-style: preserve-3d;
             transform-origin: 50% 50%;
             will-change: transform;
+            touch-action: pan-y; /* Allow vertical scrolling through cards */
             /* CSS variables for mouse tracking */
             --mouse-x: 50%;
             --mouse-y: 50%;
@@ -260,7 +263,7 @@
             width: 100%;
             height: 100%;
             border: none;
-            pointer-events: auto; /* Allow interaction */
+            pointer-events: auto; /* Allow interaction for parameter reactivity */
             border-radius: 12px;
             background: #000;
             display: block;
@@ -269,6 +272,28 @@
             left: 0;
             transform: none;
             transform-origin: center center;
+            touch-action: pan-y; /* Allow vertical scrolling to pass through */
+            -webkit-overflow-scrolling: touch; /* Smooth iOS scroll */
+        }
+        
+        /* Transparent overlay for card tilt continuity */
+        .card-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none; /* Pass through to iframe for parameter reactivity */
+            background: transparent;
+            border-radius: 12px;
+        }
+        
+        /* During hover, overlay captures mouse for card tilting while iframe gets parameter events */
+        .variation-card:hover .card-preview::before {
+            pointer-events: auto;
+            cursor: pointer;
         }
         
         .static-preview {
@@ -1040,7 +1065,7 @@
                             staticPreview.classList.remove('loading');
                             staticPreview.style.opacity = '0';
                             staticPreview.style.transition = 'opacity 0.15s ease';
-                            setTimeout(() => staticPreview.style.display = 'none', 150);
+                            setTimeout(() => staticPreview.style.display = 'none', 50);
                         }
                         
                         // Force iframe to start animation immediately
@@ -1049,7 +1074,7 @@
                         } catch (e) {
                             console.log('🎬 Animation start message sent to iframe');
                         }
-                    }, 600); // RESTORED: Proper delay to prevent WebGL context explosion
+                    }, 100); // Speed optimized: Reduced delay for faster initialization
                 };
                 
                 iframe.onerror = function(error) {
@@ -1102,7 +1127,7 @@
                 // CRITICAL FIX: Put system parameter FIRST so it gets processed before other parameters
                 iframe.src = `index.html?system=${system}&hideui=true&${params}`;
                 console.log(`🎯 Loading preview: system=${system}, URL: ${iframe.src}`);
-            }, 50); // ULTRA FAST: Immediate preview loading
+            }, 20); // ULTRA FAST: Immediate preview loading
             
             hoverTimeouts.set(card, timeoutId);
             
@@ -1307,7 +1332,7 @@
                 });
                 
                 // Mouse move - track position for card bending + visual reactivity
-                card.addEventListener('mousemove', (e) => {
+                function handleCardMouseMove(e) {
                     if (!isHovering) return;
                     
                     const rect = card.getBoundingClientRect();
@@ -1350,7 +1375,55 @@
                     } else {
                         card.classList.remove('edge-bend');
                     }
-                });
+                }
+                
+                // Attach mousemove to card
+                card.addEventListener('mousemove', handleCardMouseMove);
+                
+                // CRITICAL FIX: Also attach mousemove to overlay for continuous tilting over canvas
+                const overlay = card.querySelector('.card-preview::before');
+                if (overlay) {
+                    overlay.addEventListener('mousemove', handleCardMouseMove);
+                }
+                
+                // Alternative: Use global mouse tracking when over canvas
+                const iframe = card.querySelector('iframe');
+                if (iframe) {
+                    iframe.addEventListener('mouseenter', () => {
+                        // When mouse enters iframe, start global tracking for card tilt
+                        document.addEventListener('mousemove', handleCardMouseMove);
+                    });
+                    
+                    iframe.addEventListener('mouseleave', () => {
+                        // When mouse leaves iframe, stop global tracking
+                        document.removeEventListener('mousemove', handleCardMouseMove);
+                    });
+                    
+                    // SCROLL PRESERVATION: Prevent iframe from blocking page scroll
+                    iframe.addEventListener('touchstart', (e) => {
+                        // Allow touch to pass through for page scrolling unless it's a tap/interaction
+                        if (e.touches.length === 1) {
+                            const touch = e.touches[0];
+                            const rect = iframe.getBoundingClientRect();
+                            const x = touch.clientX - rect.left;
+                            const y = touch.clientY - rect.top;
+                            
+                            // Only prevent default for parameter interaction areas (center region)
+                            const centerThreshold = 0.3; // 30% from edges
+                            const isInCenterRegion = (
+                                x > rect.width * centerThreshold && 
+                                x < rect.width * (1 - centerThreshold) &&
+                                y > rect.height * centerThreshold && 
+                                y < rect.height * (1 - centerThreshold)
+                            );
+                            
+                            if (!isInCenterRegion) {
+                                // Near edges - allow scroll to pass through
+                                e.preventDefault = () => {}; // Disable preventDefault
+                            }
+                        }
+                    }, { passive: true });
+                }
                 
                 // Click effect - holographic explosion + visual reactivity
                 card.addEventListener('click', (e) => {
@@ -1398,7 +1471,7 @@
         // Initialize holographic effects when DOM is ready
         document.addEventListener('DOMContentLoaded', () => {
             // Small delay to ensure cards are rendered
-            setTimeout(initializeHolographicCardEffects, 500);
+            setTimeout(initializeHolographicCardEffects, 50);
         });
     </script>
 </body>
