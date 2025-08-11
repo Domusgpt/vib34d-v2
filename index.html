@@ -1285,6 +1285,7 @@
                 // CRITICAL MOBILE FIX: Force mobile to use faceted system only
                 if (isMobile) {
                     window.mobileDebug.log(`📱 MOBILE OVERRIDE: Forcing faceted system (activeSystem was: ${activeSystem})`);
+                    window.mobileDebug.log(`📱 Timestamp: ${new Date().toISOString()}`);
                     
                     // Create only faceted engine on mobile to avoid WebGL context limits
                     engine = new VIB34DIntegratedEngine();
