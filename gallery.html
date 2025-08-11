@@ -172,11 +172,12 @@
                 inset 0 2px 0 rgba(255, 255, 255, 0.2),
                 0 0 40px rgba(255, 0, 255, 0.4);
             transform: 
-                perspective(800px)
-                rotateY(calc((var(--mouse-x) - 50) * 0.25deg * var(--bend-intensity)))
-                rotateX(calc((var(--mouse-y) - 50) * 0.12deg * var(--bend-intensity)))
-                translateZ(calc(var(--bend-intensity) * 30px))
-                translateY(-10px);
+                perspective(1200px)
+                rotateY(calc((var(--mouse-x) - 50) * 0.4deg * var(--bend-intensity)))
+                rotateX(calc((var(--mouse-y) - 50) * -0.3deg * var(--bend-intensity)))
+                translateZ(calc(var(--bend-intensity) * 35px))
+                translateY(-10px)
+                scale(1.01);
             backdrop-filter: blur(20px);
             z-index: 10;
         }
@@ -1380,49 +1381,65 @@
                 // Attach mousemove to card
                 card.addEventListener('mousemove', handleCardMouseMove);
                 
-                // CRITICAL FIX: Also attach mousemove to overlay for continuous tilting over canvas
-                const overlay = card.querySelector('.card-preview::before');
-                if (overlay) {
-                    overlay.addEventListener('mousemove', handleCardMouseMove);
-                }
-                
-                // Alternative: Use global mouse tracking when over canvas
-                const iframe = card.querySelector('iframe');
-                if (iframe) {
-                    iframe.addEventListener('mouseenter', () => {
-                        // When mouse enters iframe, start global tracking for card tilt
-                        document.addEventListener('mousemove', handleCardMouseMove);
-                    });
-                    
-                    iframe.addEventListener('mouseleave', () => {
-                        // When mouse leaves iframe, stop global tracking
-                        document.removeEventListener('mousemove', handleCardMouseMove);
-                    });
-                    
-                    // SCROLL PRESERVATION: Prevent iframe from blocking page scroll
-                    iframe.addEventListener('touchstart', (e) => {
-                        // Allow touch to pass through for page scrolling unless it's a tap/interaction
-                        if (e.touches.length === 1) {
-                            const touch = e.touches[0];
-                            const rect = iframe.getBoundingClientRect();
-                            const x = touch.clientX - rect.left;
-                            const y = touch.clientY - rect.top;
-                            
-                            // Only prevent default for parameter interaction areas (center region)
-                            const centerThreshold = 0.3; // 30% from edges
-                            const isInCenterRegion = (
-                                x > rect.width * centerThreshold && 
-                                x < rect.width * (1 - centerThreshold) &&
-                                y > rect.height * centerThreshold && 
-                                y < rect.height * (1 - centerThreshold)
-                            );
-                            
-                            if (!isInCenterRegion) {
-                                // Near edges - allow scroll to pass through
-                                e.preventDefault = () => {}; // Disable preventDefault
+                // CRITICAL FIX: Watch for iframe creation and attach listeners when it appears
+                const observeIframe = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.tagName === 'IFRAME') {
+                                console.log('🎯 Iframe detected, attaching tilt continuity handlers');
+                                
+                                // When iframe loads, set up continuous tilt tracking
+                                node.addEventListener('load', () => {
+                                    // Create invisible overlay for mouse tracking
+                                    const mouseTracker = document.createElement('div');
+                                    mouseTracker.style.cssText = `
+                                        position: absolute;
+                                        top: 0;
+                                        left: 0;
+                                        width: 100%;
+                                        height: 100%;
+                                        z-index: 1000;
+                                        pointer-events: auto;
+                                        cursor: pointer;
+                                        background: transparent;
+                                    `;
+                                    
+                                    // Add mouse tracking to overlay
+                                    mouseTracker.addEventListener('mousemove', handleCardMouseMove);
+                                    
+                                    // Allow clicks to pass through to iframe for double-click
+                                    mouseTracker.addEventListener('dblclick', (e) => {
+                                        mouseTracker.style.pointerEvents = 'none';
+                                        setTimeout(() => {
+                                            const clickEvent = new MouseEvent('dblclick', {
+                                                bubbles: true,
+                                                cancelable: true,
+                                                view: window,
+                                                clientX: e.clientX,
+                                                clientY: e.clientY
+                                            });
+                                            node.dispatchEvent(clickEvent);
+                                            mouseTracker.style.pointerEvents = 'auto';
+                                        }, 10);
+                                    });
+                                    
+                                    // Add tracker to preview container
+                                    const preview = card.querySelector('.card-preview');
+                                    if (preview && !preview.querySelector('.mouse-tracker')) {
+                                        mouseTracker.classList.add('mouse-tracker');
+                                        preview.appendChild(mouseTracker);
+                                        console.log('✅ Mouse tracker overlay added for continuous tilt');
+                                    }
+                                });
                             }
-                        }
-                    }, { passive: true });
+                        });
+                    });
+                });
+                
+                // Start observing the card for iframe additions
+                const preview = card.querySelector('.card-preview');
+                if (preview) {
+                    observeIframe.observe(preview, { childList: true, subtree: true });
                 }
                 
                 // Click effect - holographic explosion + visual reactivity
