@@ -32,9 +32,17 @@ export class QuantumHolographicVisualizer {
         
         if (!this.gl) {
             console.error(`WebGL not supported for ${canvasId}`);
+            if (window.mobileDebug) {
+                window.mobileDebug.log(`❌ ${canvasId}: WebGL context creation failed`);
+            }
             // Show user-friendly error instead of white screen
             this.showWebGLError();
             return;
+        } else {
+            if (window.mobileDebug) {
+                const version = this.gl.getParameter(this.gl.VERSION);
+                window.mobileDebug.log(`✅ ${canvasId}: WebGL context created - ${version}`);
+            }
         }
         
         this.mouseX = 0.5;
@@ -80,7 +88,16 @@ void main() {
     gl_Position = vec4(a_position, 0.0, 1.0);
 }`;
         
-        const fragmentShaderSource = `precision highp float;
+        // Mobile-friendly precision - try highp, fallback to mediump
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const precision = isMobile ? 'mediump' : 'highp';
+        
+        const fragmentShaderSource = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+    precision highp float;
+#else
+    precision mediump float;
+#endif
 
 uniform vec2 u_resolution;
 uniform float u_time;
@@ -397,8 +414,16 @@ void main() {
         this.gl.linkProgram(program);
         
         if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
-            console.error('Program linking failed:', this.gl.getProgramInfoLog(program));
+            const error = this.gl.getProgramInfoLog(program);
+            console.error('Program linking failed:', error);
+            if (window.mobileDebug) {
+                window.mobileDebug.log(`❌ ${this.canvas?.id}: Shader program link failed - ${error}`);
+            }
             return null;
+        } else {
+            if (window.mobileDebug) {
+                window.mobileDebug.log(`✅ ${this.canvas?.id}: Shader program linked successfully`);
+            }
         }
         
         return program;
@@ -413,9 +438,23 @@ void main() {
         this.gl.compileShader(shader);
         
         if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-            console.error('Shader compilation failed:', this.gl.getShaderInfoLog(shader));
+            const error = this.gl.getShaderInfoLog(shader);
+            const shaderType = type === this.gl.VERTEX_SHADER ? 'vertex' : 'fragment';
+            console.error(`${shaderType} shader compilation failed:`, error);
             console.error('Shader source:', source);
+            
+            if (window.mobileDebug) {
+                window.mobileDebug.log(`❌ ${this.canvas?.id}: ${shaderType} shader compile failed - ${error}`);
+                // Log first few lines of problematic shader for mobile debugging
+                const sourceLines = source.split('\n').slice(0, 5).join('\\n');
+                window.mobileDebug.log(`🔍 ${shaderType} shader source start: ${sourceLines}...`);
+            }
             return null;
+        } else {
+            if (window.mobileDebug) {
+                const shaderType = type === this.gl.VERTEX_SHADER ? 'vertex' : 'fragment';
+                window.mobileDebug.log(`✅ ${this.canvas?.id}: ${shaderType} shader compiled successfully`);
+            }
         }
         
         return shader;

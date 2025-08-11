@@ -1086,16 +1086,14 @@
                     const count3 = fixActiveCanvases();
                     window.mobileDebug.log(`📱 Pass 3: Fixed ${count3} canvases - optimization complete`);
                     
-                    // Test render to verify fix
+                    // Test canvas existence (WITHOUT creating 2D context that would block WebGL)
                     const testCanvasId = systemCanvases[activeSystem][0];
                     const testCanvas = document.getElementById(testCanvasId);
                     if (testCanvas) {
-                        const ctx = testCanvas.getContext('2d');
-                        if (ctx) {
-                            ctx.fillStyle = '#00ffff';
-                            ctx.fillRect(10, 10, 100, 100);
-                            window.mobileDebug.log(`✅ Mobile optimization successful - ${activeSystem} system ready`);
-                        }
+                        const canvasRect = testCanvas.getBoundingClientRect();
+                        window.mobileDebug.log(`✅ Mobile optimization successful - ${activeSystem} system ready, canvas ${testCanvasId}: ${canvasRect.width}x${canvasRect.height}`);
+                    } else {
+                        window.mobileDebug.log(`❌ Test canvas ${testCanvasId} not found after optimization`);
                     }
                 }, 500);
             }
