@@ -1187,9 +1187,26 @@
             setTimeout(() => {
                 console.log('🚀 FORCING engine activation for gallery preview');
                 if (previewData.system === 'quantum' && window.quantumEngine) {
-                    console.log('🔮 Activating quantum engine for gallery preview');
+                    console.log('🔮 FORCING quantum engine full activation for gallery preview');
                     window.quantumEngine.isActive = true;
-                    // Force update all parameters
+                    
+                    // CRITICAL: Force all quantum visualizers to start rendering
+                    if (window.quantumEngine.visualizers) {
+                        window.quantumEngine.visualizers.forEach(visualizer => {
+                            if (visualizer && visualizer.gl) {
+                                visualizer.isActive = true;
+                                console.log('✅ Activated quantum visualizer:', visualizer.layerType);
+                            }
+                        });
+                    }
+                    
+                    // Force render loop restart
+                    if (window.quantumEngine.startRenderLoop) {
+                        window.quantumEngine.startRenderLoop();
+                        console.log('✅ Quantum render loop restarted');
+                    }
+                    
+                    // Force update all parameters AFTER activation
                     Object.entries(previewData.parameters).forEach(([param, value]) => {
                         if (param !== 'geometry' && param !== 'geometryType') {
                             try {
@@ -1200,9 +1217,26 @@
                         }
                     });
                 } else if (previewData.system === 'holographic' && window.holographicSystem) {
-                    console.log('✨ Activating holographic engine for gallery preview');
+                    console.log('✨ FORCING holographic engine full activation for gallery preview');
                     window.holographicSystem.isActive = true;
-                    // Force update all parameters
+                    
+                    // CRITICAL: Force all holographic visualizers to start rendering
+                    if (window.holographicSystem.visualizers) {
+                        window.holographicSystem.visualizers.forEach(visualizer => {
+                            if (visualizer && visualizer.gl) {
+                                visualizer.isActive = true;
+                                console.log('✅ Activated holographic visualizer:', visualizer.layerType);
+                            }
+                        });
+                    }
+                    
+                    // Force render loop restart
+                    if (window.holographicSystem.startRenderLoop) {
+                        window.holographicSystem.startRenderLoop();
+                        console.log('✅ Holographic render loop restarted');
+                    }
+                    
+                    // Force update all parameters AFTER activation
                     Object.entries(previewData.parameters).forEach(([param, value]) => {
                         if (param !== 'geometry' && param !== 'geometryType') {
                             try {
@@ -1212,6 +1246,25 @@
                             }
                         }
                     });
+                } else if (previewData.system === 'faceted' && window.engine) {
+                    console.log('🔷 FORCING faceted engine full activation for gallery preview');
+                    window.engine.isActive = true;
+                    
+                    // Force all faceted visualizers to start rendering
+                    if (window.engine.visualizers) {
+                        window.engine.visualizers.forEach(visualizer => {
+                            if (visualizer && visualizer.gl) {
+                                visualizer.isActive = true;
+                                console.log('✅ Activated faceted visualizer:', visualizer.layerType);
+                            }
+                        });
+                    }
+                    
+                    // Force render loop restart
+                    if (window.engine.startRenderLoop) {
+                        window.engine.startRenderLoop();
+                        console.log('✅ Faceted render loop restarted');
+                    }
                 }
                 console.log('✅ Engine activation complete for gallery preview');
             }, 1000); // Wait for engines to be fully initialized
