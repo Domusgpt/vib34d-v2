@@ -253,14 +253,36 @@ export class CollectionManager {
                 console.log(`🔵 Found ${variations.length} user-saved variations in localStorage`);
                 
                 if (variations.length > 0) {
-                    // Create a collection from user-saved variations
+                    // Group variations by date for tabs
+                    const variationsByDate = {};
+                    variations.forEach(variation => {
+                        const date = new Date(variation.timestamp || variation.created || Date.now());
+                        const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+                        const displayDate = date.toLocaleDateString('en-US', { 
+                            weekday: 'short', 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric' 
+                        });
+                        
+                        if (!variationsByDate[dateKey]) {
+                            variationsByDate[dateKey] = {
+                                displayDate,
+                                variations: []
+                            };
+                        }
+                        variationsByDate[dateKey].variations.push(variation);
+                    });
+                    
+                    // Create a unified collection with date-based organization
                     const userCollection = {
                         name: `User Saved Variations (${variations.length})`,
-                        description: `Custom variations saved by user using Save to Gallery`,
+                        description: `Custom variations saved by user - organized by date`,
                         version: '1.0',
                         type: 'holographic-collection',
                         profileName: 'VIB34D User',
                         totalVariations: variations.length,
+                        variationsByDate: variationsByDate, // Add date organization
                         created: new Date().toISOString(),
                         filename: 'user-saved-localStorage.json',
                         loadedAt: new Date().toISOString(),
