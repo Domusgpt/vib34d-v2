@@ -1182,6 +1182,39 @@
             }
             
             console.log('✅ Gallery preview parameters applied with FORCED ANIMATION');
+            
+            // CRITICAL: Force engine activation for gallery previews
+            setTimeout(() => {
+                console.log('🚀 FORCING engine activation for gallery preview');
+                if (previewData.system === 'quantum' && window.quantumEngine) {
+                    console.log('🔮 Activating quantum engine for gallery preview');
+                    window.quantumEngine.isActive = true;
+                    // Force update all parameters
+                    Object.entries(previewData.parameters).forEach(([param, value]) => {
+                        if (param !== 'geometry' && param !== 'geometryType') {
+                            try {
+                                window.quantumEngine.updateParameter(param, parseFloat(value));
+                            } catch (e) {
+                                console.log('🔄 Parameter queued for quantum engine:', param, value);
+                            }
+                        }
+                    });
+                } else if (previewData.system === 'holographic' && window.holographicSystem) {
+                    console.log('✨ Activating holographic engine for gallery preview');
+                    window.holographicSystem.isActive = true;
+                    // Force update all parameters
+                    Object.entries(previewData.parameters).forEach(([param, value]) => {
+                        if (param !== 'geometry' && param !== 'geometryType') {
+                            try {
+                                window.holographicSystem.updateParameter(param, parseFloat(value));
+                            } catch (e) {
+                                console.log('🔄 Parameter queued for holographic system:', param, value);
+                            }
+                        }
+                    });
+                }
+                console.log('✅ Engine activation complete for gallery preview');
+            }, 1000); // Wait for engines to be fully initialized
         }
         
         // Initialize Polychora when needed
@@ -1284,9 +1317,9 @@
                     
                     // RETRY: Gallery previews might call this before engines are ready
                     setTimeout(() => {
-                        console.log(`🔄 Retrying parameter ${param} = ${value} for ${activeSystem}`);
+                        console.log(`🔄 Retrying parameter ${param} = ${value} for ${activeSystem} (attempt 2)`);
                         window.updateParameter(param, value);
-                    }, 100);
+                    }, 500); // Longer delay for engine initialization
                     return;
                 }
                 
