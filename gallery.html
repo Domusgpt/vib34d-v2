@@ -259,15 +259,15 @@
             width: 100%;
             height: 100%;
             border: none;
-            pointer-events: auto; /* Enable interaction */
+            pointer-events: none;
             border-radius: 12px;
             background: #000;
             display: block;
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             transform-origin: center center;
-            transition: all 0.3s ease;
         }
         
         .static-preview {
@@ -534,20 +534,20 @@
             }
         }
         
-        /* Canvas preview expands ONLY when hovering over the preview area */
-        .card-preview:hover iframe {
+        /* Enhanced iframe scaling when card is hovered - FIXED: Fill entire square space */
+        .variation-card:hover .card-preview iframe {
             transform: 
-                scale(1.8) /* Expand significantly when hovering canvas */
+                translate(-50%, -50%)
                 rotateY(calc((var(--mouse-x) - 50) * -0.1deg));
             filter: brightness(1.15) contrast(1.05);
-            z-index: 100; /* Ensure it appears above everything */
-            transition: transform 0.3s ease-out;
+            transition: transform 0.1s ease-out;
         }
         
         /* Enhanced iframe scaling when card is bent */
         .variation-card.edge-bend .card-preview iframe,
         .variation-card.holographic-explosion .card-preview iframe {
             transform: 
+                translate(-50%, -50%)
                 scale(1.02) 
                 rotateY(calc((var(--mouse-x) - 50) * -0.1deg));
             filter: brightness(1.15) contrast(1.05);
