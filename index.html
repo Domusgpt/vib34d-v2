@@ -1148,6 +1148,14 @@
         
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
+            // CRITICAL TIMING FIX: Run mobile canvas fix FIRST before engine initialization
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobile) {
+                // Wait for any other mobile fixes to complete first
+                await new Promise(resolve => setTimeout(resolve, 100));
+                window.mobileDebug.log(`⚡ Engine initialization starting after mobile canvas fix`);
+            }
+            
             // URL parameters already parsed outside the module
             
             setupGeometry('faceted');
@@ -1270,11 +1278,38 @@
                 
                 // Initialize Faceted engine (auto-initializes in constructor)
                 engine = new VIB34DIntegratedEngine();
-                window.mobileDebug.log('✅ VIB34D Faceted Engine initialized');
+                
+                // MOBILE DEBUGGING: Check if faceted engine visualizers were created successfully
+                if (isMobile) {
+                    window.mobileDebug.log(`📊 Faceted Engine: ${engine.visualizers ? engine.visualizers.length : 0} visualizers created`);
+                    if (engine.visualizers && engine.visualizers.length > 0) {
+                        engine.visualizers.forEach((visualizer, index) => {
+                            const hasCanvas = visualizer && visualizer.canvas;
+                            const hasGL = hasCanvas && visualizer.gl;
+                            window.mobileDebug.log(`🔍 Visualizer ${index}: canvas=${hasCanvas ? 'OK' : 'FAIL'}, WebGL=${hasGL ? 'OK' : 'FAIL'}`);
+                        });
+                    } else {
+                        window.mobileDebug.log(`❌ CRITICAL: Faceted engine has no visualizers!`);
+                    }
+                }
+                
                 console.log('✅ VIB34D Faceted Engine initialized');
                 
                 // Initialize Quantum engine
                 quantumEngine = new QuantumEngine();
+                
+                // MOBILE DEBUGGING: Check quantum engine too
+                if (isMobile) {
+                    window.mobileDebug.log(`📊 Quantum Engine: ${quantumEngine.visualizers ? quantumEngine.visualizers.length : 0} visualizers created`);
+                    if (quantumEngine.visualizers && quantumEngine.visualizers.length > 0) {
+                        quantumEngine.visualizers.forEach((visualizer, index) => {
+                            const hasCanvas = visualizer && visualizer.canvas;
+                            const hasGL = hasCanvas && visualizer.gl;
+                            window.mobileDebug.log(`🔍 Quantum Visualizer ${index}: canvas=${hasCanvas ? 'OK' : 'FAIL'}, WebGL=${hasGL ? 'OK' : 'FAIL'}`);
+                        });
+                    }
+                }
+                
                 console.log('✅ VIB34D Quantum Engine initialized');
                 
                 // Initialize Holographic system
@@ -1322,8 +1357,45 @@
                     await applyGalleryPreviewData();
                 } else {
                     console.log('ℹ️ No gallery preview data found - normal index.html usage');
-                    // For normal usage, show the default system
-                    await switchSystem('faceted');
+                    
+                    // CRITICAL MOBILE FIX: Use the active system determined by mobile optimization  
+                    let targetSystem = 'faceted';
+                    if (isMobile) {
+                        // Re-determine active system same way mobile optimization did
+                        targetSystem = window.galleryPreviewData?.system || window.currentSystem || 'faceted';
+                    }
+                    console.log(`📱 Mobile system switch: ${targetSystem} (isMobile: ${isMobile})`);
+                    if (window.mobileDebug) {
+                        window.mobileDebug.log(`📱 Switching to ${targetSystem} system for mobile optimization`);
+                    }
+                    
+                    await switchSystem(targetSystem);
+                    
+                    // MOBILE DEBUGGING: Verify system switch worked and engine is rendering
+                    if (isMobile) {
+                        window.mobileDebug.log(`🔍 Post-switch verification: currentSystem=${window.currentSystem}`);
+                        
+                        // Check which engine should be active and if it's working
+                        if (targetSystem === 'faceted' && window.engine) {
+                            const engine = window.engine;
+                            window.mobileDebug.log(`🔍 Faceted engine status: visualizers=${engine.visualizers?.length}, animationId=${!!engine.animationId}`);
+                        } else if (targetSystem === 'quantum' && window.quantumEngine) {
+                            const engine = window.quantumEngine;
+                            window.mobileDebug.log(`🔍 Quantum engine status: visualizers=${engine.visualizers?.length}, isActive=${engine.isActive}`);
+                        } else if (targetSystem === 'holographic' && window.holographicSystem) {
+                            const engine = window.holographicSystem;
+                            window.mobileDebug.log(`🔍 Holographic system status: isRunning=${engine.isRunning}, isActive=${engine.isActive}`);
+                        }
+                        
+                        // Check which canvas layers are visible
+                        const layerVisibility = {
+                            faceted: document.getElementById('vib34dLayers')?.style.display,
+                            quantum: document.getElementById('quantumLayers')?.style.display,
+                            holographic: document.getElementById('holographicLayers')?.style.display,
+                            polychora: document.getElementById('polychoraLayers')?.style.display
+                        };
+                        window.mobileDebug.log(`🔍 Layer visibility: ${JSON.stringify(layerVisibility)}`);
+                    }
                 }
                 
                 // SURGICAL FIX: Force gallery preview to start animating immediately
