@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile WebGL Test</title>
+    <style>
+        body { margin: 0; padding: 0; background: #000; }
+        canvas { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh;
+            background: #111;
+        }
+        #debug {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-family: monospace;
+            font-size: 14px;
+            background: rgba(255,0,0,0.8);
+            padding: 10px;
+            z-index: 1000;
+            max-width: 300px;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="testCanvas"></canvas>
+    <div id="debug">Starting mobile test...</div>
+
+    <script>
+        const debug = document.getElementById('debug');
+        const canvas = document.getElementById('testCanvas');
+        
+        function log(msg) {
+            debug.innerHTML += '<br>' + msg;
+            console.log(msg);
+        }
+
+        log('Canvas element: ' + (canvas ? 'OK' : 'FAIL'));
+        
+        // Set canvas size
+        canvas.width = window.innerWidth * 2;
+        canvas.height = window.innerHeight * 2;
+        canvas.style.width = window.innerWidth + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+        
+        log('Canvas size: ' + canvas.width + 'x' + canvas.height);
+        
+        // Try WebGL
+        const gl = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        
+        if (!gl) {
+            log('WebGL: FAILED');
+        } else {
+            log('WebGL: SUCCESS');
+            log('WebGL version: ' + gl.getParameter(gl.VERSION));
+            
+            // Simple test - just make it red
+            gl.clearColor(1.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            
+            log('Red screen test executed');
+            
+            setTimeout(() => {
+                // Make it green after 2 seconds
+                gl.clearColor(0.0, 1.0, 0.0, 1.0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                log('Green screen test executed');
+                
+                setTimeout(() => {
+                    debug.style.display = 'none';
+                }, 3000);
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
