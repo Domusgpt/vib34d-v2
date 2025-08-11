@@ -1276,45 +1276,54 @@
                     }
                 }
                 
-                // Initialize Faceted engine (auto-initializes in constructor)
-                engine = new VIB34DIntegratedEngine();
-                
-                // MOBILE DEBUGGING: Check if faceted engine visualizers were created successfully
+                // CRITICAL MOBILE FIX: Initialize only the engine that matches mobile canvas optimization
                 if (isMobile) {
-                    window.mobileDebug.log(`📊 Faceted Engine: ${engine.visualizers ? engine.visualizers.length : 0} visualizers created`);
-                    if (engine.visualizers && engine.visualizers.length > 0) {
-                        engine.visualizers.forEach((visualizer, index) => {
-                            const hasCanvas = visualizer && visualizer.canvas;
-                            const hasGL = hasCanvas && visualizer.gl;
-                            window.mobileDebug.log(`🔍 Visualizer ${index}: canvas=${hasCanvas ? 'OK' : 'FAIL'}, WebGL=${hasGL ? 'OK' : 'FAIL'}`);
-                        });
+                    const mobileSystem = activeSystem; // Use same system determined by mobile optimization
+                    window.mobileDebug.log(`🎯 MOBILE ENGINE MATCH: Creating ${mobileSystem} engine to match canvas layers`);
+                    
+                    if (mobileSystem === 'faceted') {
+                        engine = new VIB34DIntegratedEngine();
+                        window.mobileDebug.log(`✅ Faceted Engine: ${engine.visualizers ? engine.visualizers.length : 0} visualizers created`);
+                    } else if (mobileSystem === 'quantum') {
+                        quantumEngine = new QuantumEngine();
+                        window.mobileDebug.log(`✅ Quantum Engine: ${quantumEngine.visualizers ? quantumEngine.visualizers.length : 0} visualizers created`);
+                        // Create stub faceted engine for compatibility
+                        engine = { visualizers: [], updateParameter: () => {} };
+                    } else if (mobileSystem === 'holographic') {
+                        holographicSystem = new RealHolographicSystem();
+                        window.mobileDebug.log(`✅ Holographic System created for mobile`);
+                        // Create stub engines for compatibility
+                        engine = { visualizers: [], updateParameter: () => {} };
+                        quantumEngine = { visualizers: [], setActive: () => {} };
+                    }
+                } else {
+                    // Desktop: Initialize all engines as normal
+                    engine = new VIB34DIntegratedEngine();
+                    console.log('✅ VIB34D Faceted Engine initialized');
+                    
+                    quantumEngine = new QuantumEngine();
+                    console.log('✅ VIB34D Quantum Engine initialized');
+                    
+                    holographicSystem = new RealHolographicSystem();
+                    console.log('✅ Holographic System ready');
+                }
+                
+                // Ensure all engines exist with stubs if needed for compatibility
+                if (!engine) {
+                    engine = { visualizers: [], updateParameter: () => {}, startRenderLoop: () => {} };
+                }
+                if (!quantumEngine) {
+                    quantumEngine = { visualizers: [], setActive: () => {}, updateParameter: () => {} };
+                }
+                if (!holographicSystem) {
+                    if (isMobile && activeSystem !== 'holographic') {
+                        // Stub holographic system for mobile when not active
+                        holographicSystem = { setActive: () => {}, updateParameter: () => {}, ensureRunning: () => {} };
                     } else {
-                        window.mobileDebug.log(`❌ CRITICAL: Faceted engine has no visualizers!`);
+                        holographicSystem = new RealHolographicSystem();
+                        console.log('✅ Holographic System ready');
                     }
                 }
-                
-                console.log('✅ VIB34D Faceted Engine initialized');
-                
-                // Initialize Quantum engine
-                quantumEngine = new QuantumEngine();
-                
-                // MOBILE DEBUGGING: Check quantum engine too
-                if (isMobile) {
-                    window.mobileDebug.log(`📊 Quantum Engine: ${quantumEngine.visualizers ? quantumEngine.visualizers.length : 0} visualizers created`);
-                    if (quantumEngine.visualizers && quantumEngine.visualizers.length > 0) {
-                        quantumEngine.visualizers.forEach((visualizer, index) => {
-                            const hasCanvas = visualizer && visualizer.canvas;
-                            const hasGL = hasCanvas && visualizer.gl;
-                            window.mobileDebug.log(`🔍 Quantum Visualizer ${index}: canvas=${hasCanvas ? 'OK' : 'FAIL'}, WebGL=${hasGL ? 'OK' : 'FAIL'}`);
-                        });
-                    }
-                }
-                
-                console.log('✅ VIB34D Quantum Engine initialized');
-                
-                // Initialize Holographic system
-                holographicSystem = new RealHolographicSystem();
-                console.log('✅ Holographic System ready');
                 
                 // CRITICAL PERFORMANCE FIX: Set moduleReady flag immediately after core engines
                 // This prevents 500ms+ delays when switching systems
@@ -1361,8 +1370,8 @@
                     // CRITICAL MOBILE FIX: Use the active system determined by mobile optimization  
                     let targetSystem = 'faceted';
                     if (isMobile) {
-                        // Re-determine active system same way mobile optimization did
-                        targetSystem = window.galleryPreviewData?.system || window.currentSystem || 'faceted';
+                        // Use the SAME system that mobile engine initialization used
+                        targetSystem = activeSystem; // This was already determined above
                     }
                     console.log(`📱 Mobile system switch: ${targetSystem} (isMobile: ${isMobile})`);
                     if (window.mobileDebug) {
@@ -1378,13 +1387,16 @@
                         // Check which engine should be active and if it's working
                         if (targetSystem === 'faceted' && window.engine) {
                             const engine = window.engine;
-                            window.mobileDebug.log(`🔍 Faceted engine status: visualizers=${engine.visualizers?.length}, animationId=${!!engine.animationId}`);
+                            const hasRealVisualizers = engine.visualizers && engine.visualizers.length > 0 && engine.visualizers[0].canvas;
+                            window.mobileDebug.log(`🔍 Faceted engine: visualizers=${engine.visualizers?.length}, hasRealVisualizers=${hasRealVisualizers}, animationId=${!!engine.animationId}`);
                         } else if (targetSystem === 'quantum' && window.quantumEngine) {
                             const engine = window.quantumEngine;
-                            window.mobileDebug.log(`🔍 Quantum engine status: visualizers=${engine.visualizers?.length}, isActive=${engine.isActive}`);
+                            const hasRealVisualizers = engine.visualizers && engine.visualizers.length > 0 && engine.visualizers[0].canvas;
+                            window.mobileDebug.log(`🔍 Quantum engine: visualizers=${engine.visualizers?.length}, hasRealVisualizers=${hasRealVisualizers}, isActive=${engine.isActive}`);
                         } else if (targetSystem === 'holographic' && window.holographicSystem) {
                             const engine = window.holographicSystem;
-                            window.mobileDebug.log(`🔍 Holographic system status: isRunning=${engine.isRunning}, isActive=${engine.isActive}`);
+                            const hasRealEngine = engine.isRunning !== undefined; // Check if it's real vs stub
+                            window.mobileDebug.log(`🔍 Holographic system: hasRealEngine=${hasRealEngine}, isRunning=${engine.isRunning}, isActive=${engine.isActive}`);
                         }
                         
                         // Check which canvas layers are visible
