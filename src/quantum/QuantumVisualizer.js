@@ -484,11 +484,23 @@ void main() {
         const width = this.canvas.clientWidth;
         const height = this.canvas.clientHeight;
         
+        // Mobile debug: Check for zero dimensions that would cause invisible rendering
+        if (window.mobileDebug && (width === 0 || height === 0) && !this._zeroDimWarned) {
+            window.mobileDebug.log(`⚠️ ${this.canvas?.id}: Canvas clientWidth=${width}, clientHeight=${height} - will be invisible`);
+            this._zeroDimWarned = true;
+        }
+        
         // Only resize if dimensions actually changed (mobile optimization)
         if (this.canvas.width !== width * dpr || this.canvas.height !== height * dpr) {
             this.canvas.width = width * dpr;
             this.canvas.height = height * dpr;
             this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+            
+            // Mobile debug: Log final canvas dimensions
+            if (window.mobileDebug && !this._finalSizeLogged) {
+                window.mobileDebug.log(`📐 ${this.canvas?.id}: Final canvas buffer ${this.canvas.width}x${this.canvas.height} (DPR=${dpr})`);
+                this._finalSizeLogged = true;
+            }
         }
     }
     
@@ -536,10 +548,22 @@ void main() {
      * Render frame
      */
     render() {
-        if (!this.program) return;
+        if (!this.program) {
+            if (window.mobileDebug && !this._noProgramWarned) {
+                window.mobileDebug.log(`❌ ${this.canvas?.id}: No WebGL program for render`);
+                this._noProgramWarned = true;
+            }
+            return;
+        }
         
         this.resize();
         this.gl.useProgram(this.program);
+        
+        // Mobile debugging: Log render parameters once per canvas
+        if (window.mobileDebug && !this._renderParamsLogged) {
+            window.mobileDebug.log(`🔍 ${this.canvas?.id}: Render params - geometry=${this.params.geometry}, gridDensity=${this.params.gridDensity}, intensity=${this.params.intensity}`);
+            this._renderParamsLogged = true;
+        }
         
         // Role-specific intensity for quantum effects
         const roleIntensities = {

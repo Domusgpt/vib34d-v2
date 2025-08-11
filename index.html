@@ -1401,14 +1401,26 @@
                             window.mobileDebug.log(`🔍 Holographic system: hasRealEngine=${hasRealEngine}, isRunning=${engine.isRunning}, isActive=${engine.isActive}`);
                         }
                         
-                        // Check which canvas layers are visible
-                        const layerVisibility = {
-                            faceted: document.getElementById('vib34dLayers')?.style.display,
-                            quantum: document.getElementById('quantumLayers')?.style.display,
-                            holographic: document.getElementById('holographicLayers')?.style.display,
-                            polychora: document.getElementById('polychoraLayers')?.style.display
-                        };
-                        window.mobileDebug.log(`🔍 Layer visibility: ${JSON.stringify(layerVisibility)}`);
+                        // Check which canvas layers are visible and their dimensions
+                        const layerInfo = {};
+                        const systems = ['faceted', 'quantum', 'holographic', 'polychora'];
+                        systems.forEach(sys => {
+                            const layerId = sys === 'faceted' ? 'vib34dLayers' : `${sys}Layers`;
+                            const layers = document.getElementById(layerId);
+                            if (layers) {
+                                const rect = layers.getBoundingClientRect();
+                                layerInfo[sys] = {
+                                    display: layers.style.display,
+                                    visibility: layers.style.visibility,
+                                    opacity: layers.style.opacity,
+                                    rect: `${rect.width}x${rect.height}`,
+                                    position: `${rect.top},${rect.left}`
+                                };
+                            } else {
+                                layerInfo[sys] = 'missing';
+                            }
+                        });
+                        window.mobileDebug.log(`🔍 Layer info: ${JSON.stringify(layerInfo, null, 2)}`);
                     }
                 }
                 

@@ -177,11 +177,21 @@ export class QuantumEngine {
         
         const render = () => {
             if (this.isActive) {
+                // CRITICAL FIX: Update visualizer parameters before rendering
+                const currentParams = this.parameters.getAllParameters();
+                
                 this.visualizers.forEach(visualizer => {
-                    if (visualizer.render) {
+                    if (visualizer.updateParameters && visualizer.render) {
+                        visualizer.updateParameters(currentParams);
                         visualizer.render();
                     }
                 });
+                
+                // Mobile debug: Log render activity periodically
+                if (window.mobileDebug && !this._renderActivityLogged) {
+                    window.mobileDebug.log(`🎬 Quantum Engine: Actively rendering ${this.visualizers?.length} visualizers`);
+                    this._renderActivityLogged = true;
+                }
             } else if (window.mobileDebug && !this._inactiveWarningLogged) {
                 window.mobileDebug.log(`⚠️ Quantum Engine: Not rendering because isActive=false`);
                 this._inactiveWarningLogged = true;
