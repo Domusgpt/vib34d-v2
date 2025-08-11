@@ -21,15 +21,41 @@ export class IntegratedHolographicVisualizer {
             return;
         }
         
-        // Set proper canvas dimensions for mobile
-        const rect = this.canvas.getBoundingClientRect();
+        // Set proper canvas dimensions for mobile - with fallbacks
+        let rect = this.canvas.getBoundingClientRect();
         const devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2x for performance
         
-        this.canvas.width = rect.width * devicePixelRatio;
-        this.canvas.height = rect.height * devicePixelRatio;
-        
-        if (window.mobileDebug) {
-            window.mobileDebug.log(`📐 Canvas ${canvasId}: ${this.canvas.width}x${this.canvas.height} (DPR: ${devicePixelRatio})`);
+        // CRITICAL FIX: If canvas has no dimensions, wait for layout or use viewport
+        if (rect.width === 0 || rect.height === 0) {
+            // Try waiting for layout
+            setTimeout(() => {
+                rect = this.canvas.getBoundingClientRect();
+                if (rect.width === 0 || rect.height === 0) {
+                    // Use viewport dimensions as fallback
+                    const viewWidth = window.innerWidth;
+                    const viewHeight = window.innerHeight;
+                    this.canvas.width = viewWidth * devicePixelRatio;
+                    this.canvas.height = viewHeight * devicePixelRatio;
+                    
+                    if (window.mobileDebug) {
+                        window.mobileDebug.log(`📐 Canvas ${canvasId}: Using viewport fallback ${this.canvas.width}x${this.canvas.height}`);
+                    }
+                } else {
+                    this.canvas.width = rect.width * devicePixelRatio;
+                    this.canvas.height = rect.height * devicePixelRatio;
+                    
+                    if (window.mobileDebug) {
+                        window.mobileDebug.log(`📐 Canvas ${canvasId}: Layout ready ${this.canvas.width}x${this.canvas.height}`);
+                    }
+                }
+            }, 100);
+        } else {
+            this.canvas.width = rect.width * devicePixelRatio;
+            this.canvas.height = rect.height * devicePixelRatio;
+            
+            if (window.mobileDebug) {
+                window.mobileDebug.log(`📐 Canvas ${canvasId}: ${this.canvas.width}x${this.canvas.height} (DPR: ${devicePixelRatio})`);
+            }
         }
         
         // Mobile-friendly WebGL context creation with fallbacks
