@@ -161,25 +161,25 @@
             transition: transform 0.1s ease-out;
         }
         
-        /* Canvas visualization container inside preview - EXPANDED */
+        /* Canvas visualization container inside preview - FULL EXPANSION */
         .visualization-container {
-            width: 120%; /* Expand beyond boundaries */
-            height: 120%;
+            width: 100%; /* Fill entire preview area */
+            height: 100%;
             position: absolute;
-            left: -10%;
-            top: -10%;
+            left: 0;
+            top: 0;
             border-radius: 12px;
-            overflow: visible;
+            overflow: hidden; /* Clip to card boundaries */
             background: #000;
             filter: drop-shadow(0 0 30px rgba(0, 255, 255, 0.5));
             transition: all 0.6s ease;
         }
         
         .variation-card:hover .visualization-container {
-            width: 140%; /* Expand even more on hover */
-            height: 140%;
-            left: -20%;
-            top: -20%;
+            width: 100%; /* Keep full size on hover */
+            height: 100%;
+            left: 0;
+            top: 0;
             filter: 
                 drop-shadow(0 0 50px rgba(0, 255, 255, 0.8))
                 drop-shadow(5px 5px 0 rgba(255, 0, 0, 0.3))
