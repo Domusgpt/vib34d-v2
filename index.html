@@ -715,21 +715,23 @@
             // SURGICAL FIX: Use smart canvas management immediately
             CanvasLayerManager.switchSystem(system);
             
-            // CRITICAL FIX: Wait for ES6 module OR timeout after 10 seconds for gallery preview
+            // CRITICAL FIX: Wait for ES6 module OR timeout quickly for better performance
             if (!window.moduleReady) {
                 console.log('⏳ Waiting for module initialization...');
                 
-                // For gallery preview iframes, don't wait forever - try direct switch after timeout
+                // For gallery preview iframes, don't wait forever - try direct switch after short timeout
                 let waitCount = 0;
-                const maxWait = 100; // 10 seconds max
+                const maxWait = 10; // 500ms max (10 × 50ms)
                 
                 while (!window.moduleReady && waitCount < maxWait) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await new Promise(resolve => setTimeout(resolve, 50));
                     waitCount++;
                 }
                 
                 if (!window.moduleReady) {
-                    console.warn('⚠️ Module not ready after 10s, attempting direct system switch for gallery preview');
+                    console.warn('⚠️ Module not ready after 500ms, proceeding with direct system switch');
+                    // Force module ready state to prevent further waiting
+                    window.moduleReady = true;
                 }
             }
             
@@ -946,8 +948,7 @@
             window.initializePolychora = initializePolychora;
             window.updateParameter = updateParameter;
             
-            // Set moduleReady flag to enable global switchSystem function
-            window.moduleReady = true;
+            // Module ready flag already set earlier for performance
             
             console.log('🚀 VIB34D Clean Interface Ready - All systems initialized');
         });
@@ -968,6 +969,11 @@
                 // Initialize Holographic system
                 holographicSystem = new RealHolographicSystem();
                 console.log('✅ Holographic System ready');
+                
+                // CRITICAL PERFORMANCE FIX: Set moduleReady flag immediately after core engines
+                // This prevents 500ms+ delays when switching systems
+                window.moduleReady = true;
+                console.log('⚡ Core engines ready - system switching enabled');
                 
                 // CRITICAL FIX: If gallery preview, don't activate default system yet
                 if (window.galleryPreviewData) {
