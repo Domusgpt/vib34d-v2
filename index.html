@@ -721,6 +721,35 @@
                             layers.style.visibility = 'visible';
                             layers.style.opacity = '1';
                             activeCanvases += layers.children.length;
+                            
+                            // CRITICAL ANDROID FIX: Force canvas dimensions after display change
+                            setTimeout(() => {
+                                const canvases = layers.querySelectorAll('canvas');
+                                canvases.forEach(canvas => {
+                                    const rect = canvas.getBoundingClientRect();
+                                    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                                    
+                                    // If still 0x0 after display:block, use viewport dimensions
+                                    if (rect.width === 0 || rect.height === 0) {
+                                        const viewWidth = window.innerWidth;
+                                        const viewHeight = window.innerHeight;
+                                        canvas.width = viewWidth * dpr;
+                                        canvas.height = viewHeight * dpr;
+                                        
+                                        if (window.mobileDebug) {
+                                            window.mobileDebug.log(`🔧 Fixed ${canvas.id}: ${canvas.width}x${canvas.height} (viewport fallback)`);
+                                        }
+                                    } else {
+                                        canvas.width = rect.width * dpr;
+                                        canvas.height = rect.height * dpr;
+                                        
+                                        if (window.mobileDebug) {
+                                            window.mobileDebug.log(`✅ Updated ${canvas.id}: ${canvas.width}x${canvas.height} (from rect)`);
+                                        }
+                                    }
+                                });
+                            }, 50); // Small delay to let display:block take effect
+                            
                         } else {
                             layers.style.display = 'none';
                             layers.style.visibility = 'hidden';
@@ -958,6 +987,70 @@
             originalConsoleError.apply(console, args);
             window.mobileDebug.log('❌ ERROR: ' + args.join(' '));
         };
+        
+        // EMERGENCY ANDROID FIX: Force canvas dimensions immediately on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobile) {
+                window.mobileDebug.log('🚨 EMERGENCY: Running immediate Android canvas fix');
+                
+                // Try multiple times with delays
+                const fixCanvases = () => {
+                    const allCanvases = document.querySelectorAll('canvas');
+                    const viewWidth = window.innerWidth || screen.width;
+                    const viewHeight = window.innerHeight || screen.height;
+                    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                    
+                    allCanvases.forEach(canvas => {
+                        // Force immediate style
+                        canvas.style.cssText = `
+                            position: absolute !important;
+                            top: 0 !important;
+                            left: 0 !important;
+                            width: 100% !important;
+                            height: 100% !important;
+                            min-width: ${viewWidth}px !important;
+                            min-height: ${viewHeight}px !important;
+                        `;
+                        
+                        // Force canvas buffer size
+                        canvas.width = viewWidth * dpr;
+                        canvas.height = viewHeight * dpr;
+                        
+                        window.mobileDebug.log(`🚨 EMERGENCY fixed ${canvas.id}: ${canvas.width}x${canvas.height}`);
+                    });
+                    
+                    return allCanvases.length;
+                };
+                
+                // Run immediately
+                const count1 = fixCanvases();
+                window.mobileDebug.log(`🚨 Pass 1: Fixed ${count1} canvases`);
+                
+                // Run again after 250ms
+                setTimeout(() => {
+                    const count2 = fixCanvases();
+                    window.mobileDebug.log(`🚨 Pass 2: Fixed ${count2} canvases`);
+                }, 250);
+                
+                // Run again after 500ms
+                setTimeout(() => {
+                    const count3 = fixCanvases();
+                    window.mobileDebug.log(`🚨 Pass 3: Fixed ${count3} canvases`);
+                    
+                    // Test render to verify fix
+                    const testCanvas = document.querySelector('canvas');
+                    if (testCanvas) {
+                        const ctx = testCanvas.getContext('2d');
+                        if (ctx) {
+                            ctx.fillStyle = '#00ffff';
+                            ctx.fillRect(10, 10, 100, 100);
+                            window.mobileDebug.log(`✅ Test render successful on ${testCanvas.id}`);
+                        }
+                    }
+                }, 500);
+            }
+        });
     </script>
     
     <script type="module">
@@ -1081,6 +1174,32 @@
                 // Check mobile WebGL before initializing engines
                 if (!checkMobileWebGL()) {
                     throw new Error('Mobile WebGL not available');
+                }
+                
+                // CRITICAL ANDROID FIX: Force all canvas dimensions immediately
+                const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                if (isMobile) {
+                    const allCanvases = document.querySelectorAll('canvas');
+                    const viewWidth = window.innerWidth;
+                    const viewHeight = window.innerHeight;
+                    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                    
+                    allCanvases.forEach(canvas => {
+                        // Force canvas style dimensions first
+                        canvas.style.width = '100%';
+                        canvas.style.height = '100%';
+                        canvas.style.position = 'absolute';
+                        canvas.style.top = '0';
+                        canvas.style.left = '0';
+                        
+                        // Then force actual canvas dimensions
+                        canvas.width = viewWidth * dpr;
+                        canvas.height = viewHeight * dpr;
+                        
+                        window.mobileDebug.log(`🚀 Pre-init canvas ${canvas.id}: ${canvas.width}x${canvas.height}`);
+                    });
+                    
+                    window.mobileDebug.log(`📱 Forced ${allCanvases.length} canvas dimensions before engine init`);
                 }
                 
                 // Initialize Faceted engine (auto-initializes in constructor)
