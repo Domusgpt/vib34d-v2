@@ -101,6 +101,14 @@
             bottom: 0;
         }
         
+        /* MOBILE FIX: Ensure canvas container takes full viewport on mobile */
+        @media (max-width: 768px) {
+            .canvas-container {
+                right: 0; /* Remove space for control panel on mobile */
+                top: 0;   /* Use full height on mobile */
+            }
+        }
+        
         .visualization-canvas {
             position: absolute;
             top: 0;
@@ -1421,6 +1429,21 @@
                             }
                         });
                         window.mobileDebug.log(`🔍 Layer info: ${JSON.stringify(layerInfo, null, 2)}`);
+                        
+                        // CRITICAL MOBILE DEBUG: Check canvas container positioning
+                        const canvasContainer = document.getElementById('canvasContainer');
+                        if (canvasContainer) {
+                            const containerRect = canvasContainer.getBoundingClientRect();
+                            const containerStyle = window.getComputedStyle(canvasContainer);
+                            window.mobileDebug.log(`📦 Canvas Container: ${containerRect.width}x${containerRect.height} at ${containerRect.top},${containerRect.left}`);
+                            window.mobileDebug.log(`📦 Container CSS: top=${containerStyle.top}, left=${containerStyle.left}, right=${containerStyle.right}, bottom=${containerStyle.bottom}`);
+                            
+                            if (containerRect.width === 0 || containerRect.height === 0) {
+                                window.mobileDebug.log(`❌ CRITICAL: Canvas container has ZERO dimensions - canvases will be invisible!`);
+                            }
+                        } else {
+                            window.mobileDebug.log(`❌ CRITICAL: Canvas container #canvasContainer not found!`);
+                        }
                     }
                 }
                 
