@@ -594,30 +594,27 @@
                         if (topBar) topBar.style.display = 'none';
                         if (controlPanel) controlPanel.style.display = 'none';
                         if (canvasContainer) {
-                            // Fix half-centered issue - use flex centering within iframe
+                            // Make canvas container fill the entire iframe viewport
                             canvasContainer.style.cssText = `
                                 position: fixed !important;
                                 top: 0 !important;
                                 left: 0 !important;
-                                width: 100% !important;
-                                height: 100% !important;
-                                display: flex !important;
-                                align-items: center !important;
-                                justify-content: center !important;
-                                background: transparent !important;
+                                width: 100vw !important;
+                                height: 100vh !important;
+                                display: block !important;
+                                background: #000 !important;
                             `;
                             
-                            // Find all canvas layers and center them
+                            // Make all canvas layers fill the container completely
                             const allCanvases = canvasContainer.querySelectorAll('canvas');
                             allCanvases.forEach(canvas => {
-                                canvas.style.position = 'absolute';
-                                canvas.style.left = '50%';
-                                canvas.style.top = '50%';
-                                canvas.style.transform = 'translate(-50%, -50%)';
-                                canvas.style.width = '100%';
-                                canvas.style.height = '100%';
-                                canvas.style.maxWidth = '100vmin';
-                                canvas.style.maxHeight = '100vmin';
+                                canvas.style.cssText = `
+                                    position: absolute !important;
+                                    top: 0 !important;
+                                    left: 0 !important;
+                                    width: 100% !important;
+                                    height: 100% !important;
+                                `;
                             });
                         }
                     };
