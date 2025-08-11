@@ -173,11 +173,11 @@
                 0 0 40px rgba(255, 0, 255, 0.4);
             transform: 
                 perspective(1200px)
-                rotateY(calc((var(--mouse-x) - 50) * 0.2deg * var(--bend-intensity)))
-                rotateX(calc((50 - var(--mouse-y)) * 0.15deg * var(--bend-intensity)))
-                translateZ(calc(var(--bend-intensity) * 35px))
-                translateY(-10px)
-                scale(1.01);
+                rotateY(calc((var(--mouse-x) - 50) * 0.4deg * var(--bend-intensity)))
+                rotateX(calc((var(--mouse-y) - 50) * 0.2deg * var(--bend-intensity)))
+                translateZ(calc(var(--bend-intensity) * 40px))
+                translateY(-15px)
+                scale(1.02);
             backdrop-filter: blur(20px);
             z-index: 10;
         }
@@ -234,30 +234,57 @@
             overflow: visible;
         }
         
-        /* Holographic shimmer effect overlay - DIRECTIONAL BASED ON MOUSE */
-        .card-preview::after {
+        /* Bidirectional RGB shimmer effect - mirrors card tilt direction */
+        .card-preview::after,
+        .card-preview::before {
             content: '';
             position: absolute;
             top: -50%;
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(
-                calc(45deg + (var(--mouse-x) - 50) * 0.4deg),
-                transparent 30%,
-                rgba(0, 255, 255, 0.1) 50%,
-                rgba(255, 0, 255, 0.1) 52%,
-                transparent 70%
-            );
-            transform: translateX(calc(-100% + (var(--mouse-x) - 50) * 0.4%)) rotate(calc(45deg + (var(--mouse-x) - 50) * 0.2deg));
-            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             pointer-events: none;
             opacity: 0;
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            mix-blend-mode: screen;
+        }
+        
+        /* Primary RGB shimmer - follows mouse position */
+        .card-preview::after {
+            background: linear-gradient(
+                calc(45deg + (var(--mouse-x) - 50) * 0.5deg),
+                transparent 20%,
+                rgba(255, 0, 0, 0.15) 45%,
+                rgba(0, 255, 255, 0.2) 50%,
+                rgba(255, 0, 255, 0.15) 55%,
+                transparent 80%
+            );
+        }
+        
+        /* Secondary RGB shimmer - opposite direction for balance */
+        .card-preview::before {
+            background: linear-gradient(
+                calc(-45deg - (var(--mouse-x) - 50) * 0.5deg),
+                transparent 20%,
+                rgba(0, 255, 0, 0.15) 45%,
+                rgba(255, 255, 0, 0.2) 50%,
+                rgba(0, 0, 255, 0.15) 55%,
+                transparent 80%
+            );
         }
         
         .variation-card:hover .card-preview::after {
-            transform: translateX(calc(100% - (var(--mouse-x) - 50) * 0.4%)) rotate(calc(45deg + (var(--mouse-x) - 50) * 0.2deg));
+            transform: 
+                translateX(calc((var(--mouse-x) - 50) * 1.5%)) 
+                rotate(calc(45deg + (var(--mouse-x) - 50) * 0.3deg));
             opacity: 1;
+        }
+        
+        .variation-card:hover .card-preview::before {
+            transform: 
+                translateX(calc((50 - var(--mouse-x)) * 1.5%)) 
+                rotate(calc(-45deg - (var(--mouse-x) - 50) * 0.3deg));
+            opacity: 0.8;
         }
         
         .card-preview iframe {
