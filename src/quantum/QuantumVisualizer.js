@@ -567,14 +567,6 @@ void main() {
         if (window.mobileDebug && !this._renderParamsLogged) {
             window.mobileDebug.log(`🔍 ${this.canvas?.id}: Render params - geometry=${this.params.geometry}, gridDensity=${this.params.gridDensity}, intensity=${this.params.intensity}`);
             this._renderParamsLogged = true;
-            
-            // MOBILE DEBUG TEST: Force visible red output to test if WebGL pipeline works
-            if (this._renderParamsLogged) {
-                this.gl.clearColor(1.0, 0.0, 0.0, 1.0); // Force red background
-                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-                window.mobileDebug.log(`🔴 ${this.canvas?.id}: FORCING RED BACKGROUND FOR MOBILE DEBUG`);
-                return; // Skip normal rendering to just show red
-            }
         }
         
         // Role-specific intensity for quantum effects
