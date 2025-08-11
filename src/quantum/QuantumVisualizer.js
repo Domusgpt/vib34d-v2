@@ -559,6 +559,10 @@ void main() {
         this.resize();
         this.gl.useProgram(this.program);
         
+        // CRITICAL FIX: Clear framebuffer before rendering
+        this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+        
         // Mobile debugging: Log render parameters once per canvas
         if (window.mobileDebug && !this._renderParamsLogged) {
             window.mobileDebug.log(`🔍 ${this.canvas?.id}: Render params - geometry=${this.params.geometry}, gridDensity=${this.params.gridDensity}, intensity=${this.params.intensity}`);

@@ -493,6 +493,10 @@ void main() {
         try {
             this.resize();
             this.gl.useProgram(this.program);
+            
+            // CRITICAL FIX: Clear framebuffer before rendering
+            this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
+            this.gl.clear(this.gl.COLOR_BUFFER_BIT);
         } catch (error) {
             if (window.mobileDebug) {
                 window.mobileDebug.log(`❌ ${this.canvas?.id}: WebGL render error: ${error.message}`);
