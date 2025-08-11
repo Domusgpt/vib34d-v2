@@ -476,10 +476,29 @@ void main() {
      * Render frame
      */
     render() {
-        if (!this.program) return;
+        if (!this.program) {
+            if (window.mobileDebug) {
+                window.mobileDebug.log(`❌ ${this.canvas?.id}: No WebGL program compiled`);
+            }
+            return;
+        }
         
-        this.resize();
-        this.gl.useProgram(this.program);
+        if (!this.gl) {
+            if (window.mobileDebug) {
+                window.mobileDebug.log(`❌ ${this.canvas?.id}: No WebGL context`);
+            }
+            return;
+        }
+        
+        try {
+            this.resize();
+            this.gl.useProgram(this.program);
+        } catch (error) {
+            if (window.mobileDebug) {
+                window.mobileDebug.log(`❌ ${this.canvas?.id}: WebGL render error: ${error.message}`);
+            }
+            return;
+        }
         
         // Role-specific intensity (ORIGINAL FACETED VALUES)
         const roleIntensities = {
@@ -512,7 +531,19 @@ void main() {
         this.gl.uniform1f(this.uniforms.clickIntensity, this.clickIntensity);
         this.gl.uniform1f(this.uniforms.roleIntensity, roleIntensities[this.role] || 1.0);
         
-        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+        try {
+            this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+            
+            // Mobile success logging (only once per canvas)
+            if (window.mobileDebug && !this._renderSuccessLogged) {
+                window.mobileDebug.log(`✅ ${this.canvas?.id}: WebGL render successful`);
+                this._renderSuccessLogged = true;
+            }
+        } catch (error) {
+            if (window.mobileDebug) {
+                window.mobileDebug.log(`❌ ${this.canvas?.id}: WebGL draw error: ${error.message}`);
+            }
+        }
     }
     
     /**

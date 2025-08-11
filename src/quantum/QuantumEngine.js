@@ -171,6 +171,10 @@ export class QuantumEngine {
      * Start the render loop
      */
     startRenderLoop() {
+        if (window.mobileDebug) {
+            window.mobileDebug.log(`🎬 Quantum Engine: Starting render loop with ${this.visualizers?.length} visualizers, isActive=${this.isActive}`);
+        }
+        
         const render = () => {
             if (this.isActive) {
                 this.visualizers.forEach(visualizer => {
@@ -178,6 +182,9 @@ export class QuantumEngine {
                         visualizer.render();
                     }
                 });
+            } else if (window.mobileDebug && !this._inactiveWarningLogged) {
+                window.mobileDebug.log(`⚠️ Quantum Engine: Not rendering because isActive=false`);
+                this._inactiveWarningLogged = true;
             }
             
             requestAnimationFrame(render);
@@ -185,6 +192,10 @@ export class QuantumEngine {
         
         render();
         console.log('🎬 Quantum render loop started');
+        
+        if (window.mobileDebug) {
+            window.mobileDebug.log(`✅ Quantum Engine: Render loop started, will render when isActive=true`);
+        }
     }
     
     /**

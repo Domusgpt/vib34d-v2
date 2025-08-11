@@ -164,12 +164,21 @@ export class VIB34DIntegratedEngine {
      * Start the main render loop
      */
     startRenderLoop() {
+        if (window.mobileDebug) {
+            window.mobileDebug.log(`🎬 VIB34D Faceted Engine: Starting render loop with ${this.visualizers?.length} visualizers`);
+        }
+        
         const render = () => {
             this.time += 0.016; // ~60fps
             this.updateVisualizers();
             this.animationId = requestAnimationFrame(render);
         };
         render();
+        
+        // Log successful start
+        if (window.mobileDebug) {
+            window.mobileDebug.log(`✅ VIB34D Faceted Engine: Render loop started, animationId=${!!this.animationId}`);
+        }
     }
     
     /**

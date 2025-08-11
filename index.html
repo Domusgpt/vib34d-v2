@@ -1286,14 +1286,18 @@
                         window.mobileDebug.log(`✅ Faceted Engine: ${engine.visualizers ? engine.visualizers.length : 0} visualizers created`);
                     } else if (mobileSystem === 'quantum') {
                         quantumEngine = new QuantumEngine();
-                        window.mobileDebug.log(`✅ Quantum Engine: ${quantumEngine.visualizers ? quantumEngine.visualizers.length : 0} visualizers created`);
+                        // CRITICAL: Quantum engine needs to be active to render
+                        quantumEngine.setActive(true);
+                        window.mobileDebug.log(`✅ Quantum Engine: ${quantumEngine.visualizers ? quantumEngine.visualizers.length : 0} visualizers created, activated for mobile`);
                         // Create stub faceted engine for compatibility
-                        engine = { visualizers: [], updateParameter: () => {} };
+                        engine = { visualizers: [], updateParameter: () => {}, startRenderLoop: () => {} };
                     } else if (mobileSystem === 'holographic') {
                         holographicSystem = new RealHolographicSystem();
-                        window.mobileDebug.log(`✅ Holographic System created for mobile`);
+                        // CRITICAL: Holographic system needs to be active to render
+                        holographicSystem.setActive(true);
+                        window.mobileDebug.log(`✅ Holographic System created and activated for mobile`);
                         // Create stub engines for compatibility
-                        engine = { visualizers: [], updateParameter: () => {} };
+                        engine = { visualizers: [], updateParameter: () => {}, startRenderLoop: () => {} };
                         quantumEngine = { visualizers: [], setActive: () => {} };
                     }
                 } else {
@@ -1310,15 +1314,15 @@
                 
                 // Ensure all engines exist with stubs if needed for compatibility
                 if (!engine) {
-                    engine = { visualizers: [], updateParameter: () => {}, startRenderLoop: () => {} };
+                    engine = { visualizers: [], updateParameter: () => {}, startRenderLoop: () => {}, updateVisualizers: () => {} };
                 }
                 if (!quantumEngine) {
-                    quantumEngine = { visualizers: [], setActive: () => {}, updateParameter: () => {} };
+                    quantumEngine = { visualizers: [], setActive: () => {}, updateParameter: () => {}, isActive: false };
                 }
                 if (!holographicSystem) {
                     if (isMobile && activeSystem !== 'holographic') {
                         // Stub holographic system for mobile when not active
-                        holographicSystem = { setActive: () => {}, updateParameter: () => {}, ensureRunning: () => {} };
+                        holographicSystem = { setActive: () => {}, updateParameter: () => {}, ensureRunning: () => {}, isActive: false };
                     } else {
                         holographicSystem = new RealHolographicSystem();
                         console.log('✅ Holographic System ready');
