@@ -534,11 +534,10 @@
             }
         }
         
-        /* Enhanced iframe scaling when card is hovered */
+        /* Enhanced iframe scaling when card is hovered - FIXED: Don't interfere with card scaling */
         .variation-card:hover .card-preview iframe {
             transform: 
                 translate(-50%, -50%) 
-                scale(1.0) 
                 rotateY(calc((var(--mouse-x) - 50) * -0.1deg));
             filter: brightness(1.15) contrast(1.05);
             transition: transform 0.1s ease-out;
