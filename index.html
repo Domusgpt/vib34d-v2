@@ -594,13 +594,16 @@
                         if (topBar) topBar.style.display = 'none';
                         if (controlPanel) controlPanel.style.display = 'none';
                         if (canvasContainer) {
-                            canvasContainer.style.right = '0';
-                            canvasContainer.style.top = '0';
-                            // Force square aspect ratio for gallery previews
+                            canvasContainer.style.position = 'absolute';
+                            canvasContainer.style.top = '50%';
+                            canvasContainer.style.left = '50%';
+                            canvasContainer.style.transform = 'translate(-50%, -50%)';
+                            canvasContainer.style.right = 'auto';
+                            canvasContainer.style.bottom = 'auto';
+                            // Force perfect square aspect ratio for gallery previews
                             canvasContainer.style.aspectRatio = '1 / 1';
-                            canvasContainer.style.margin = 'auto';
-                            canvasContainer.style.maxWidth = '100vh';
-                            canvasContainer.style.maxHeight = '100vw';
+                            canvasContainer.style.width = '100vmin';
+                            canvasContainer.style.height = '100vmin';
                         }
                     };
                     
