@@ -563,9 +563,9 @@ void main() {
         this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
         
-        // Mobile debugging: Log render parameters once per canvas
-        if (window.mobileDebug && !this._renderParamsLogged) {
-            window.mobileDebug.log(`🔍 ${this.canvas?.id}: Render params - geometry=${this.params.geometry}, gridDensity=${this.params.gridDensity}, intensity=${this.params.intensity}`);
+        // Mobile optimization: Log render parameters once per canvas (console only)
+        if (!this._renderParamsLogged) {
+            console.log(`[Mobile] ${this.canvas?.id}: Render params - geometry=${this.params.geometry}, gridDensity=${this.params.gridDensity}, intensity=${this.params.intensity}`);
             this._renderParamsLogged = true;
         }
         

@@ -636,8 +636,8 @@
                                     canvas.width = viewWidth * dpr;
                                     canvas.height = viewHeight * dpr;
                                     
-                                    if (window.mobileDebug) {
-                                        window.mobileDebug.log(`🔧 Fixed canvas ${canvas.id}: ${canvas.width}x${canvas.height}`);
+                                    if (window.mobileOptimization) {
+                                        window.mobileOptimization.log(`🔧 Fixed canvas ${canvas.id}: ${canvas.width}x${canvas.height}`);
                                     }
                                 }
                             });
@@ -744,15 +744,15 @@
                                         canvas.width = viewWidth * dpr;
                                         canvas.height = viewHeight * dpr;
                                         
-                                        if (window.mobileDebug) {
-                                            window.mobileDebug.log(`🔧 Fixed ${canvas.id}: ${canvas.width}x${canvas.height} (viewport fallback)`);
+                                        if (window.mobileOptimization) {
+                                            window.mobileOptimization.log(`🔧 Fixed ${canvas.id}: ${canvas.width}x${canvas.height} (viewport fallback)`);
                                         }
                                     } else {
                                         canvas.width = rect.width * dpr;
                                         canvas.height = rect.height * dpr;
                                         
-                                        if (window.mobileDebug) {
-                                            window.mobileDebug.log(`✅ Updated ${canvas.id}: ${canvas.width}x${canvas.height} (from rect)`);
+                                        if (window.mobileOptimization) {
+                                            window.mobileOptimization.log(`✅ Updated ${canvas.id}: ${canvas.width}x${canvas.height} (from rect)`);
                                         }
                                     }
                                 });
@@ -948,80 +948,19 @@
         window.moduleReady = false;
         window.currentSystem = 'faceted';
         
-        // Mobile debugging system for Android
-        window.mobileDebug = {
-            logs: [],
-            debugVisible: false,
+        // Mobile optimization system (no debug overlay)
+        window.mobileOptimization = {
             log: function(message) {
-                const timestamp = new Date().toLocaleTimeString();
-                const logEntry = `[${timestamp}] ${message}`;
-                this.logs.push(logEntry);
-                console.log(logEntry);
-                
-                // Show critical errors on mobile, or success messages initially
-                if (message.includes('WebGL') || message.includes('error') || message.includes('❌') || 
-                    message.includes('✅') || message.includes('📱') || message.includes('🚀')) {
-                    this.showMobileError(logEntry);
-                }
-                
-                // Auto-hide debug overlay after successful initialization
-                if (message.includes('VIB34D Clean Interface Ready')) {
-                    setTimeout(() => this.hideDebugOverlay(), 3000);
-                }
-            },
-            showMobileError: function(message) {
-                // Create or update mobile debug overlay
-                let debugDiv = document.getElementById('mobile-debug');
-                if (!debugDiv) {
-                    debugDiv = document.createElement('div');
-                    debugDiv.id = 'mobile-debug';
-                    debugDiv.style.cssText = `
-                        position: fixed;
-                        top: 10px;
-                        left: 10px;
-                        right: 10px;
-                        background: rgba(255, 0, 0, 0.9);
-                        color: white;
-                        padding: 10px;
-                        border-radius: 5px;
-                        font-size: 12px;
-                        z-index: 10000;
-                        max-height: 200px;
-                        overflow-y: auto;
-                        font-family: monospace;
-                        transition: opacity 0.5s ease;
-                    `;
-                    document.body.appendChild(debugDiv);
-                }
-                debugDiv.innerHTML = this.logs.slice(-10).join('<br>');
-                this.debugVisible = true;
-            },
-            hideDebugOverlay: function() {
-                const debugDiv = document.getElementById('mobile-debug');
-                if (debugDiv && this.debugVisible) {
-                    debugDiv.style.opacity = '0';
-                    setTimeout(() => {
-                        if (debugDiv && debugDiv.parentNode) {
-                            debugDiv.parentNode.removeChild(debugDiv);
-                        }
-                        this.debugVisible = false;
-                    }, 500);
-                }
+                // Silent logging for production - only to console
+                console.log(`[Mobile] ${message}`);
             }
-        };
-        
-        // Override console.error for mobile debugging
-        const originalConsoleError = console.error;
-        console.error = function(...args) {
-            originalConsoleError.apply(console, args);
-            window.mobileDebug.log('❌ ERROR: ' + args.join(' '));
         };
         
         // MOBILE OPTIMIZATION: Initialize only active system (5 canvases instead of 20)
         document.addEventListener('DOMContentLoaded', function() {
             const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             if (isMobile) {
-                window.mobileDebug.log('📱 MOBILE: Optimized single-system initialization');
+                window.mobileOptimization.log('📱 MOBILE: Optimized single-system initialization');
                 
                 // Define canvas groups per system
                 const systemCanvases = {
@@ -1033,7 +972,7 @@
                 
                 // Determine active system (gallery preview or default)
                 const activeSystem = window.galleryPreviewData ? window.galleryPreviewData.system : 'faceted';
-                window.mobileDebug.log(`📱 Active system: ${activeSystem}`);
+                window.mobileOptimization.log(`📱 Active system: ${activeSystem}`);
                 
                 // Only fix canvases for the active system
                 const fixActiveCanvases = () => {
@@ -1062,7 +1001,7 @@
                             canvas.height = viewHeight * dpr;
                             fixedCount++;
                             
-                            window.mobileDebug.log(`📱 Fixed ${canvasId}: ${canvas.width}x${canvas.height}`);
+                            window.mobileOptimization.log(`📱 Fixed ${canvasId}: ${canvas.width}x${canvas.height}`);
                         }
                     });
                     
@@ -1083,25 +1022,25 @@
                 
                 // Run mobile optimization passes
                 const count1 = fixActiveCanvases();
-                window.mobileDebug.log(`📱 Pass 1: Fixed ${count1}/${systemCanvases[activeSystem].length} canvases for ${activeSystem} system`);
+                window.mobileOptimization.log(`📱 Pass 1: Fixed ${count1}/${systemCanvases[activeSystem].length} canvases for ${activeSystem} system`);
                 
                 setTimeout(() => {
                     const count2 = fixActiveCanvases();
-                    window.mobileDebug.log(`📱 Pass 2: Fixed ${count2} canvases`);
+                    window.mobileOptimization.log(`📱 Pass 2: Fixed ${count2} canvases`);
                 }, 250);
                 
                 setTimeout(() => {
                     const count3 = fixActiveCanvases();
-                    window.mobileDebug.log(`📱 Pass 3: Fixed ${count3} canvases - optimization complete`);
+                    window.mobileOptimization.log(`📱 Pass 3: Fixed ${count3} canvases - optimization complete`);
                     
                     // Test canvas existence (WITHOUT creating 2D context that would block WebGL)
                     const testCanvasId = systemCanvases[activeSystem][0];
                     const testCanvas = document.getElementById(testCanvasId);
                     if (testCanvas) {
                         const canvasRect = testCanvas.getBoundingClientRect();
-                        window.mobileDebug.log(`✅ Mobile optimization successful - ${activeSystem} system ready, canvas ${testCanvasId}: ${canvasRect.width}x${canvasRect.height}`);
+                        window.mobileOptimization.log(`✅ Mobile optimization successful - ${activeSystem} system ready, canvas ${testCanvasId}: ${canvasRect.width}x${canvasRect.height}`);
                     } else {
-                        window.mobileDebug.log(`❌ Test canvas ${testCanvasId} not found after optimization`);
+                        window.mobileOptimization.log(`❌ Test canvas ${testCanvasId} not found after optimization`);
                     }
                 }, 500);
             }
@@ -1159,7 +1098,7 @@
             if (isMobile) {
                 // Wait for any other mobile fixes to complete first
                 await new Promise(resolve => setTimeout(resolve, 100));
-                window.mobileDebug.log(`⚡ Engine initialization starting after mobile canvas fix`);
+                window.mobileOptimization.log(`⚡ Engine initialization starting after mobile canvas fix`);
             }
             
             // URL parameters already parsed outside the module
@@ -1183,8 +1122,8 @@
             console.log('🚀 VIB34D Clean Interface Ready - All systems initialized');
             
             // Mobile debug system auto-hide on successful initialization
-            if (window.mobileDebug) {
-                window.mobileDebug.log('🚀 VIB34D Clean Interface Ready - All systems initialized');
+            if (window.mobileOptimization) {
+                window.mobileOptimization.log('🚀 VIB34D Clean Interface Ready - All systems initialized');
             }
         });
         
@@ -1193,7 +1132,7 @@
         // Mobile WebGL diagnostic function
         function checkMobileWebGL() {
             const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            window.mobileDebug.log(`📱 Device check: Mobile=${isMobile}, UserAgent=${navigator.userAgent}`);
+            window.mobileOptimization.log(`📱 Device check: Mobile=${isMobile}, UserAgent=${navigator.userAgent}`);
             
             if (isMobile) {
                 // Test WebGL availability on mobile
@@ -1214,21 +1153,21 @@
                               testCanvas.getContext('experimental-webgl', contextOptions);
                 
                 if (!testGL) {
-                    window.mobileDebug.log('❌ CRITICAL: WebGL not available on mobile device');
+                    window.mobileOptimization.log('❌ CRITICAL: WebGL not available on mobile device');
                     return false;
                 } else {
                     const renderer = testGL.getParameter(testGL.RENDERER);
                     const vendor = testGL.getParameter(testGL.VENDOR);
                     const version = testGL.getParameter(testGL.VERSION);
                     
-                    window.mobileDebug.log(`✅ Mobile WebGL OK: ${version}`);
-                    window.mobileDebug.log(`🎮 GPU: ${renderer} (${vendor})`);
+                    window.mobileOptimization.log(`✅ Mobile WebGL OK: ${version}`);
+                    window.mobileOptimization.log(`🎮 GPU: ${renderer} (${vendor})`);
                     
                     // Check for common mobile WebGL issues
                     const maxTextureSize = testGL.getParameter(testGL.MAX_TEXTURE_SIZE);
                     const maxViewport = testGL.getParameter(testGL.MAX_VIEWPORT_DIMS);
                     
-                    window.mobileDebug.log(`📊 Max texture: ${maxTextureSize}, Max viewport: ${maxViewport[0]}x${maxViewport[1]}`);
+                    window.mobileOptimization.log(`📊 Max texture: ${maxTextureSize}, Max viewport: ${maxViewport[0]}x${maxViewport[1]}`);
                     
                     return true;
                 }
@@ -1275,10 +1214,10 @@
                             canvas.width = viewWidth * dpr;
                             canvas.height = viewHeight * dpr;
                             
-                            window.mobileDebug.log(`🚀 Pre-init canvas ${canvas.id}: ${canvas.width}x${canvas.height}`);
+                            window.mobileOptimization.log(`🚀 Pre-init canvas ${canvas.id}: ${canvas.width}x${canvas.height}`);
                         });
                         
-                        window.mobileDebug.log(`📱 Mobile optimized: Only ${activeCanvases.length} canvas contexts (${activeSystem} system)`);
+                        window.mobileOptimization.log(`📱 Mobile optimized: Only ${activeCanvases.length} canvas contexts (${activeSystem} system)`);
                     }
                 }
                 
@@ -1289,9 +1228,9 @@
                 holographicSystem = new RealHolographicSystem();
                 
                 if (isMobile) {
-                    window.mobileDebug.log(`📱 Mobile: All engines created (faceted, quantum, holographic)`);
-                    window.mobileDebug.log(`📱 Faceted: ${engine.visualizers ? engine.visualizers.length : 0} visualizers`);
-                    window.mobileDebug.log(`📱 Quantum: ${quantumEngine.visualizers ? quantumEngine.visualizers.length : 0} visualizers`);
+                    window.mobileOptimization.log(`📱 Mobile: All engines created (faceted, quantum, holographic)`);
+                    window.mobileOptimization.log(`📱 Faceted: ${engine.visualizers ? engine.visualizers.length : 0} visualizers`);
+                    window.mobileOptimization.log(`📱 Quantum: ${quantumEngine.visualizers ? quantumEngine.visualizers.length : 0} visualizers`);
                 } else {
                     console.log('✅ All engines initialized for desktop');
                 }
@@ -1362,29 +1301,29 @@
                         targetSystem = activeSystem; // This was already determined above
                     }
                     console.log(`📱 Mobile system switch: ${targetSystem} (isMobile: ${isMobile})`);
-                    if (window.mobileDebug) {
-                        window.mobileDebug.log(`📱 Switching to ${targetSystem} system for mobile optimization`);
+                    if (window.mobileOptimization) {
+                        window.mobileOptimization.log(`📱 Switching to ${targetSystem} system for mobile optimization`);
                     }
                     
                     await switchSystem(targetSystem);
                     
                     // MOBILE DEBUGGING: Verify system switch worked and engine is rendering
                     if (isMobile) {
-                        window.mobileDebug.log(`🔍 Post-switch verification: currentSystem=${window.currentSystem}`);
+                        window.mobileOptimization.log(`🔍 Post-switch verification: currentSystem=${window.currentSystem}`);
                         
                         // Check which engine should be active and if it's working
                         if (targetSystem === 'faceted' && window.engine) {
                             const engine = window.engine;
                             const hasRealVisualizers = engine.visualizers && engine.visualizers.length > 0 && engine.visualizers[0].canvas;
-                            window.mobileDebug.log(`🔍 Faceted engine: visualizers=${engine.visualizers?.length}, hasRealVisualizers=${hasRealVisualizers}, animationId=${!!engine.animationId}`);
+                            window.mobileOptimization.log(`🔍 Faceted engine: visualizers=${engine.visualizers?.length}, hasRealVisualizers=${hasRealVisualizers}, animationId=${!!engine.animationId}`);
                         } else if (targetSystem === 'quantum' && window.quantumEngine) {
                             const engine = window.quantumEngine;
                             const hasRealVisualizers = engine.visualizers && engine.visualizers.length > 0 && engine.visualizers[0].canvas;
-                            window.mobileDebug.log(`🔍 Quantum engine: visualizers=${engine.visualizers?.length}, hasRealVisualizers=${hasRealVisualizers}, isActive=${engine.isActive}`);
+                            window.mobileOptimization.log(`🔍 Quantum engine: visualizers=${engine.visualizers?.length}, hasRealVisualizers=${hasRealVisualizers}, isActive=${engine.isActive}`);
                         } else if (targetSystem === 'holographic' && window.holographicSystem) {
                             const engine = window.holographicSystem;
                             const hasRealEngine = engine.isRunning !== undefined; // Check if it's real vs stub
-                            window.mobileDebug.log(`🔍 Holographic system: hasRealEngine=${hasRealEngine}, isRunning=${engine.isRunning}, isActive=${engine.isActive}`);
+                            window.mobileOptimization.log(`🔍 Holographic system: hasRealEngine=${hasRealEngine}, isRunning=${engine.isRunning}, isActive=${engine.isActive}`);
                         }
                         
                         // Check which canvas layers are visible and their dimensions
@@ -1406,21 +1345,21 @@
                                 layerInfo[sys] = 'missing';
                             }
                         });
-                        window.mobileDebug.log(`🔍 Layer info: ${JSON.stringify(layerInfo, null, 2)}`);
+                        window.mobileOptimization.log(`🔍 Layer info: ${JSON.stringify(layerInfo, null, 2)}`);
                         
                         // CRITICAL MOBILE DEBUG: Check canvas container positioning
                         const canvasContainer = document.getElementById('canvasContainer');
                         if (canvasContainer) {
                             const containerRect = canvasContainer.getBoundingClientRect();
                             const containerStyle = window.getComputedStyle(canvasContainer);
-                            window.mobileDebug.log(`📦 Canvas Container: ${containerRect.width}x${containerRect.height} at ${containerRect.top},${containerRect.left}`);
-                            window.mobileDebug.log(`📦 Container CSS: top=${containerStyle.top}, left=${containerStyle.left}, right=${containerStyle.right}, bottom=${containerStyle.bottom}`);
+                            window.mobileOptimization.log(`📦 Canvas Container: ${containerRect.width}x${containerRect.height} at ${containerRect.top},${containerRect.left}`);
+                            window.mobileOptimization.log(`📦 Container CSS: top=${containerStyle.top}, left=${containerStyle.left}, right=${containerStyle.right}, bottom=${containerStyle.bottom}`);
                             
                             if (containerRect.width === 0 || containerRect.height === 0) {
-                                window.mobileDebug.log(`❌ CRITICAL: Canvas container has ZERO dimensions - canvases will be invisible!`);
+                                window.mobileOptimization.log(`❌ CRITICAL: Canvas container has ZERO dimensions - canvases will be invisible!`);
                             }
                         } else {
-                            window.mobileDebug.log(`❌ CRITICAL: Canvas container #canvasContainer not found!`);
+                            window.mobileOptimization.log(`❌ CRITICAL: Canvas container #canvasContainer not found!`);
                         }
                     }
                 }

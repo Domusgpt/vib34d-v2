@@ -51,9 +51,18 @@
                 
                 void main() {
                     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-                    float wave = sin(uv.x * 10.0 + u_time) * sin(uv.y * 8.0 + u_time * 0.7);
-                    vec3 color = vec3(0.5 + wave * 0.5, 0.3, 0.8);
-                    gl_FragColor = vec4(color, 1.0);
+                    
+                    // Simple test - make color change over time
+                    float t = u_time * 2.0;
+                    float red = 0.5 + 0.5 * sin(t);
+                    float green = 0.5 + 0.5 * sin(t + 1.0);
+                    float blue = 0.5 + 0.5 * sin(t + 2.0);
+                    
+                    // Add position-based variation
+                    red += uv.x * 0.3;
+                    green += uv.y * 0.3;
+                    
+                    gl_FragColor = vec4(red, green, blue, 1.0);
                 }
             `);
             gl.compileShader(fragmentShader);
