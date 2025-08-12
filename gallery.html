@@ -165,6 +165,14 @@
             --bend-intensity: 0;
         }
         
+        /* Default desktop tilt intensity */
+        .variation-card {
+            --tilt-intensity-y: 1.2deg;
+            --tilt-intensity-x: 0.6deg;
+            --accel-x: 0;
+            --accel-y: 0;
+        }
+
         .variation-card:hover {
             border-color: #00ffff;
             box-shadow: 
@@ -173,13 +181,22 @@
                 0 0 40px rgba(255, 0, 255, 0.4);
             transform: 
                 perspective(1200px)
-                rotateY(calc((var(--mouse-x) - 50) * 1.2deg * var(--bend-intensity)))
-                rotateX(calc((var(--mouse-y) - 50) * 0.6deg * var(--bend-intensity)))
+                rotateY(calc((var(--mouse-x) - 50) * var(--tilt-intensity-y) * var(--bend-intensity) + var(--accel-y) * 8deg))
+                rotateX(calc((var(--mouse-y) - 50) * var(--tilt-intensity-x) * var(--bend-intensity) + var(--accel-x) * 8deg))
                 translateZ(calc(var(--bend-intensity) * 40px))
                 translateY(-15px)
                 scale(1.02);
             backdrop-filter: blur(20px);
             z-index: 10;
+            transition: transform 0.1s ease-out;
+        }
+
+        /* Mobile optimization: Reduced tilt intensity by 50% */
+        @media (max-width: 768px), (pointer: coarse) {
+            .variation-card {
+                --tilt-intensity-y: 0.6deg;
+                --tilt-intensity-x: 0.3deg;
+            }
         }
         
         .variation-card::before {
@@ -218,8 +235,8 @@
                 perspective(1000px)
                 translateZ(30px)
                 scale(2.0)  /* 2x scale from center */
-                rotateY(calc((var(--mouse-x) - 50) * 0.9deg))
-                rotateX(calc((50 - var(--mouse-y)) * 0.6deg));
+                rotateY(calc((var(--mouse-x) - 50) * var(--tilt-intensity-y) * 0.75 + var(--accel-y) * 6deg))
+                rotateX(calc((50 - var(--mouse-y)) * var(--tilt-intensity-x) + var(--accel-x) * 6deg));
             transform-origin: center center;
             z-index: 100;
             box-shadow: 
@@ -1519,9 +1536,91 @@
         }
         
         // Initialize holographic effects when DOM is ready
+        // Mobile Accelerometer Card Tilt System
+        class MobileAccelerometerTilt {
+            constructor() {
+                this.isActive = false;
+                this.smoothedX = 0;
+                this.smoothedY = 0;
+                this.smoothingFactor = 0.1;
+                this.cards = [];
+                
+                this.init();
+            }
+            
+            async init() {
+                // Only initialize on mobile devices
+                if (!this.isMobile()) return;
+                
+                try {
+                    // Request device motion permission on iOS 13+
+                    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                        const permission = await DeviceMotionEvent.requestPermission();
+                        if (permission !== 'granted') {
+                            console.log('[Mobile] Device motion permission denied');
+                            return;
+                        }
+                    }
+                    
+                    // Get all gallery cards
+                    this.cards = document.querySelectorAll('.variation-card');
+                    console.log(`[Mobile] Accelerometer tilt enabled for ${this.cards.length} cards`);
+                    
+                    // Start listening to device motion
+                    window.addEventListener('deviceorientation', this.handleDeviceOrientation.bind(this));
+                    this.isActive = true;
+                    
+                } catch (error) {
+                    console.log('[Mobile] Accelerometer not available:', error);
+                }
+            }
+            
+            isMobile() {
+                return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                       (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+            }
+            
+            handleDeviceOrientation(event) {
+                if (!this.isActive) return;
+                
+                // Get device orientation values
+                const beta = event.beta;   // X-axis rotation (-180 to 180)
+                const gamma = event.gamma; // Y-axis rotation (-90 to 90)
+                
+                if (beta === null || gamma === null) return;
+                
+                // Normalize values to -1 to 1 range
+                const normalizedX = Math.max(-1, Math.min(1, beta / 45));   // Tilt forward/back
+                const normalizedY = Math.max(-1, Math.min(1, gamma / 45));  // Tilt left/right
+                
+                // Apply smoothing to prevent jittery motion
+                this.smoothedX = this.smoothedX + (normalizedX - this.smoothedX) * this.smoothingFactor;
+                this.smoothedY = this.smoothedY + (normalizedY - this.smoothedY) * this.smoothingFactor;
+                
+                // Apply accelerometer values to all cards
+                this.cards.forEach(card => {
+                    card.style.setProperty('--accel-x', this.smoothedX);
+                    card.style.setProperty('--accel-y', this.smoothedY);
+                });
+            }
+            
+            destroy() {
+                window.removeEventListener('deviceorientation', this.handleDeviceOrientation.bind(this));
+                this.isActive = false;
+            }
+        }
+        
+        // Initialize mobile accelerometer system
+        let mobileAccelerometer = null;
+        
         document.addEventListener('DOMContentLoaded', () => {
             // Small delay to ensure cards are rendered
-            setTimeout(initializeHolographicCardEffects, 50);
+            setTimeout(() => {
+                initializeHolographicCardEffects();
+                
+                // Initialize mobile accelerometer tilt system
+                mobileAccelerometer = new MobileAccelerometerTilt();
+            }, 50);
         });
     </script>
 </body>
