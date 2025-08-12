@@ -592,7 +592,8 @@
         .variation-card:hover .card-preview iframe {
             transform: 
                 scale(1.0)
-                rotateY(calc((var(--mouse-x) - 50) * -0.1deg));
+                rotateY(calc((var(--mouse-x) - 50) * -0.4deg))
+                rotateX(calc((var(--mouse-y) - 50) * -0.2deg));
             filter: brightness(1.15) contrast(1.05);
             transition: transform 0.1s ease-out;
         }
@@ -601,7 +602,8 @@
         .card-preview:hover iframe {
             transform: 
                 scale(1.5) /* Expand when hovering canvas area */
-                rotateY(calc((var(--mouse-x) - 50) * -0.1deg));
+                rotateY(calc((var(--mouse-x) - 50) * -0.6deg))
+                rotateX(calc((var(--mouse-y) - 50) * -0.3deg));
             z-index: 100;
         }
         
