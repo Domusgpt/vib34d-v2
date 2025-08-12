@@ -173,8 +173,8 @@
                 0 0 40px rgba(255, 0, 255, 0.4);
             transform: 
                 perspective(1200px)
-                rotateY(calc((var(--mouse-x) - 50) * 0.4deg * var(--bend-intensity)))
-                rotateX(calc((var(--mouse-y) - 50) * 0.2deg * var(--bend-intensity)))
+                rotateY(calc((var(--mouse-x) - 50) * 1.2deg * var(--bend-intensity)))
+                rotateX(calc((var(--mouse-y) - 50) * 0.6deg * var(--bend-intensity)))
                 translateZ(calc(var(--bend-intensity) * 40px))
                 translateY(-15px)
                 scale(1.02);
@@ -218,8 +218,8 @@
                 perspective(1000px)
                 translateZ(30px)
                 scale(2.0)  /* 2x scale from center */
-                rotateY(calc((var(--mouse-x) - 50) * 0.3deg))
-                rotateX(calc((50 - var(--mouse-y)) * 0.2deg));
+                rotateY(calc((var(--mouse-x) - 50) * 0.9deg))
+                rotateX(calc((50 - var(--mouse-y)) * 0.6deg));
             transform-origin: center center;
             z-index: 100;
             box-shadow: 
