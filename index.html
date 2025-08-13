@@ -2396,6 +2396,62 @@
                 showSaveError(error.message || 'Gallery save failed');
             }
         }
+        
+        // 🎯 SMOOTH MOUSE PARAMETER UPDATES: Throttled for performance
+        let lastMouseUpdate = 0;
+        let pendingMouseData = null;
+        let mouseUpdateRAF = null;
+        
+        // Store base parameter values for smooth mouse interpolation
+        window.baseHue = 200;
+        window.baseDensity = 15; 
+        window.baseMorph = 1;
+        
+        function applyMouseParameters() {
+            if (!pendingMouseData || !window.updateParameter || !window.moduleReady) return;
+            
+            const { mouseX, mouseY, intensity } = pendingMouseData;
+            
+            // Convert mouse position to parameter changes with smooth interpolation
+            const hueShift = (mouseX - 0.5) * 60; // ±30° hue shift
+            const densityShift = (mouseY - 0.5) * 10; // ±5 density shift  
+            const morphShift = intensity * 0.3; // 0-0.3 morph factor
+            
+            // Apply parameter updates smoothly
+            updateParameter('hue', (window.baseHue || 200) + hueShift);
+            updateParameter('gridDensity', Math.max(5, (window.baseDensity || 15) + densityShift));
+            updateParameter('morphFactor', Math.max(0, Math.min(2, (window.baseMorph || 1) + morphShift)));
+            updateParameter('intensity', Math.max(0, Math.min(1, intensity)));
+            
+            pendingMouseData = null;
+        }
+        
+        // Listen for mouse events from parent gallery/viewer for smooth parameter updates
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'mouseMove') {
+                const now = performance.now();
+                
+                // Store the latest mouse data
+                pendingMouseData = {
+                    mouseX: event.data.x,
+                    mouseY: event.data.y, 
+                    intensity: event.data.intensity || 0.5
+                };
+                
+                // Throttle updates to 60fps max (16.67ms intervals)
+                if (now - lastMouseUpdate > 16) {
+                    lastMouseUpdate = now;
+                    
+                    // Cancel any pending update
+                    if (mouseUpdateRAF) {
+                        cancelAnimationFrame(mouseUpdateRAF);
+                    }
+                    
+                    // Schedule update on next animation frame
+                    mouseUpdateRAF = requestAnimationFrame(applyMouseParameters);
+                }
+            }
+        });
     </script>
 </body>
 </html>
