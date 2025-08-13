@@ -71,6 +71,84 @@ export class QuantumHolographicVisualizer {
     }
     
     /**
+     * CRITICAL FIX: Ensure canvas is properly sized before creating WebGL context
+     */
+    async ensureCanvasSizedThenInitWebGL() {
+        // Set proper canvas dimensions for mobile - with fallbacks
+        let rect = this.canvas.getBoundingClientRect();
+        const devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2x for performance
+        
+        // If canvas has no dimensions, wait for layout or use viewport
+        if (rect.width === 0 || rect.height === 0) {
+            // Wait for layout with promise
+            await new Promise(resolve => {
+                setTimeout(() => {
+                    rect = this.canvas.getBoundingClientRect();
+                    if (rect.width === 0 || rect.height === 0) {
+                        // Use viewport dimensions as fallback
+                        const viewWidth = window.innerWidth;
+                        const viewHeight = window.innerHeight;
+                        this.canvas.width = viewWidth * devicePixelRatio;
+                        this.canvas.height = viewHeight * devicePixelRatio;
+                        
+                        if (window.mobileDebug) {
+                            window.mobileDebug.log(`📐 Quantum Canvas ${this.canvas.id}: Using viewport fallback ${this.canvas.width}x${this.canvas.height}`);
+                        }
+                    } else {
+                        this.canvas.width = rect.width * devicePixelRatio;
+                        this.canvas.height = rect.height * devicePixelRatio;
+                        
+                        if (window.mobileDebug) {
+                            window.mobileDebug.log(`📐 Quantum Canvas ${this.canvas.id}: Layout ready ${this.canvas.width}x${this.canvas.height}`);
+                        }
+                    }
+                    resolve();
+                }, 100);
+            });
+        } else {
+            this.canvas.width = rect.width * devicePixelRatio;
+            this.canvas.height = rect.height * devicePixelRatio;
+            
+            if (window.mobileDebug) {
+                window.mobileDebug.log(`📐 Quantum Canvas ${this.canvas.id}: ${this.canvas.width}x${this.canvas.height} (DPR: ${devicePixelRatio})`);
+            }
+        }
+        
+        // NOW create WebGL context with properly sized canvas
+        this.createWebGLContext();
+        
+        // Initialize rendering pipeline
+        if (this.gl) {
+            this.init();
+        }
+    }
+    
+    /**
+     * Create WebGL context after canvas is properly sized
+     */
+    createWebGLContext() {
+        // Try WebGL2 first (better mobile support), then WebGL1
+        this.gl = this.canvas.getContext('webgl2', this.contextOptions) || 
+                  this.canvas.getContext('webgl', this.contextOptions) ||
+                  this.canvas.getContext('experimental-webgl', this.contextOptions);
+        
+        if (!this.gl) {
+            console.error(`WebGL not supported for ${this.canvas.id}`);
+            if (window.mobileDebug) {
+                window.mobileDebug.log(`❌ Quantum ${this.canvas.id}: WebGL context creation failed (size: ${this.canvas.width}x${this.canvas.height})`);
+            }
+            // Show user-friendly error instead of white screen
+            this.showWebGLError();
+            return;
+        } else {
+            if (window.mobileDebug) {
+                const version = this.gl.getParameter(this.gl.VERSION);
+                window.mobileDebug.log(`✅ Quantum ${this.canvas.id}: WebGL context created - ${version} (size: ${this.canvas.width}x${this.canvas.height})`);
+            }
+        }
+    }
+
+    /**
      * Initialize WebGL rendering pipeline
      */
     init() {
