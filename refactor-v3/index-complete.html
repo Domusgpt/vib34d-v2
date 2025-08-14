@@ -635,7 +635,7 @@
                     else if (geomType == 6) {
                         // Wave pattern
                         float freq = u_gridDensity * 0.08;
-                        float time = u_time * 0.001 * u_speed;
+                        float time = u_time * u_speed;
                         float wave1 = sin(p.x * freq + time);
                         float wave2 = sin(p.y * freq + time * 1.3);
                         float wave3 = sin(p.z * freq * 0.8 + time * 0.7);
@@ -654,7 +654,7 @@
                     vec2 uv = (gl_FragCoord.xy - u_resolution.xy * 0.5) / min(u_resolution.x, u_resolution.y);
                     
                     // 4D position with time animation
-                    float timeSpeed = u_time * 0.0001 * u_speed;
+                    float timeSpeed = u_time * u_speed;
                     vec4 pos = vec4(uv * 3.0, sin(timeSpeed * 3.0), cos(timeSpeed * 2.0));
                     
                     // Apply 4D rotations
