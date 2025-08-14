@@ -403,6 +403,7 @@
         
         let currentSystem = 'faceted';
         let visualizers = new Map();
+        const startTime = Date.now(); // EXACT COPY from original
         
         // Mobile detection for debugging
         window.isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -826,8 +827,12 @@
         function setGeometry(index) {
             updateParameter('geometry', index);
             
-            // Update UI
-            document.getElementById('geometry').value = index;
+            // Update UI - only if element exists
+            const geometryInput = document.getElementById('geometry');
+            if (geometryInput) {
+                geometryInput.value = index;
+            }
+            
             document.querySelectorAll('.geometry-btn').forEach((btn, i) => {
                 btn.classList.toggle('active', i === index);
             });
@@ -929,9 +934,9 @@
             alert('🤖 AI parameter interface coming soon!');
         }
         
-        // Render loop
+        // Render loop - EXACT COPY from original working system
         function render() {
-            const time = Date.now() * 0.001; // Convert to seconds
+            const time = Date.now() - startTime; // EXACT COPY: milliseconds from start
             let renderCount = 0;
             
             visualizers.forEach((visualizer, canvasId) => {
@@ -955,9 +960,9 @@
                 
                 gl.useProgram(currentProgram);
                 
-                // Set uniforms - FIXED TIME
+                // Set uniforms - EXACT COPY from original
                 gl.uniform2f(currentProgram.uniforms.resolution, canvas.width, canvas.height);
-                gl.uniform1f(currentProgram.uniforms.time, time); // Pass raw time
+                gl.uniform1f(currentProgram.uniforms.time, time); // Pass milliseconds
                 
                 renderCount++;
                 gl.uniform1f(currentProgram.uniforms.geometry, parameters.geometry);
