@@ -9,20 +9,28 @@
         window.isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
         if (window.isMobile) {
-            // MOBILE CANVAS FIX: Hide all canvases except faceted system on mobile
+            // MOBILE CANVAS FIX: Proper canvas management on mobile
             document.addEventListener('DOMContentLoaded', function() {
                 const allCanvases = document.querySelectorAll('canvas');
-                console.log('🔧 MOBILE: Found ' + allCanvases.length + ' canvases, hiding non-faceted');
+                console.log('🔧 MOBILE: Found ' + allCanvases.length + ' canvases');
                 
+                // Hide non-faceted canvases initially on mobile
                 allCanvases.forEach(canvas => {
-                    // Hide quantum, holo, and polychora canvases on mobile - keep only faceted (no prefix)
                     if (canvas.id.includes('quantum-') || 
                         canvas.id.includes('holo-') || 
                         canvas.id.includes('polychora-')) {
                         canvas.style.display = 'none';
                         console.log('🔧 MOBILE: Hidden ' + canvas.id);
                     } else {
-                        console.log('🔧 MOBILE: Keeping ' + canvas.id);
+                        // Ensure faceted canvases have proper size
+                        const container = document.querySelector('.canvas-container');
+                        if (container) {
+                            const rect = container.getBoundingClientRect();
+                            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                            canvas.width = Math.max(rect.width * dpr, 800);
+                            canvas.height = Math.max(rect.height * dpr, 600);
+                            console.log('🔧 MOBILE: Sized ' + canvas.id + ': ' + canvas.width + 'x' + canvas.height);
+                        }
                     }
                 });
             });

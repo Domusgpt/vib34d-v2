@@ -195,12 +195,16 @@
             let initialized = 0;
             
             canvases.forEach((canvas, index) => {
-                // Set canvas size
-                const rect = canvas.parentElement.getBoundingClientRect();
+                // CRITICAL FIX: Set proper canvas size
+                const container = document.getElementById('canvasContainer');
+                const rect = container.getBoundingClientRect();
                 const dpr = Math.min(window.devicePixelRatio || 1, 2);
                 
-                canvas.width = rect.width * dpr;
-                canvas.height = rect.height * dpr;
+                // Force canvas to proper size
+                canvas.width = Math.max(rect.width * dpr, 800);
+                canvas.height = Math.max(rect.height * dpr, 600);
+                
+                log(`Canvas ${canvas.id}: ${canvas.width}x${canvas.height}`);
                 
                 // Create WebGL context
                 const gl = canvas.getContext('webgl', {
