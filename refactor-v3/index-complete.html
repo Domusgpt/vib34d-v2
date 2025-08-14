@@ -505,8 +505,8 @@
                         }
                     });
                     
-                    // Set initial program
-                    visualizer.currentProgram = visualizer.programs.get(currentSystem);
+                    // Set initial program to faceted
+                    visualizer.currentProgram = visualizer.programs.get('faceted');
                     
                     visualizers.set(canvasId, visualizer);
                 }
@@ -749,22 +749,30 @@
         
         // Switch system - changes shaders on same canvases
         function switchSystem(system) {
+            console.log(`Switching to ${system} system`);
             currentSystem = system;
             
-            // Update UI
+            // Update UI buttons
             document.querySelectorAll('.system-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.system === system);
             });
             
             // Update visualizers to use new system's shaders
+            let switchedCount = 0;
             visualizers.forEach(visualizer => {
-                visualizer.currentProgram = visualizer.programs.get(system);
+                const program = visualizer.programs.get(system);
+                if (program) {
+                    visualizer.currentProgram = program;
+                    switchedCount++;
+                } else {
+                    console.error(`No ${system} shader found for canvas ${visualizer.canvas.id}`);
+                }
             });
             
             // Update geometry grid
             updateGeometryGrid();
             
-            console.log(`Switched to ${system} system - using same 5 canvases with ${system} shaders`);
+            console.log(`✅ Switched ${switchedCount}/5 canvases to ${system} system`);
         }
         
         // Update parameter function - core of the system
@@ -858,32 +866,48 @@
             });
         }
         
-        // Gallery and export functions
+        // Gallery and export functions - COMPATIBLE WITH EXISTING GALLERY
         function saveToGallery() {
+            // Create config in EXACT format that existing gallery.html expects
+            const timestamp = Date.now();
             const config = {
-                type: 'vib34d-v3-config',
-                version: '3.0.0',
-                timestamp: new Date().toISOString(),
-                name: `VIB34D ${currentSystem.charAt(0).toUpperCase() + currentSystem.slice(1)} ${Date.now()}`,
+                type: 'vib34d-variation',
+                version: '2.0.0',
+                created: new Date().toISOString(),
+                timestamp: timestamp,
+                name: `VIB34D ${currentSystem.charAt(0).toUpperCase() + currentSystem.slice(1)} Variation`,
                 system: currentSystem,
+                globalId: timestamp,
                 parameters: { ...parameters }
             };
             
-            const savedConfigs = JSON.parse(localStorage.getItem('vib34d-gallery-configs') || '[]');
-            savedConfigs.push(config);
-            localStorage.setItem('vib34d-gallery-configs', JSON.stringify(savedConfigs));
+            // Save to the SAME localStorage keys that gallery.html reads from
+            const savedVariations = JSON.parse(localStorage.getItem('vib34d-unified-variations') || '[]');
+            savedVariations.push(config);
+            localStorage.setItem('vib34d-unified-variations', JSON.stringify(savedVariations));
             
-            console.log('Saved to gallery:', config.name);
-            alert('💾 Saved to Gallery!');
+            // Trigger gallery refresh
+            localStorage.setItem('vib34d-gallery-update-trigger', timestamp.toString());
+            
+            console.log('💾 Saved variation to gallery:', config.name, config.globalId);
+            alert(`💾 Saved to Gallery!\n#${config.globalId} - ${config.name}`);
         }
         
         function openGallery() {
-            window.open('gallery.html', '_blank', 'width=1200,height=800');
+            window.open('../gallery.html', '_blank', 'width=1200,height=800');
         }
         
         function createTradingCard(type) {
-            console.log(`Creating ${type} trading card for ${currentSystem} system`);
-            alert(`🎴 ${type} trading card feature coming soon!`);
+            // Build URL with current parameters
+            const paramString = Object.entries(parameters)
+                .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+                .join('&');
+            
+            // Open viewer.html which has full trading card functionality
+            const viewerUrl = `../viewer.html?system=${currentSystem}&name=VIB34D ${currentSystem} Card&id=${Date.now()}&${paramString}`;
+            window.open(viewerUrl, '_blank');
+            
+            console.log(`🎴 Opening viewer for ${type} trading card: ${viewerUrl}`);
         }
         
         function showLLMInterface() {
@@ -893,7 +917,7 @@
         
         // Render loop
         function render() {
-            const time = Date.now() * 0.001;
+            const time = Date.now() * 0.001; // Convert to seconds
             
             visualizers.forEach(visualizer => {
                 const { gl, canvas, currentProgram } = visualizer;
@@ -906,9 +930,9 @@
                 
                 gl.useProgram(currentProgram);
                 
-                // Set uniforms
+                // Set uniforms - FIXED TIME
                 gl.uniform2f(currentProgram.uniforms.resolution, canvas.width, canvas.height);
-                gl.uniform1f(currentProgram.uniforms.time, time * 1000);
+                gl.uniform1f(currentProgram.uniforms.time, time * parameters.speed);
                 gl.uniform1f(currentProgram.uniforms.geometry, parameters.geometry);
                 gl.uniform1f(currentProgram.uniforms.gridDensity, parameters.gridDensity);
                 gl.uniform1f(currentProgram.uniforms.morphFactor, parameters.morphFactor);
@@ -949,6 +973,10 @@
         window.addEventListener('DOMContentLoaded', () => {
             handleResize();
             initializeVisualizers();
+            
+            // Ensure faceted system is active initially
+            switchSystem('faceted');
+            
             updateGeometryGrid();
             render();
             
