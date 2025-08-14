@@ -1115,7 +1115,7 @@
                     quantumEngine = { visualizers: [], setActive: () => {}, updateParameter: () => {}, isActive: false };
                 }
                 if (!holographicSystem) {
-                    if (isMobile && activeSystem !== 'holographic') {
+                    if (isMobile && window.currentSystem !== 'holographic') {
                         // Stub holographic system for mobile when not active
                         holographicSystem = { setActive: () => {}, updateParameter: () => {}, ensureRunning: () => {}, isActive: false };
                     } else {
@@ -1169,8 +1169,8 @@
                     // CRITICAL MOBILE FIX: Use the active system determined by mobile optimization  
                     let targetSystem = 'faceted';
                     if (isMobile) {
-                        // Use the SAME system that mobile engine initialization used
-                        targetSystem = activeSystem; // This was already determined above
+                        // Use the current system or default to faceted
+                        targetSystem = window.currentSystem || 'faceted';
                     }
                     console.log(`📱 Mobile system switch: ${targetSystem} (isMobile: ${isMobile})`);
                     if (true) {
