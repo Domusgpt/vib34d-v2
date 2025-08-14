@@ -636,7 +636,7 @@
                     else if (geomType == 6) {
                         // Wave pattern
                         float freq = u_gridDensity * 0.08;
-                        float time = u_time * u_speed;
+                        float time = u_time * 0.001 * u_speed;
                         float wave1 = sin(p.x * freq + time);
                         float wave2 = sin(p.y * freq + time * 1.3);
                         float wave3 = sin(p.z * freq * 0.8 + time * 0.7);
@@ -655,7 +655,7 @@
                     vec2 uv = (gl_FragCoord.xy - u_resolution.xy * 0.5) / min(u_resolution.x, u_resolution.y);
                     
                     // 4D position with time animation
-                    float timeSpeed = u_time * u_speed;
+                    float timeSpeed = u_time * 0.0001 * u_speed;
                     vec4 pos = vec4(uv * 3.0, sin(timeSpeed * 3.0), cos(timeSpeed * 2.0));
                     
                     // Apply 4D rotations
@@ -795,9 +795,21 @@
             const numValue = parseFloat(value);
             parameters[param] = numValue;
             
-            // Update UI display
-            const displayElement = document.getElementById(param + 'Value') || 
-                                 document.getElementById(param.replace('rot4d', '').toLowerCase() + 'Value');
+            // Update UI display with proper mapping
+            const valueDisplayMap = {
+                'rot4dXW': 'xwValue',
+                'rot4dYW': 'ywValue', 
+                'rot4dZW': 'zwValue',
+                'gridDensity': 'densityValue',
+                'morphFactor': 'morphValue',
+                'chaos': 'chaosValue',
+                'speed': 'speedValue',
+                'hue': 'hueValue',
+                'intensity': 'intensityValue',
+                'saturation': 'saturationValue'
+            };
+            
+            const displayElement = document.getElementById(valueDisplayMap[param]);
             if (displayElement) {
                 displayElement.textContent = param.includes('rot4d') ? numValue.toFixed(2) : 
                                            param === 'hue' || param === 'gridDensity' ? Math.round(numValue) :
