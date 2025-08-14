@@ -9,6 +9,23 @@
         window.isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
         if (window.isMobile) {
+            // MOBILE CANVAS FIX: Hide all canvases except faceted system on mobile
+            document.addEventListener('DOMContentLoaded', function() {
+                const allCanvases = document.querySelectorAll('canvas');
+                console.log('🔧 MOBILE: Found ' + allCanvases.length + ' canvases, hiding non-faceted');
+                
+                allCanvases.forEach(canvas => {
+                    // Hide quantum, holo, and polychora canvases on mobile - keep only faceted (no prefix)
+                    if (canvas.id.includes('quantum-') || 
+                        canvas.id.includes('holo-') || 
+                        canvas.id.includes('polychora-')) {
+                        canvas.style.display = 'none';
+                        console.log('🔧 MOBILE: Hidden ' + canvas.id);
+                    } else {
+                        console.log('🔧 MOBILE: Keeping ' + canvas.id);
+                    }
+                });
+            });
             document.addEventListener('DOMContentLoaded', function() {
                 const debugDiv = document.createElement('div');
                 debugDiv.innerHTML = '🔥 MOBILE DEBUG ACTIVE';
@@ -36,13 +53,26 @@
                         
                         // Add test button
                         const testBtn = document.createElement('button');
-                        testBtn.innerHTML = 'TEST';
-                        testBtn.style.cssText = 'display:block;margin:5px 0;padding:10px;background:blue;color:white;border:none;width:100px;';
+                        testBtn.innerHTML = 'TEST QUANTUM';
+                        testBtn.style.cssText = 'display:block;margin:5px 0;padding:10px;background:blue;color:white;border:none;width:120px;';
                         testBtn.onclick = function() {
                             try {
                                 if (window.switchSystem) {
+                                    // Mobile system switch with canvas management
+                                    const allCanvases = document.querySelectorAll('canvas');
+                                    allCanvases.forEach(canvas => {
+                                        if (canvas.id.includes('quantum-')) {
+                                            canvas.style.display = 'block';
+                                        } else {
+                                            canvas.style.display = 'none';
+                                        }
+                                    });
+                                    
                                     window.switchSystem('quantum');
-                                    debugDiv.innerHTML += '<br>✅ Clicked - System: ' + (window.currentSystem || 'unknown');
+                                    
+                                    // Update debug
+                                    const activeCanvases = Array.from(document.querySelectorAll('canvas')).filter(c => c.style.display !== 'none');
+                                    debugDiv.innerHTML += '<br>✅ SWITCHED - Active: ' + activeCanvases.length + ' System: ' + (window.currentSystem || 'unknown');
                                 } else {
                                     debugDiv.innerHTML += '<br>❌ switchSystem missing!';
                                 }
