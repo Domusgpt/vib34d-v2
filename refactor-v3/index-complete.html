@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D - 5 Canvas Complete System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* ========== TOP BAR ========== */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.9);
+            border-bottom: 2px solid #00ffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #00ffff;
+            text-shadow: 0 0 20px #00ffff;
+        }
+        
+        .system-selector {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .system-btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .system-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        
+        .system-btn.active {
+            background: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 20px #00ffff;
+            color: #fff;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            background: rgba(255, 0, 255, 0.1);
+            border: 2px solid rgba(255, 0, 255, 0.3);
+            color: #ff00ff;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .action-btn:hover {
+            background: rgba(255, 0, 255, 0.2);
+            border-color: #ff00ff;
+        }
+        
+        /* ========== CANVAS CONTAINER ========== */
+        .canvas-container {
+            position: fixed;
+            top: 50px;
+            left: 0;
+            right: 300px;
+            bottom: 0;
+            background: #000;
+        }
+        
+        /* ONLY 5 CANVASES - SHARED BETWEEN ALL SYSTEMS */
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #background-canvas { z-index: 1; }
+        #shadow-canvas { z-index: 2; }
+        #content-canvas { z-index: 3; }
+        #highlight-canvas { z-index: 4; }
+        #accent-canvas { z-index: 5; }
+        
+        /* ========== CONTROL PANEL ========== */
+        .control-panel {
+            position: fixed;
+            top: 50px;
+            right: 0;
+            width: 300px;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            border-left: 2px solid #00ffff;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .control-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            color: #00ffff;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px #00ffff;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+            padding-bottom: 5px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .control-value {
+            color: #ff00ff;
+            font-weight: bold;
+            min-width: 50px;
+            text-align: right;
+        }
+        
+        .control-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 255, 255, 0.2);
+            outline: none;
+            border-radius: 3px;
+            appearance: none;
+        }
+        
+        .control-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        /* ========== GEOMETRY GRID ========== */
+        .geometry-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .geometry-btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+            padding: 12px 8px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .geometry-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: #00ffff;
+        }
+        
+        .geometry-btn.active {
+            background: rgba(0, 255, 255, 0.3);
+            border-color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        /* ========== ACTION BUTTONS SECTION ========== */
+        .panel-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .panel-btn {
+            background: rgba(255, 0, 255, 0.1);
+            border: 2px solid rgba(255, 0, 255, 0.3);
+            color: #ff00ff;
+            padding: 12px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .panel-btn:hover {
+            background: rgba(255, 0, 255, 0.2);
+            border-color: #ff00ff;
+        }
+    </style>
+</head>
+<body>
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <div class="logo">VIB34D v3.0</div>
+        
+        <div class="system-selector">
+            <button class="system-btn active" data-system="faceted" onclick="switchSystem('faceted')">🔷 Faceted</button>
+            <button class="system-btn" data-system="quantum" onclick="switchSystem('quantum')">🌌 Quantum</button>
+            <button class="system-btn" data-system="holographic" onclick="switchSystem('holographic')">✨ Holographic</button>
+            <button class="system-btn" data-system="polychora" onclick="switchSystem('polychora')">🔮 Polychora</button>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="action-btn" onclick="openGallery()" title="Gallery">🖼️</button>
+            <button class="action-btn" onclick="showLLMInterface()" title="AI Parameters">🤖</button>
+        </div>
+    </div>
+    
+    <!-- CANVAS CONTAINER - ONLY 5 CANVASES TOTAL -->
+    <div class="canvas-container">
+        <canvas id="background-canvas"></canvas>
+        <canvas id="shadow-canvas"></canvas>
+        <canvas id="content-canvas"></canvas>
+        <canvas id="highlight-canvas"></canvas>
+        <canvas id="accent-canvas"></canvas>
+    </div>
+    
+    <!-- CONTROL PANEL -->
+    <div class="control-panel">
+        <!-- GEOMETRY SECTION -->
+        <div class="control-section">
+            <div class="section-title">GEOMETRY</div>
+            <div class="geometry-grid" id="geometryGrid">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+        
+        <!-- 4D ROTATION SECTION -->
+        <div class="control-section">
+            <div class="section-title">4D ROTATION</div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>XW Plane</span>
+                    <span class="control-value" id="xwValue">0.00</span>
+                </div>
+                <input type="range" class="control-slider" id="rot4dXW" 
+                       min="-6.28" max="6.28" step="0.01" value="0" 
+                       oninput="updateParameter('rot4dXW', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>YW Plane</span>
+                    <span class="control-value" id="ywValue">0.00</span>
+                </div>
+                <input type="range" class="control-slider" id="rot4dYW" 
+                       min="-6.28" max="6.28" step="0.01" value="0" 
+                       oninput="updateParameter('rot4dYW', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>ZW Plane</span>
+                    <span class="control-value" id="zwValue">0.00</span>
+                </div>
+                <input type="range" class="control-slider" id="rot4dZW" 
+                       min="-6.28" max="6.28" step="0.01" value="0" 
+                       oninput="updateParameter('rot4dZW', this.value)">
+            </div>
+        </div>
+        
+        <!-- VISUAL PARAMETERS SECTION -->
+        <div class="control-section">
+            <div class="section-title">VISUAL</div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Density</span>
+                    <span class="control-value" id="densityValue">15</span>
+                </div>
+                <input type="range" class="control-slider" id="gridDensity" 
+                       min="5" max="100" step="1" value="15" 
+                       oninput="updateParameter('gridDensity', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Morph</span>
+                    <span class="control-value" id="morphValue">1.00</span>
+                </div>
+                <input type="range" class="control-slider" id="morphFactor" 
+                       min="0" max="2" step="0.01" value="1" 
+                       oninput="updateParameter('morphFactor', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Chaos</span>
+                    <span class="control-value" id="chaosValue">0.20</span>
+                </div>
+                <input type="range" class="control-slider" id="chaos" 
+                       min="0" max="1" step="0.01" value="0.2" 
+                       oninput="updateParameter('chaos', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Speed</span>
+                    <span class="control-value" id="speedValue">1.00</span>
+                </div>
+                <input type="range" class="control-slider" id="speed" 
+                       min="0.1" max="3" step="0.01" value="1" 
+                       oninput="updateParameter('speed', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Hue</span>
+                    <span class="control-value" id="hueValue">200</span>
+                </div>
+                <input type="range" class="control-slider" id="hue" 
+                       min="0" max="360" step="1" value="200" 
+                       oninput="updateParameter('hue', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Intensity</span>
+                    <span class="control-value" id="intensityValue">0.50</span>
+                </div>
+                <input type="range" class="control-slider" id="intensity" 
+                       min="0" max="1" step="0.01" value="0.5" 
+                       oninput="updateParameter('intensity', this.value)">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Saturation</span>
+                    <span class="control-value" id="saturationValue">0.80</span>
+                </div>
+                <input type="range" class="control-slider" id="saturation" 
+                       min="0" max="1" step="0.01" value="0.8" 
+                       oninput="updateParameter('saturation', this.value)">
+            </div>
+        </div>
+        
+        <!-- ACTION BUTTONS -->
+        <div class="panel-actions">
+            <button class="panel-btn" onclick="randomizeParameters()">🎲 Random</button>
+            <button class="panel-btn" onclick="fullRandomize()">🌟 Full Random</button>
+            <button class="panel-btn" onclick="resetParameters()">🔄 Reset</button>
+            <button class="panel-btn" onclick="saveToGallery()">💾 Save</button>
+            <button class="panel-btn" onclick="createTradingCard('classic')">🎴 Trading Card</button>
+            <button class="panel-btn" onclick="createTradingCard('social')">📱 Social Card</button>
+        </div>
+    </div>
+
+    <script>
+        // VIB34D v3.0 - 5 Canvas Complete System
+        
+        let currentSystem = 'faceted';
+        let visualizers = new Map();
+        let parameters = {
+            geometry: 0,
+            rot4dXW: 0.0,
+            rot4dYW: 0.0,
+            rot4dZW: 0.0,
+            gridDensity: 15,
+            morphFactor: 1.0,
+            chaos: 0.2,
+            speed: 1.0,
+            hue: 200,
+            intensity: 0.5,
+            saturation: 0.8
+        };
+        
+        // Canvas IDs - same 5 for all systems
+        const canvasIds = [
+            'background-canvas',
+            'shadow-canvas',
+            'content-canvas', 
+            'highlight-canvas',
+            'accent-canvas'
+        ];
+        
+        // System shader configurations
+        const systemConfigs = {
+            faceted: {
+                colors: [
+                    { r: 0.0, g: 1.0, b: 1.0 },   // cyan
+                    { r: 0.0, g: 0.8, b: 1.0 },   // light blue  
+                    { r: 0.0, g: 1.0, b: 0.8 },   // cyan-green
+                    { r: 0.2, g: 1.0, b: 1.0 },   // light cyan
+                    { r: 0.0, g: 1.0, b: 1.0 }    // cyan accent
+                ]
+            },
+            quantum: {
+                colors: [
+                    { r: 1.0, g: 0.0, b: 1.0 },   // magenta
+                    { r: 0.8, g: 0.0, b: 1.0 },   // purple
+                    { r: 1.0, g: 0.2, b: 1.0 },   // pink
+                    { r: 1.0, g: 0.0, b: 0.8 },   // deep magenta
+                    { r: 1.0, g: 0.0, b: 1.0 }    // magenta accent
+                ]
+            },
+            holographic: {
+                colors: [
+                    { r: 1.0, g: 0.5, b: 1.0 },   // pink
+                    { r: 1.0, g: 0.3, b: 0.9 },   // rose
+                    { r: 1.0, g: 0.7, b: 1.0 },   // light pink
+                    { r: 1.0, g: 0.4, b: 0.8 },   // coral
+                    { r: 1.0, g: 0.5, b: 1.0 }    // pink accent
+                ]
+            },
+            polychora: {
+                colors: [
+                    { r: 0.5, g: 1.0, b: 1.0 },   // light cyan
+                    { r: 0.3, g: 1.0, b: 0.9 },   // aqua
+                    { r: 0.7, g: 1.0, b: 1.0 },   // pale cyan
+                    { r: 0.4, g: 1.0, b: 0.8 },   // teal
+                    { r: 0.5, g: 1.0, b: 1.0 }    // light cyan accent
+                ]
+            }
+        };
+        
+        // Geometry types
+        const geometryTypes = [
+            'Tetrahedron', 'Hypercube', 'Octahedron', 'Icosahedron',
+            'Dodecahedron', 'Crystal', 'Wave', 'Fractal'
+        ];
+        
+        // Initialize visualizers for 5 canvases
+        function initializeVisualizers() {
+            canvasIds.forEach((canvasId, layerIndex) => {
+                const canvas = document.getElementById(canvasId);
+                
+                // Set canvas size
+                resizeCanvas(canvas);
+                
+                // Create WebGL context
+                const gl = canvas.getContext('webgl', {
+                    alpha: true,
+                    premultipliedAlpha: true,
+                    antialias: false,
+                    depth: false
+                });
+                
+                if (gl) {
+                    const visualizer = {
+                        canvas,
+                        gl,
+                        layerIndex,
+                        programs: new Map(),
+                        currentProgram: null
+                    };
+                    
+                    // Create shader programs for each system
+                    Object.keys(systemConfigs).forEach(system => {
+                        const program = createShaderProgram(gl, system, layerIndex);
+                        if (program) {
+                            visualizer.programs.set(system, program);
+                        }
+                    });
+                    
+                    // Set initial program
+                    visualizer.currentProgram = visualizer.programs.get(currentSystem);
+                    
+                    visualizers.set(canvasId, visualizer);
+                }
+            });
+            
+            console.log(`VIB34D v3: Initialized ${visualizers.size} visualizers with ${Object.keys(systemConfigs).length} systems each`);
+        }
+        
+        function resizeCanvas(canvas) {
+            const container = canvas.parentElement;
+            const rect = container.getBoundingClientRect();
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+        }
+        
+        // Create shader program for specific system and layer
+        function createShaderProgram(gl, system, layerIndex) {
+            const vertexShader = createShader(gl, gl.VERTEX_SHADER, `
+                attribute vec2 position;
+                void main() {
+                    gl_Position = vec4(position, 0.0, 1.0);
+                }
+            `);
+            
+            const config = systemConfigs[system];
+            const color = config.colors[layerIndex];
+            
+            const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, `
+                precision highp float;
+                
+                uniform vec2 u_resolution;
+                uniform float u_time;
+                uniform float u_geometry;
+                uniform float u_gridDensity;
+                uniform float u_morphFactor;
+                uniform float u_chaos;
+                uniform float u_speed;
+                uniform float u_hue;
+                uniform float u_intensity;
+                uniform float u_saturation;
+                uniform float u_rot4dXW;
+                uniform float u_rot4dYW;
+                uniform float u_rot4dZW;
+                
+                // 4D rotation matrices
+                mat4 rotateXW(float theta) {
+                    float c = cos(theta);
+                    float s = sin(theta);
+                    return mat4(c, 0.0, 0.0, -s, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, s, 0.0, 0.0, c);
+                }
+                
+                mat4 rotateYW(float theta) {
+                    float c = cos(theta);
+                    float s = sin(theta);
+                    return mat4(1.0, 0.0, 0.0, 0.0, 0.0, c, 0.0, -s, 0.0, 0.0, 1.0, 0.0, 0.0, s, 0.0, c);
+                }
+                
+                mat4 rotateZW(float theta) {
+                    float c = cos(theta);
+                    float s = sin(theta);
+                    return mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, c, -s, 0.0, 0.0, s, c);
+                }
+                
+                vec3 project4Dto3D(vec4 p) {
+                    float w = 2.5 / (2.5 + p.w);
+                    return vec3(p.x * w, p.y * w, p.z * w);
+                }
+                
+                float geometryFunction(vec4 p) {
+                    int geomType = int(u_geometry);
+                    
+                    if (geomType == 0) {
+                        // Tetrahedron lattice
+                        vec4 pos = fract(p * u_gridDensity * 0.08);
+                        vec4 dist = min(pos, 1.0 - pos);
+                        return min(min(dist.x, dist.y), min(dist.z, dist.w)) * u_morphFactor;
+                    }
+                    else if (geomType == 1) {
+                        // Hypercube lattice
+                        vec4 pos = fract(p * u_gridDensity * 0.08);
+                        vec4 dist = min(pos, 1.0 - pos);
+                        float minDist = min(min(dist.x, dist.y), min(dist.z, dist.w));
+                        return minDist * u_morphFactor;
+                    }
+                    else if (geomType == 2) {
+                        // Sphere lattice
+                        float r = length(p);
+                        float density = u_gridDensity * 0.08;
+                        float spheres = abs(fract(r * density) - 0.5) * 2.0;
+                        return spheres * u_morphFactor;
+                    }
+                    else if (geomType == 3) {
+                        // Icosahedron pattern
+                        vec4 pos = fract(p * u_gridDensity * 0.08);
+                        float pattern = sin(pos.x * 12.0) * cos(pos.y * 12.0) * sin(pos.z * 8.0);
+                        return pattern * u_morphFactor;
+                    }
+                    else if (geomType == 4) {
+                        // Dodecahedron pattern
+                        vec4 pos = fract(p * u_gridDensity * 0.08);
+                        float pattern = cos(pos.x * 10.0 + pos.y * 10.0) * sin(pos.z * 6.0);
+                        return pattern * u_morphFactor;
+                    }
+                    else if (geomType == 5) {
+                        // Crystal lattice
+                        vec4 pos = fract(p * u_gridDensity * 0.08) - 0.5;
+                        float cube = max(max(abs(pos.x), abs(pos.y)), max(abs(pos.z), abs(pos.w)));
+                        return cube * u_morphFactor;
+                    }
+                    else if (geomType == 6) {
+                        // Wave pattern
+                        float freq = u_gridDensity * 0.08;
+                        float time = u_time * 0.001 * u_speed;
+                        float wave1 = sin(p.x * freq + time);
+                        float wave2 = sin(p.y * freq + time * 1.3);
+                        float wave3 = sin(p.z * freq * 0.8 + time * 0.7);
+                        return wave1 * wave2 * wave3 * u_morphFactor;
+                    }
+                    else {
+                        // Fractal pattern
+                        vec4 pos = fract(p * u_gridDensity * 0.08);
+                        pos = abs(pos * 2.0 - 1.0);
+                        float dist = length(max(abs(pos) - 1.0, 0.0));
+                        return dist * u_morphFactor;
+                    }
+                }
+                
+                void main() {
+                    vec2 uv = (gl_FragCoord.xy - u_resolution.xy * 0.5) / min(u_resolution.x, u_resolution.y);
+                    
+                    // 4D position with time animation
+                    float timeSpeed = u_time * 0.0001 * u_speed;
+                    vec4 pos = vec4(uv * 3.0, sin(timeSpeed * 3.0), cos(timeSpeed * 2.0));
+                    
+                    // Apply 4D rotations
+                    pos = rotateXW(u_rot4dXW) * pos;
+                    pos = rotateYW(u_rot4dYW) * pos;
+                    pos = rotateZW(u_rot4dZW) * pos;
+                    
+                    // Calculate geometry value
+                    float value = geometryFunction(pos);
+                    
+                    // Apply chaos
+                    float noise = sin(pos.x * 7.0) * cos(pos.y * 11.0) * sin(pos.z * 13.0);
+                    value += noise * u_chaos;
+                    
+                    // Color based on geometry and hue
+                    float geometryIntensity = 1.0 - clamp(abs(value), 0.0, 1.0);
+                    
+                    // Apply user intensity control
+                    float finalIntensity = geometryIntensity * u_intensity;
+                    
+                    // Hue shift
+                    float hueShift = u_hue / 360.0 + value * 0.1;
+                    
+                    // System-specific base color
+                    vec3 baseColor = vec3(${color.r}, ${color.g}, ${color.b});
+                    
+                    // Apply hue rotation
+                    float hue = hueShift * 6.28318;
+                    vec3 hueColor = vec3(
+                        sin(hue + 0.0) * 0.5 + 0.5,
+                        sin(hue + 2.0943) * 0.5 + 0.5,
+                        sin(hue + 4.1887) * 0.5 + 0.5
+                    );
+                    
+                    // Mix base color with hue
+                    vec3 finalColor = mix(baseColor, hueColor, 0.5);
+                    
+                    // Apply saturation
+                    float gray = (finalColor.r + finalColor.g + finalColor.b) / 3.0;
+                    finalColor = mix(vec3(gray), finalColor, u_saturation);
+                    
+                    // Apply intensity
+                    finalColor *= finalIntensity;
+                    
+                    // Layer-specific alpha
+                    float alpha = ${0.2 + layerIndex * 0.15} * finalIntensity;
+                    
+                    gl_FragColor = vec4(finalColor, alpha);
+                }
+            `);
+            
+            if (!vertexShader || !fragmentShader) return null;
+            
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.error('Shader link failed:', gl.getProgramInfoLog(program));
+                return null;
+            }
+            
+            // Store uniform locations
+            program.uniforms = {
+                resolution: gl.getUniformLocation(program, 'u_resolution'),
+                time: gl.getUniformLocation(program, 'u_time'),
+                geometry: gl.getUniformLocation(program, 'u_geometry'),
+                gridDensity: gl.getUniformLocation(program, 'u_gridDensity'),
+                morphFactor: gl.getUniformLocation(program, 'u_morphFactor'),
+                chaos: gl.getUniformLocation(program, 'u_chaos'),
+                speed: gl.getUniformLocation(program, 'u_speed'),
+                hue: gl.getUniformLocation(program, 'u_hue'),
+                intensity: gl.getUniformLocation(program, 'u_intensity'),
+                saturation: gl.getUniformLocation(program, 'u_saturation'),
+                rot4dXW: gl.getUniformLocation(program, 'u_rot4dXW'),
+                rot4dYW: gl.getUniformLocation(program, 'u_rot4dYW'),
+                rot4dZW: gl.getUniformLocation(program, 'u_rot4dZW')
+            };
+            
+            // Create vertex buffer
+            program.buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, program.buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                -1, -1, 1, -1, -1, 1, 1, 1
+            ]), gl.STATIC_DRAW);
+            
+            program.positionLocation = gl.getAttribLocation(program, 'position');
+            
+            return program;
+        }
+        
+        function createShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error('Shader compile error:', gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            
+            return shader;
+        }
+        
+        // Switch system - changes shaders on same canvases
+        function switchSystem(system) {
+            currentSystem = system;
+            
+            // Update UI
+            document.querySelectorAll('.system-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.system === system);
+            });
+            
+            // Update visualizers to use new system's shaders
+            visualizers.forEach(visualizer => {
+                visualizer.currentProgram = visualizer.programs.get(system);
+            });
+            
+            // Update geometry grid
+            updateGeometryGrid();
+            
+            console.log(`Switched to ${system} system - using same 5 canvases with ${system} shaders`);
+        }
+        
+        // Update parameter function - core of the system
+        function updateParameter(param, value) {
+            const numValue = parseFloat(value);
+            parameters[param] = numValue;
+            
+            // Update UI display
+            const displayElement = document.getElementById(param + 'Value') || 
+                                 document.getElementById(param.replace('rot4d', '').toLowerCase() + 'Value');
+            if (displayElement) {
+                displayElement.textContent = param.includes('rot4d') ? numValue.toFixed(2) : 
+                                           param === 'hue' || param === 'gridDensity' ? Math.round(numValue) :
+                                           numValue.toFixed(2);
+            }
+        }
+        
+        // Geometry grid management
+        function updateGeometryGrid() {
+            const grid = document.getElementById('geometryGrid');
+            grid.innerHTML = '';
+            
+            geometryTypes.forEach((type, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'geometry-btn';
+                btn.textContent = type;
+                btn.onclick = () => setGeometry(index);
+                
+                if (index === parameters.geometry) {
+                    btn.classList.add('active');
+                }
+                
+                grid.appendChild(btn);
+            });
+        }
+        
+        function setGeometry(index) {
+            updateParameter('geometry', index);
+            
+            // Update UI
+            document.getElementById('geometry').value = index;
+            document.querySelectorAll('.geometry-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+        }
+        
+        // Parameter randomization
+        function randomizeParameters() {
+            updateParameter('geometry', Math.floor(Math.random() * 8));
+            updateParameter('gridDensity', 5 + Math.random() * 95);
+            updateParameter('morphFactor', Math.random() * 2);
+            updateParameter('chaos', Math.random());
+            updateParameter('speed', 0.1 + Math.random() * 2.9);
+            updateParameter('hue', Math.random() * 360);
+            updateParameter('intensity', 0.2 + Math.random() * 0.8);
+            updateParameter('saturation', 0.3 + Math.random() * 0.7);
+            
+            syncUIWithParameters();
+            updateGeometryGrid();
+        }
+        
+        function fullRandomize() {
+            randomizeParameters();
+            updateParameter('rot4dXW', (Math.random() - 0.5) * 12.56);
+            updateParameter('rot4dYW', (Math.random() - 0.5) * 12.56);
+            updateParameter('rot4dZW', (Math.random() - 0.5) * 12.56);
+            
+            syncUIWithParameters();
+        }
+        
+        function resetParameters() {
+            Object.keys(parameters).forEach(param => {
+                const defaultValues = {
+                    geometry: 0, rot4dXW: 0, rot4dYW: 0, rot4dZW: 0,
+                    gridDensity: 15, morphFactor: 1, chaos: 0.2, speed: 1,
+                    hue: 200, intensity: 0.5, saturation: 0.8
+                };
+                updateParameter(param, defaultValues[param]);
+            });
+            
+            syncUIWithParameters();
+            updateGeometryGrid();
+        }
+        
+        function syncUIWithParameters() {
+            Object.keys(parameters).forEach(param => {
+                const input = document.getElementById(param);
+                if (input) {
+                    input.value = parameters[param];
+                }
+            });
+        }
+        
+        // Gallery and export functions
+        function saveToGallery() {
+            const config = {
+                type: 'vib34d-v3-config',
+                version: '3.0.0',
+                timestamp: new Date().toISOString(),
+                name: `VIB34D ${currentSystem.charAt(0).toUpperCase() + currentSystem.slice(1)} ${Date.now()}`,
+                system: currentSystem,
+                parameters: { ...parameters }
+            };
+            
+            const savedConfigs = JSON.parse(localStorage.getItem('vib34d-gallery-configs') || '[]');
+            savedConfigs.push(config);
+            localStorage.setItem('vib34d-gallery-configs', JSON.stringify(savedConfigs));
+            
+            console.log('Saved to gallery:', config.name);
+            alert('💾 Saved to Gallery!');
+        }
+        
+        function openGallery() {
+            window.open('gallery.html', '_blank', 'width=1200,height=800');
+        }
+        
+        function createTradingCard(type) {
+            console.log(`Creating ${type} trading card for ${currentSystem} system`);
+            alert(`🎴 ${type} trading card feature coming soon!`);
+        }
+        
+        function showLLMInterface() {
+            console.log('Opening LLM parameter interface');
+            alert('🤖 AI parameter interface coming soon!');
+        }
+        
+        // Render loop
+        function render() {
+            const time = Date.now() * 0.001;
+            
+            visualizers.forEach(visualizer => {
+                const { gl, canvas, currentProgram } = visualizer;
+                
+                if (!currentProgram) return;
+                
+                gl.viewport(0, 0, canvas.width, canvas.height);
+                gl.clearColor(0, 0, 0, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                
+                gl.useProgram(currentProgram);
+                
+                // Set uniforms
+                gl.uniform2f(currentProgram.uniforms.resolution, canvas.width, canvas.height);
+                gl.uniform1f(currentProgram.uniforms.time, time * 1000);
+                gl.uniform1f(currentProgram.uniforms.geometry, parameters.geometry);
+                gl.uniform1f(currentProgram.uniforms.gridDensity, parameters.gridDensity);
+                gl.uniform1f(currentProgram.uniforms.morphFactor, parameters.morphFactor);
+                gl.uniform1f(currentProgram.uniforms.chaos, parameters.chaos);
+                gl.uniform1f(currentProgram.uniforms.speed, parameters.speed);
+                gl.uniform1f(currentProgram.uniforms.hue, parameters.hue);
+                gl.uniform1f(currentProgram.uniforms.intensity, parameters.intensity);
+                gl.uniform1f(currentProgram.uniforms.saturation, parameters.saturation);
+                gl.uniform1f(currentProgram.uniforms.rot4dXW, parameters.rot4dXW);
+                gl.uniform1f(currentProgram.uniforms.rot4dYW, parameters.rot4dYW);
+                gl.uniform1f(currentProgram.uniforms.rot4dZW, parameters.rot4dZW);
+                
+                // Bind vertex buffer
+                gl.bindBuffer(gl.ARRAY_BUFFER, currentProgram.buffer);
+                gl.enableVertexAttribArray(currentProgram.positionLocation);
+                gl.vertexAttribPointer(currentProgram.positionLocation, 2, gl.FLOAT, false, 0, 0);
+                
+                // Enable blending
+                gl.enable(gl.BLEND);
+                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+                
+                // Draw
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            });
+            
+            requestAnimationFrame(render);
+        }
+        
+        // Resize handler
+        function handleResize() {
+            canvasIds.forEach(canvasId => {
+                const canvas = document.getElementById(canvasId);
+                resizeCanvas(canvas);
+            });
+        }
+        
+        // Initialize system
+        window.addEventListener('DOMContentLoaded', () => {
+            handleResize();
+            initializeVisualizers();
+            updateGeometryGrid();
+            render();
+            
+            console.log('VIB34D v3.0 - 5 Canvas Complete System initialized');
+        });
+        
+        window.addEventListener('resize', handleResize);
+        
+        // Make functions global for onclick handlers
+        window.switchSystem = switchSystem;
+        window.updateParameter = updateParameter;
+        window.randomizeParameters = randomizeParameters;
+        window.fullRandomize = fullRandomize;
+        window.resetParameters = resetParameters;
+        window.saveToGallery = saveToGallery;
+        window.openGallery = openGallery;
+        window.createTradingCard = createTradingCard;
+        window.showLLMInterface = showLLMInterface;
+        window.setGeometry = setGeometry;
+    </script>
+</body>
+</html>
