@@ -171,8 +171,8 @@ export class QuantumEngine {
      * Start the render loop
      */
     startRenderLoop() {
-        if (window.mobileDebug) {
-            window.mobileDebug.log(`🎬 Quantum Engine: Starting render loop with ${this.visualizers?.length} visualizers, isActive=${this.isActive}`);
+        if (true) {
+            console.log(`🎬 Quantum Engine: Starting render loop with ${this.visualizers?.length} visualizers, isActive=${this.isActive}`);
         }
         
         const render = () => {
@@ -189,11 +189,11 @@ export class QuantumEngine {
                 
                 // Mobile debug: Log render activity periodically
                 if (window.mobileDebug && !this._renderActivityLogged) {
-                    window.mobileDebug.log(`🎬 Quantum Engine: Actively rendering ${this.visualizers?.length} visualizers`);
+                    console.log(`🎬 Quantum Engine: Actively rendering ${this.visualizers?.length} visualizers`);
                     this._renderActivityLogged = true;
                 }
             } else if (window.mobileDebug && !this._inactiveWarningLogged) {
-                window.mobileDebug.log(`⚠️ Quantum Engine: Not rendering because isActive=false`);
+                console.log(`⚠️ Quantum Engine: Not rendering because isActive=false`);
                 this._inactiveWarningLogged = true;
             }
             
@@ -203,8 +203,8 @@ export class QuantumEngine {
         render();
         console.log('🎬 Quantum render loop started');
         
-        if (window.mobileDebug) {
-            window.mobileDebug.log(`✅ Quantum Engine: Render loop started, will render when isActive=true`);
+        if (true) {
+            console.log(`✅ Quantum Engine: Render loop started, will render when isActive=true`);
         }
     }
     

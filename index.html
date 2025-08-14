@@ -637,9 +637,7 @@
                                     canvas.width = viewWidth * dpr;
                                     canvas.height = viewHeight * dpr;
                                     
-                                    if (window.mobileOptimization) {
-                                        window.mobileOptimization.log(`🔧 Fixed canvas ${canvas.id}: ${canvas.width}x${canvas.height}`);
-                                    }
+                                    console.log(`🔧 Fixed canvas ${canvas.id}: ${canvas.width}x${canvas.height}`);
                                 }
                             });
                         }
@@ -956,103 +954,7 @@
         window.moduleReady = false;
         window.currentSystem = 'faceted';
         
-        // Mobile optimization system (no debug overlay)
-        window.mobileOptimization = {
-            log: function(message) {
-                // Silent logging for production - only to console
-                console.log(`[Mobile] ${message}`);
-            }
-        };
-        
-        // MOBILE OPTIMIZATION: Initialize only active system (5 canvases instead of 20)
-        document.addEventListener('DOMContentLoaded', function() {
-            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (isMobile) {
-                window.mobileOptimization.log('📱 MOBILE: Optimized single-system initialization');
-                
-                // Define canvas groups per system
-                const systemCanvases = {
-                    faceted: ['background-canvas', 'shadow-canvas', 'content-canvas', 'highlight-canvas', 'accent-canvas'],
-                    quantum: ['quantum-background-canvas', 'quantum-shadow-canvas', 'quantum-content-canvas', 'quantum-highlight-canvas', 'quantum-accent-canvas'],
-                    holographic: ['holo-background-canvas', 'holo-shadow-canvas', 'holo-content-canvas', 'holo-highlight-canvas', 'holo-accent-canvas'],
-                    polychora: ['polychora-background-canvas', 'polychora-shadow-canvas', 'polychora-content-canvas', 'polychora-highlight-canvas', 'polychora-accent-canvas']
-                };
-                
-                // Determine active system (gallery preview or default)
-                const activeSystem = window.galleryPreviewData ? window.galleryPreviewData.system : 'faceted';
-                window.mobileOptimization.log(`📱 Active system: ${activeSystem}`);
-                
-                // Only fix canvases for the active system
-                const fixActiveCanvases = () => {
-                    const activeCanvases = systemCanvases[activeSystem];
-                    const viewWidth = window.innerWidth || screen.width;
-                    const viewHeight = window.innerHeight || screen.height;
-                    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-                    let fixedCount = 0;
-                    
-                    activeCanvases.forEach(canvasId => {
-                        const canvas = document.getElementById(canvasId);
-                        if (canvas) {
-                            // Force immediate style
-                            canvas.style.cssText = `
-                                position: absolute !important;
-                                top: 0 !important;
-                                left: 0 !important;
-                                width: 100% !important;
-                                height: 100% !important;
-                                min-width: ${viewWidth}px !important;
-                                min-height: ${viewHeight}px !important;
-                            `;
-                            
-                            // Force canvas buffer size
-                            canvas.width = viewWidth * dpr;
-                            canvas.height = viewHeight * dpr;
-                            fixedCount++;
-                            
-                            window.mobileOptimization.log(`📱 Fixed ${canvasId}: ${canvas.width}x${canvas.height}`);
-                        }
-                    });
-                    
-                    // Hide inactive system canvases to prevent WebGL context creation
-                    Object.keys(systemCanvases).forEach(system => {
-                        if (system !== activeSystem) {
-                            systemCanvases[system].forEach(canvasId => {
-                                const canvas = document.getElementById(canvasId);
-                                if (canvas) {
-                                    canvas.style.display = 'none';
-                                }
-                            });
-                        }
-                    });
-                    
-                    return fixedCount;
-                };
-                
-                // Run mobile optimization passes
-                const count1 = fixActiveCanvases();
-                window.mobileOptimization.log(`📱 Pass 1: Fixed ${count1}/${systemCanvases[activeSystem].length} canvases for ${activeSystem} system`);
-                
-                setTimeout(() => {
-                    const count2 = fixActiveCanvases();
-                    window.mobileOptimization.log(`📱 Pass 2: Fixed ${count2} canvases`);
-                }, 250);
-                
-                setTimeout(() => {
-                    const count3 = fixActiveCanvases();
-                    window.mobileOptimization.log(`📱 Pass 3: Fixed ${count3} canvases - optimization complete`);
-                    
-                    // Test canvas existence (WITHOUT creating 2D context that would block WebGL)
-                    const testCanvasId = systemCanvases[activeSystem][0];
-                    const testCanvas = document.getElementById(testCanvasId);
-                    if (testCanvas) {
-                        const canvasRect = testCanvas.getBoundingClientRect();
-                        window.mobileOptimization.log(`✅ Mobile optimization successful - ${activeSystem} system ready, canvas ${testCanvasId}: ${canvasRect.width}x${canvasRect.height}`);
-                    } else {
-                        window.mobileOptimization.log(`❌ Test canvas ${testCanvasId} not found after optimization`);
-                    }
-                }, 500);
-            }
-        });
+        // REMOVED: Broken mobile optimization code that was preventing buttons from working
     </script>
     
     <script type="module">
@@ -1106,7 +1008,7 @@
             if (isMobile) {
                 // Wait for any other mobile fixes to complete first
                 await new Promise(resolve => setTimeout(resolve, 100));
-                window.mobileOptimization.log(`⚡ Engine initialization starting after mobile canvas fix`);
+                console.log(`⚡ Engine initialization starting after mobile canvas fix`);
             }
             
             // URL parameters already parsed outside the module
@@ -1130,118 +1032,32 @@
             console.log('🚀 VIB34D Clean Interface Ready - All systems initialized');
             
             // Mobile debug system auto-hide on successful initialization
-            if (window.mobileOptimization) {
-                window.mobileOptimization.log('🚀 VIB34D Clean Interface Ready - All systems initialized');
-            }
+            console.log('🚀 VIB34D Clean Interface Ready - All systems initialized');
         });
         
         // URL parameters already parsed outside the ES6 module
         
-        // Mobile WebGL diagnostic function
+        // Clean mobile WebGL check
         function checkMobileWebGL() {
-            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            window.mobileOptimization.log(`📱 Device check: Mobile=${isMobile}, UserAgent=${navigator.userAgent}`);
-            
-            if (isMobile) {
-                // Test WebGL availability on mobile
-                const testCanvas = document.createElement('canvas');
-                const contextOptions = {
-                    alpha: true,
-                    depth: false,
-                    stencil: false,
-                    antialias: false,
-                    premultipliedAlpha: false,
-                    preserveDrawingBuffer: false,
-                    powerPreference: 'default',
-                    failIfMajorPerformanceCaveat: false
-                };
-                
-                const testGL = testCanvas.getContext('webgl2', contextOptions) ||
-                              testCanvas.getContext('webgl', contextOptions) ||
-                              testCanvas.getContext('experimental-webgl', contextOptions);
-                
-                if (!testGL) {
-                    window.mobileOptimization.log('❌ CRITICAL: WebGL not available on mobile device');
-                    return false;
-                } else {
-                    const renderer = testGL.getParameter(testGL.RENDERER);
-                    const vendor = testGL.getParameter(testGL.VENDOR);
-                    const version = testGL.getParameter(testGL.VERSION);
-                    
-                    window.mobileOptimization.log(`✅ Mobile WebGL OK: ${version}`);
-                    window.mobileOptimization.log(`🎮 GPU: ${renderer} (${vendor})`);
-                    
-                    // Check for common mobile WebGL issues
-                    const maxTextureSize = testGL.getParameter(testGL.MAX_TEXTURE_SIZE);
-                    const maxViewport = testGL.getParameter(testGL.MAX_VIEWPORT_DIMS);
-                    
-                    window.mobileOptimization.log(`📊 Max texture: ${maxTextureSize}, Max viewport: ${maxViewport[0]}x${maxViewport[1]}`);
-                    
-                    return true;
-                }
-            }
-            return true;
+            const testCanvas = document.createElement('canvas');
+            const gl = testCanvas.getContext('webgl') || testCanvas.getContext('webgl2');
+            return !!gl;
         }
         
         // Initialize VIB34D Engine
         async function initializeEngine() {
             try {
-                // Check mobile WebGL before initializing engines
+                // Check WebGL availability
                 if (!checkMobileWebGL()) {
-                    throw new Error('Mobile WebGL not available');
+                    throw new Error('WebGL not available');
                 }
                 
-                // CRITICAL ANDROID FIX: Only initialize active system canvases to avoid WebGL context limit
-                const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                if (isMobile) {
-                    // Determine active system first
-                    const activeSystem = window.galleryPreviewData?.system || window.currentSystem || 'faceted';
-                    const activeLayerId = activeSystem === 'faceted' ? 'vib34dLayers' : `${activeSystem}Layers`;
-                    
-                    // Show only the active system layers
-                    const activeLayers = document.getElementById(activeLayerId);
-                    if (activeLayers) {
-                        activeLayers.style.display = 'block';
-                        activeLayers.style.visibility = 'visible';
-                        activeLayers.style.opacity = '1';
-                        
-                        const activeCanvases = activeLayers.querySelectorAll('canvas');
-                        const viewWidth = window.innerWidth;
-                        const viewHeight = window.innerHeight;
-                        const dpr = Math.min(window.devicePixelRatio || 1, 2);
-                        
-                        activeCanvases.forEach(canvas => {
-                            // Force canvas style dimensions first
-                            canvas.style.width = '100%';
-                            canvas.style.height = '100%';
-                            canvas.style.position = 'absolute';
-                            canvas.style.top = '0';
-                            canvas.style.left = '0';
-                            
-                            // Then force actual canvas dimensions
-                            canvas.width = viewWidth * dpr;
-                            canvas.height = viewHeight * dpr;
-                            
-                            window.mobileOptimization.log(`🚀 Pre-init canvas ${canvas.id}: ${canvas.width}x${canvas.height}`);
-                        });
-                        
-                        window.mobileOptimization.log(`📱 Mobile optimized: Only ${activeCanvases.length} canvas contexts (${activeSystem} system)`);
-                    }
-                }
-                
-                // Create all engines for both mobile and desktop
-                // Mobile WebGL proven to work - let users choose their system
+                // Create all engines
                 engine = new VIB34DIntegratedEngine();
                 quantumEngine = new QuantumEngine();
                 holographicSystem = new RealHolographicSystem();
                 
-                if (isMobile) {
-                    window.mobileOptimization.log(`📱 Mobile: All engines created (faceted, quantum, holographic)`);
-                    window.mobileOptimization.log(`📱 Faceted: ${engine.visualizers ? engine.visualizers.length : 0} visualizers`);
-                    window.mobileOptimization.log(`📱 Quantum: ${quantumEngine.visualizers ? quantumEngine.visualizers.length : 0} visualizers`);
-                } else {
-                    console.log('✅ All engines initialized for desktop');
-                }
+                console.log('✅ All engines initialized');
                 
                 // Ensure all engines exist with stubs if needed for compatibility
                 if (!engine) {
@@ -1309,29 +1125,29 @@
                         targetSystem = activeSystem; // This was already determined above
                     }
                     console.log(`📱 Mobile system switch: ${targetSystem} (isMobile: ${isMobile})`);
-                    if (window.mobileOptimization) {
-                        window.mobileOptimization.log(`📱 Switching to ${targetSystem} system for mobile optimization`);
+                    if (true) {
+                        console.log(`📱 Switching to ${targetSystem} system for mobile optimization`);
                     }
                     
                     await switchSystem(targetSystem);
                     
                     // MOBILE DEBUGGING: Verify system switch worked and engine is rendering
                     if (isMobile) {
-                        window.mobileOptimization.log(`🔍 Post-switch verification: currentSystem=${window.currentSystem}`);
+                        console.log(`🔍 Post-switch verification: currentSystem=${window.currentSystem}`);
                         
                         // Check which engine should be active and if it's working
                         if (targetSystem === 'faceted' && window.engine) {
                             const engine = window.engine;
                             const hasRealVisualizers = engine.visualizers && engine.visualizers.length > 0 && engine.visualizers[0].canvas;
-                            window.mobileOptimization.log(`🔍 Faceted engine: visualizers=${engine.visualizers?.length}, hasRealVisualizers=${hasRealVisualizers}, animationId=${!!engine.animationId}`);
+                            console.log(`🔍 Faceted engine: visualizers=${engine.visualizers?.length}, hasRealVisualizers=${hasRealVisualizers}, animationId=${!!engine.animationId}`);
                         } else if (targetSystem === 'quantum' && window.quantumEngine) {
                             const engine = window.quantumEngine;
                             const hasRealVisualizers = engine.visualizers && engine.visualizers.length > 0 && engine.visualizers[0].canvas;
-                            window.mobileOptimization.log(`🔍 Quantum engine: visualizers=${engine.visualizers?.length}, hasRealVisualizers=${hasRealVisualizers}, isActive=${engine.isActive}`);
+                            console.log(`🔍 Quantum engine: visualizers=${engine.visualizers?.length}, hasRealVisualizers=${hasRealVisualizers}, isActive=${engine.isActive}`);
                         } else if (targetSystem === 'holographic' && window.holographicSystem) {
                             const engine = window.holographicSystem;
                             const hasRealEngine = engine.isRunning !== undefined; // Check if it's real vs stub
-                            window.mobileOptimization.log(`🔍 Holographic system: hasRealEngine=${hasRealEngine}, isRunning=${engine.isRunning}, isActive=${engine.isActive}`);
+                            console.log(`🔍 Holographic system: hasRealEngine=${hasRealEngine}, isRunning=${engine.isRunning}, isActive=${engine.isActive}`);
                         }
                         
                         // Check which canvas layers are visible and their dimensions
@@ -1353,21 +1169,21 @@
                                 layerInfo[sys] = 'missing';
                             }
                         });
-                        window.mobileOptimization.log(`🔍 Layer info: ${JSON.stringify(layerInfo, null, 2)}`);
+                        console.log(`🔍 Layer info: ${JSON.stringify(layerInfo, null, 2)}`);
                         
                         // CRITICAL MOBILE DEBUG: Check canvas container positioning
                         const canvasContainer = document.getElementById('canvasContainer');
                         if (canvasContainer) {
                             const containerRect = canvasContainer.getBoundingClientRect();
                             const containerStyle = window.getComputedStyle(canvasContainer);
-                            window.mobileOptimization.log(`📦 Canvas Container: ${containerRect.width}x${containerRect.height} at ${containerRect.top},${containerRect.left}`);
-                            window.mobileOptimization.log(`📦 Container CSS: top=${containerStyle.top}, left=${containerStyle.left}, right=${containerStyle.right}, bottom=${containerStyle.bottom}`);
+                            console.log(`📦 Canvas Container: ${containerRect.width}x${containerRect.height} at ${containerRect.top},${containerRect.left}`);
+                            console.log(`📦 Container CSS: top=${containerStyle.top}, left=${containerStyle.left}, right=${containerStyle.right}, bottom=${containerStyle.bottom}`);
                             
                             if (containerRect.width === 0 || containerRect.height === 0) {
-                                window.mobileOptimization.log(`❌ CRITICAL: Canvas container has ZERO dimensions - canvases will be invisible!`);
+                                console.log(`❌ CRITICAL: Canvas container has ZERO dimensions - canvases will be invisible!`);
                             }
                         } else {
-                            window.mobileOptimization.log(`❌ CRITICAL: Canvas container #canvasContainer not found!`);
+                            console.log(`❌ CRITICAL: Canvas container #canvasContainer not found!`);
                         }
                     }
                 }

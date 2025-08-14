@@ -32,16 +32,16 @@ export class QuantumHolographicVisualizer {
         
         if (!this.gl) {
             console.error(`WebGL not supported for ${canvasId}`);
-            if (window.mobileDebug) {
-                window.mobileDebug.log(`❌ ${canvasId}: WebGL context creation failed`);
+            if (true) {
+                console.log(`❌ ${canvasId}: WebGL context creation failed`);
             }
             // Show user-friendly error instead of white screen
             this.showWebGLError();
             return;
         } else {
-            if (window.mobileDebug) {
+            if (true) {
                 const version = this.gl.getParameter(this.gl.VERSION);
-                window.mobileDebug.log(`✅ ${canvasId}: WebGL context created - ${version}`);
+                console.log(`✅ ${canvasId}: WebGL context created - ${version}`);
             }
         }
         
@@ -91,15 +91,15 @@ export class QuantumHolographicVisualizer {
                         this.canvas.width = viewWidth * devicePixelRatio;
                         this.canvas.height = viewHeight * devicePixelRatio;
                         
-                        if (window.mobileDebug) {
-                            window.mobileDebug.log(`📐 Quantum Canvas ${this.canvas.id}: Using viewport fallback ${this.canvas.width}x${this.canvas.height}`);
+                        if (true) {
+                            console.log(`📐 Quantum Canvas ${this.canvas.id}: Using viewport fallback ${this.canvas.width}x${this.canvas.height}`);
                         }
                     } else {
                         this.canvas.width = rect.width * devicePixelRatio;
                         this.canvas.height = rect.height * devicePixelRatio;
                         
-                        if (window.mobileDebug) {
-                            window.mobileDebug.log(`📐 Quantum Canvas ${this.canvas.id}: Layout ready ${this.canvas.width}x${this.canvas.height}`);
+                        if (true) {
+                            console.log(`📐 Quantum Canvas ${this.canvas.id}: Layout ready ${this.canvas.width}x${this.canvas.height}`);
                         }
                     }
                     resolve();
@@ -109,8 +109,8 @@ export class QuantumHolographicVisualizer {
             this.canvas.width = rect.width * devicePixelRatio;
             this.canvas.height = rect.height * devicePixelRatio;
             
-            if (window.mobileDebug) {
-                window.mobileDebug.log(`📐 Quantum Canvas ${this.canvas.id}: ${this.canvas.width}x${this.canvas.height} (DPR: ${devicePixelRatio})`);
+            if (true) {
+                console.log(`📐 Quantum Canvas ${this.canvas.id}: ${this.canvas.width}x${this.canvas.height} (DPR: ${devicePixelRatio})`);
             }
         }
         
@@ -134,16 +134,16 @@ export class QuantumHolographicVisualizer {
         
         if (!this.gl) {
             console.error(`WebGL not supported for ${this.canvas.id}`);
-            if (window.mobileDebug) {
-                window.mobileDebug.log(`❌ Quantum ${this.canvas.id}: WebGL context creation failed (size: ${this.canvas.width}x${this.canvas.height})`);
+            if (true) {
+                console.log(`❌ Quantum ${this.canvas.id}: WebGL context creation failed (size: ${this.canvas.width}x${this.canvas.height})`);
             }
             // Show user-friendly error instead of white screen
             this.showWebGLError();
             return;
         } else {
-            if (window.mobileDebug) {
+            if (true) {
                 const version = this.gl.getParameter(this.gl.VERSION);
-                window.mobileDebug.log(`✅ Quantum ${this.canvas.id}: WebGL context created - ${version} (size: ${this.canvas.width}x${this.canvas.height})`);
+                console.log(`✅ Quantum ${this.canvas.id}: WebGL context created - ${version} (size: ${this.canvas.width}x${this.canvas.height})`);
             }
         }
     }
@@ -494,13 +494,13 @@ void main() {
         if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
             const error = this.gl.getProgramInfoLog(program);
             console.error('Program linking failed:', error);
-            if (window.mobileDebug) {
-                window.mobileDebug.log(`❌ ${this.canvas?.id}: Shader program link failed - ${error}`);
+            if (true) {
+                console.log(`❌ ${this.canvas?.id}: Shader program link failed - ${error}`);
             }
             return null;
         } else {
-            if (window.mobileDebug) {
-                window.mobileDebug.log(`✅ ${this.canvas?.id}: Shader program linked successfully`);
+            if (true) {
+                console.log(`✅ ${this.canvas?.id}: Shader program linked successfully`);
             }
         }
         
@@ -521,17 +521,17 @@ void main() {
             console.error(`${shaderType} shader compilation failed:`, error);
             console.error('Shader source:', source);
             
-            if (window.mobileDebug) {
-                window.mobileDebug.log(`❌ ${this.canvas?.id}: ${shaderType} shader compile failed - ${error}`);
+            if (true) {
+                console.log(`❌ ${this.canvas?.id}: ${shaderType} shader compile failed - ${error}`);
                 // Log first few lines of problematic shader for mobile debugging
                 const sourceLines = source.split('\n').slice(0, 5).join('\\n');
-                window.mobileDebug.log(`🔍 ${shaderType} shader source start: ${sourceLines}...`);
+                console.log(`🔍 ${shaderType} shader source start: ${sourceLines}...`);
             }
             return null;
         } else {
-            if (window.mobileDebug) {
+            if (true) {
                 const shaderType = type === this.gl.VERTEX_SHADER ? 'vertex' : 'fragment';
-                window.mobileDebug.log(`✅ ${this.canvas?.id}: ${shaderType} shader compiled successfully`);
+                console.log(`✅ ${this.canvas?.id}: ${shaderType} shader compiled successfully`);
             }
         }
         
@@ -564,7 +564,7 @@ void main() {
         
         // Mobile debug: Check for zero dimensions that would cause invisible rendering
         if (window.mobileDebug && (width === 0 || height === 0) && !this._zeroDimWarned) {
-            window.mobileDebug.log(`⚠️ ${this.canvas?.id}: Canvas clientWidth=${width}, clientHeight=${height} - will be invisible`);
+            console.log(`⚠️ ${this.canvas?.id}: Canvas clientWidth=${width}, clientHeight=${height} - will be invisible`);
             this._zeroDimWarned = true;
         }
         
@@ -576,7 +576,7 @@ void main() {
             
             // Mobile debug: Log final canvas dimensions
             if (window.mobileDebug && !this._finalSizeLogged) {
-                window.mobileDebug.log(`📐 ${this.canvas?.id}: Final canvas buffer ${this.canvas.width}x${this.canvas.height} (DPR=${dpr})`);
+                console.log(`📐 ${this.canvas?.id}: Final canvas buffer ${this.canvas.width}x${this.canvas.height} (DPR=${dpr})`);
                 this._finalSizeLogged = true;
             }
         }
@@ -628,7 +628,7 @@ void main() {
     render() {
         if (!this.program) {
             if (window.mobileDebug && !this._noProgramWarned) {
-                window.mobileDebug.log(`❌ ${this.canvas?.id}: No WebGL program for render`);
+                console.log(`❌ ${this.canvas?.id}: No WebGL program for render`);
                 this._noProgramWarned = true;
             }
             return;

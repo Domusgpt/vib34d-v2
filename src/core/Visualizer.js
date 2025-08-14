@@ -15,8 +15,8 @@ export class IntegratedHolographicVisualizer {
         // Mobile-specific canvas setup
         if (!this.canvas) {
             console.error(`Canvas ${canvasId} not found`);
-            if (window.mobileDebug) {
-                window.mobileDebug.log(`❌ Canvas ${canvasId} not found in DOM`);
+            if (true) {
+                console.log(`❌ Canvas ${canvasId} not found in DOM`);
             }
             return;
         }
@@ -83,15 +83,15 @@ export class IntegratedHolographicVisualizer {
                         this.canvas.width = viewWidth * devicePixelRatio;
                         this.canvas.height = viewHeight * devicePixelRatio;
                         
-                        if (window.mobileDebug) {
-                            window.mobileDebug.log(`📐 Canvas ${this.canvas.id}: Using viewport fallback ${this.canvas.width}x${this.canvas.height}`);
+                        if (true) {
+                            console.log(`📐 Canvas ${this.canvas.id}: Using viewport fallback ${this.canvas.width}x${this.canvas.height}`);
                         }
                     } else {
                         this.canvas.width = rect.width * devicePixelRatio;
                         this.canvas.height = rect.height * devicePixelRatio;
                         
-                        if (window.mobileDebug) {
-                            window.mobileDebug.log(`📐 Canvas ${this.canvas.id}: Layout ready ${this.canvas.width}x${this.canvas.height}`);
+                        if (true) {
+                            console.log(`📐 Canvas ${this.canvas.id}: Layout ready ${this.canvas.width}x${this.canvas.height}`);
                         }
                     }
                     resolve();
@@ -101,8 +101,8 @@ export class IntegratedHolographicVisualizer {
             this.canvas.width = rect.width * devicePixelRatio;
             this.canvas.height = rect.height * devicePixelRatio;
             
-            if (window.mobileDebug) {
-                window.mobileDebug.log(`📐 Canvas ${this.canvas.id}: ${this.canvas.width}x${this.canvas.height} (DPR: ${devicePixelRatio})`);
+            if (true) {
+                console.log(`📐 Canvas ${this.canvas.id}: ${this.canvas.width}x${this.canvas.height} (DPR: ${devicePixelRatio})`);
             }
         }
         
@@ -126,8 +126,8 @@ export class IntegratedHolographicVisualizer {
         
         if (!this.gl) {
             console.error(`WebGL not supported for ${this.canvas.id}`);
-            if (window.mobileDebug) {
-                window.mobileDebug.log(`❌ WebGL context failed for ${this.canvas.id} (size: ${this.canvas.width}x${this.canvas.height})`);
+            if (true) {
+                console.log(`❌ WebGL context failed for ${this.canvas.id} (size: ${this.canvas.width}x${this.canvas.height})`);
             }
             // Show user-friendly error instead of white screen
             this.showWebGLError();
@@ -138,9 +138,9 @@ export class IntegratedHolographicVisualizer {
                 window.mobileContextManager.registerContext(this.canvas.id, this.gl);
             }
             
-            if (window.mobileDebug) {
+            if (true) {
                 const version = this.gl.getParameter(this.gl.VERSION);
-                window.mobileDebug.log(`✅ WebGL context created for ${this.canvas.id}: ${version} (size: ${this.canvas.width}x${this.canvas.height})`);
+                console.log(`✅ WebGL context created for ${this.canvas.id}: ${version} (size: ${this.canvas.width}x${this.canvas.height})`);
             }
         }
     }
@@ -454,8 +454,8 @@ void main() {
             }
             
             // Log to mobile debug
-            if (window.mobileDebug) {
-                window.mobileDebug.log(`📱 WebGL error fallback shown for canvas ${this.canvas.id}`);
+            if (true) {
+                console.log(`📱 WebGL error fallback shown for canvas ${this.canvas.id}`);
             }
         } else {
             // Even 2D canvas failed - create HTML fallback
@@ -507,15 +507,15 @@ void main() {
      */
     render() {
         if (!this.program) {
-            if (window.mobileDebug) {
-                window.mobileDebug.log(`❌ ${this.canvas?.id}: No WebGL program compiled`);
+            if (true) {
+                console.log(`❌ ${this.canvas?.id}: No WebGL program compiled`);
             }
             return;
         }
         
         if (!this.gl) {
-            if (window.mobileDebug) {
-                window.mobileDebug.log(`❌ ${this.canvas?.id}: No WebGL context`);
+            if (true) {
+                console.log(`❌ ${this.canvas?.id}: No WebGL context`);
             }
             return;
         }
@@ -528,8 +528,8 @@ void main() {
             this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
             this.gl.clear(this.gl.COLOR_BUFFER_BIT);
         } catch (error) {
-            if (window.mobileDebug) {
-                window.mobileDebug.log(`❌ ${this.canvas?.id}: WebGL render error: ${error.message}`);
+            if (true) {
+                console.log(`❌ ${this.canvas?.id}: WebGL render error: ${error.message}`);
             }
             return;
         }
@@ -569,13 +569,13 @@ void main() {
             this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
             
             // Mobile success logging (only once per canvas)
-            if (window.mobileDebug && !this._renderSuccessLogged) {
-                window.mobileDebug.log(`✅ ${this.canvas?.id}: WebGL render successful`);
+            if (!this._renderSuccessLogged) {
+                console.log(`✅ ${this.canvas?.id}: WebGL render successful`);
                 this._renderSuccessLogged = true;
             }
         } catch (error) {
-            if (window.mobileDebug) {
-                window.mobileDebug.log(`❌ ${this.canvas?.id}: WebGL draw error: ${error.message}`);
+            if (true) {
+                console.log(`❌ ${this.canvas?.id}: WebGL draw error: ${error.message}`);
             }
         }
     }
