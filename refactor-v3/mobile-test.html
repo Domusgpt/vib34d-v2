@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D Mobile Test - 5 Canvases ONLY</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: monospace;
+            overflow: hidden;
+        }
+        
+        .container {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .controls {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            border-bottom: 2px solid #00ffff;
+        }
+        
+        .btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn.active {
+            background: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 10px #00ffff;
+        }
+        
+        .canvas-area {
+            flex: 1;
+            position: relative;
+            background: #111;
+        }
+        
+        /* ONLY 5 CANVASES - NO MORE! */
+        canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+        }
+        
+        .debug {
+            position: fixed;
+            top: 60px; left: 10px;
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 10px;
+            font-size: 12px;
+            border: 2px solid #ff0000;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <button class="btn active" data-system="faceted">🔷 Faceted</button>
+            <button class="btn" data-system="quantum">🌌 Quantum</button>
+            <button class="btn" data-system="holographic">✨ Holo</button>
+            <button class="btn" data-system="polychora">🔮 Poly</button>
+        </div>
+        
+        <div class="canvas-area">
+            <!-- EXACTLY 5 CANVASES - NO MORE! -->
+            <canvas id="bg-canvas"></canvas>
+            <canvas id="shadow-canvas"></canvas>
+            <canvas id="content-canvas"></canvas>
+            <canvas id="highlight-canvas"></canvas>
+            <canvas id="accent-canvas"></canvas>
+        </div>
+    </div>
+    
+    <div class="debug" id="debug">
+        🔥 MOBILE DEBUG<br>
+        Total Canvases: <span id="totalCanvases">0</span><br>
+        WebGL Contexts: <span id="webglContexts">0</span><br>
+        Current System: <span id="currentSystem">faceted</span><br>
+        Canvas Size: <span id="canvasSize">0x0</span>
+    </div>
+
+    <script>
+        let currentSystem = 'faceted';
+        const contextCount = { count: 0 };
+        
+        // EXACTLY 5 CANVASES - COUNT THEM!
+        const canvasIds = ['bg-canvas', 'shadow-canvas', 'content-canvas', 'highlight-canvas', 'accent-canvas'];
+        
+        function updateDebug() {
+            const totalCanvases = document.querySelectorAll('canvas').length;
+            document.getElementById('totalCanvases').textContent = totalCanvases;
+            document.getElementById('webglContexts').textContent = contextCount.count;
+            document.getElementById('currentSystem').textContent = currentSystem;
+            
+            const canvas = document.getElementById('bg-canvas');
+            if (canvas) {
+                document.getElementById('canvasSize').textContent = canvas.width + 'x' + canvas.height;
+            }
+        }
+        
+        function initCanvases() {
+            canvasIds.forEach((canvasId, index) => {
+                const canvas = document.getElementById(canvasId);
+                
+                // Set canvas size properly
+                const rect = canvas.getBoundingClientRect();
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                
+                canvas.width = Math.max(rect.width * dpr, 400);
+                canvas.height = Math.max(rect.height * dpr, 300);
+                
+                // Create WebGL context
+                const gl = canvas.getContext('webgl', {
+                    alpha: true,
+                    premultipliedAlpha: true,
+                    antialias: false
+                });
+                
+                if (gl) {
+                    contextCount.count++;
+                    
+                    // Create simple test shader
+                    const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+                    gl.shaderSource(vertexShader, `
+                        attribute vec2 position;
+                        void main() { gl_Position = vec4(position, 0.0, 1.0); }
+                    `);
+                    gl.compileShader(vertexShader);
+                    
+                    const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+                    const colors = [
+                        'vec3(0.0, 1.0, 1.0)',  // cyan
+                        'vec3(1.0, 0.0, 1.0)',  // magenta
+                        'vec3(1.0, 1.0, 0.0)',  // yellow
+                        'vec3(0.0, 1.0, 0.0)',  // green
+                        'vec3(1.0, 0.5, 0.0)'   // orange
+                    ];
+                    
+                    gl.shaderSource(fragmentShader, `
+                        precision mediump float;
+                        uniform float time;
+                        uniform vec2 resolution;
+                        void main() {
+                            vec2 uv = gl_FragCoord.xy / resolution;
+                            float pattern = sin(uv.x * 10.0 + time) * cos(uv.y * 10.0 + time);
+                            vec3 color = ${colors[index]} * (0.3 + 0.2 * pattern);
+                            gl_FragColor = vec4(color, ${0.2 + index * 0.15});
+                        }
+                    `);
+                    gl.compileShader(fragmentShader);
+                    
+                    const program = gl.createProgram();
+                    gl.attachShader(program, vertexShader);
+                    gl.attachShader(program, fragmentShader);
+                    gl.linkProgram(program);
+                    
+                    if (gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                        // Store program on canvas for rendering
+                        canvas._program = program;
+                        canvas._gl = gl;
+                        canvas._timeLocation = gl.getUniformLocation(program, 'time');
+                        canvas._resolutionLocation = gl.getUniformLocation(program, 'resolution');
+                        canvas._positionLocation = gl.getAttribLocation(program, 'position');
+                        
+                        // Create buffer
+                        const buffer = gl.createBuffer();
+                        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                            -1, -1, 1, -1, -1, 1, 1, 1
+                        ]), gl.STATIC_DRAW);
+                        canvas._buffer = buffer;
+                    }
+                }
+            });
+            
+            updateDebug();
+            console.log(`MOBILE TEST: Created exactly ${contextCount.count} WebGL contexts for ${canvasIds.length} canvases`);
+        }
+        
+        function render() {
+            const time = Date.now() * 0.001;
+            
+            canvasIds.forEach(canvasId => {
+                const canvas = document.getElementById(canvasId);
+                if (canvas._gl && canvas._program) {
+                    const gl = canvas._gl;
+                    const program = canvas._program;
+                    
+                    gl.viewport(0, 0, canvas.width, canvas.height);
+                    gl.clearColor(0, 0, 0, 0);
+                    gl.clear(gl.COLOR_BUFFER_BIT);
+                    
+                    gl.useProgram(program);
+                    gl.uniform1f(canvas._timeLocation, time);
+                    gl.uniform2f(canvas._resolutionLocation, canvas.width, canvas.height);
+                    
+                    gl.bindBuffer(gl.ARRAY_BUFFER, canvas._buffer);
+                    gl.enableVertexAttribArray(canvas._positionLocation);
+                    gl.vertexAttribPointer(canvas._positionLocation, 2, gl.FLOAT, false, 0, 0);
+                    
+                    gl.enable(gl.BLEND);
+                    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+                    
+                    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+                }
+            });
+            
+            requestAnimationFrame(render);
+        }
+        
+        function switchSystem(system) {
+            currentSystem = system;
+            
+            // Update buttons
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.system === system);
+            });
+            
+            updateDebug();
+            console.log(`Switched to ${system} system`);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initCanvases();
+            render();
+            
+            // Button listeners
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchSystem(btn.dataset.system);
+                });
+            });
+            
+            // Update debug every second
+            setInterval(updateDebug, 1000);
+        });
+    </script>
+</body>
+</html>
