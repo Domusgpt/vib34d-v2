@@ -16,37 +16,45 @@
                 document.body.appendChild(debugDiv);
                 
                 setTimeout(function() {
-                    // Check canvas status
-                    const canvases = document.querySelectorAll('canvas');
-                    const activeCanvases = Array.from(canvases).filter(c => c.style.display !== 'none');
-                    debugDiv.innerHTML += '<br>Canvases: ' + canvases.length + ' (active: ' + activeCanvases.length + ')';
-                    
-                    // Test WebGL
-                    const testCanvas = document.createElement('canvas');
-                    const gl = testCanvas.getContext('webgl');
-                    debugDiv.innerHTML += gl ? '<br>WebGL: OK' : '<br>WebGL: FAIL';
-                    
-                    // Check current system
-                    debugDiv.innerHTML += '<br>System: ' + (window.currentSystem || 'none');
-                    
-                    // Add test button
-                    const testBtn = document.createElement('button');
-                    testBtn.innerHTML = 'TEST SYSTEM SWITCH';
-                    testBtn.style.cssText = 'margin:5px;padding:5px;background:blue;color:white;border:none;';
-                    testBtn.onclick = function() {
-                        try {
-                            if (window.switchSystem) {
-                                window.switchSystem('quantum');
-                                debugDiv.innerHTML += '<br>Button clicked: ' + (window.currentSystem || 'unknown');
-                            } else {
-                                debugDiv.innerHTML += '<br>switchSystem missing!';
+                    try {
+                        // Check canvas status
+                        const canvases = document.querySelectorAll('canvas');
+                        const activeCanvases = Array.from(canvases).filter(c => c.style.display !== 'none');
+                        debugDiv.innerHTML += '<br>Canvases: ' + canvases.length + ' (active: ' + activeCanvases.length + ')';
+                        
+                        // Test WebGL
+                        const testCanvas = document.createElement('canvas');
+                        const gl = testCanvas.getContext('webgl');
+                        debugDiv.innerHTML += gl ? '<br>WebGL: OK' : '<br>WebGL: FAIL';
+                        
+                        // Check current system
+                        debugDiv.innerHTML += '<br>System: ' + (window.currentSystem || 'none');
+                        
+                        // Check key functions
+                        debugDiv.innerHTML += '<br>switchSystem: ' + (typeof window.switchSystem);
+                        debugDiv.innerHTML += '<br>updateParameter: ' + (typeof window.updateParameter);
+                        
+                        // Add test button
+                        const testBtn = document.createElement('button');
+                        testBtn.innerHTML = 'TEST';
+                        testBtn.style.cssText = 'display:block;margin:5px 0;padding:10px;background:blue;color:white;border:none;width:100px;';
+                        testBtn.onclick = function() {
+                            try {
+                                if (window.switchSystem) {
+                                    window.switchSystem('quantum');
+                                    debugDiv.innerHTML += '<br>✅ Clicked - System: ' + (window.currentSystem || 'unknown');
+                                } else {
+                                    debugDiv.innerHTML += '<br>❌ switchSystem missing!';
+                                }
+                            } catch (e) {
+                                debugDiv.innerHTML += '<br>❌ Error: ' + e.message;
                             }
-                        } catch (e) {
-                            debugDiv.innerHTML += '<br>Button error: ' + e.message;
-                        }
-                    };
-                    debugDiv.appendChild(testBtn);
-                }, 2000);
+                        };
+                        debugDiv.appendChild(testBtn);
+                    } catch (e) {
+                        debugDiv.innerHTML += '<br>DEBUG ERROR: ' + e.message;
+                    }
+                }, 3000);
             });
             
             window.addEventListener('error', function(e) {
@@ -1195,16 +1203,8 @@
                 } else {
                     console.log('ℹ️ No gallery preview data found - normal index.html usage');
                     
-                    // CRITICAL MOBILE FIX: Use the active system determined by mobile optimization  
-                    let targetSystem = 'faceted';
-                    if (isMobile) {
-                        // Use the current system or default to faceted
-                        targetSystem = window.currentSystem || 'faceted';
-                    }
-                    console.log(`📱 Mobile system switch: ${targetSystem} (isMobile: ${isMobile})`);
-                    if (true) {
-                        console.log(`📱 Switching to ${targetSystem} system for mobile optimization`);
-                    }
+                    // Default to faceted system
+                    let targetSystem = window.currentSystem || 'faceted';
                     
                     await switchSystem(targetSystem);
                     
