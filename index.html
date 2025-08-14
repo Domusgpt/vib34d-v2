@@ -712,11 +712,17 @@
         // Parse URL parameters immediately
         parseURLParameters();
         
-        // SURGICAL FIX: Smart Canvas Management
+        // SMART Canvas Management with Mobile Context Optimization
         class CanvasLayerManager {
             static switchSystem(targetSystem) {
                 const systems = ['faceted', 'quantum', 'holographic', 'polychora'];
                 let activeCanvases = 0;
+                
+                // MOBILE OPTIMIZATION: Destroy previous system's WebGL contexts
+                if (window.mobileContextManager) {
+                    window.mobileContextManager.switchSystem(targetSystem);
+                    window.mobileContextManager.prepareSystemCanvases(targetSystem);
+                }
                 
                 systems.forEach(sys => {
                     const layerId = sys === 'faceted' ? 'vib34dLayers' : `${sys}Layers`;
@@ -731,7 +737,7 @@
                             layers.style.opacity = '1';
                             activeCanvases += layers.children.length;
                             
-                            // CRITICAL ANDROID FIX: Force canvas dimensions after display change
+                            // Enhanced canvas sizing for mobile/desktop
                             setTimeout(() => {
                                 const canvases = layers.querySelectorAll('canvas');
                                 canvases.forEach(canvas => {
@@ -744,17 +750,11 @@
                                         const viewHeight = window.innerHeight;
                                         canvas.width = viewWidth * dpr;
                                         canvas.height = viewHeight * dpr;
-                                        
-                                        if (window.mobileOptimization) {
-                                            window.mobileOptimization.log(`🔧 Fixed ${canvas.id}: ${canvas.width}x${canvas.height} (viewport fallback)`);
-                                        }
+                                        console.log(`🔧 Fixed ${canvas.id}: ${canvas.width}x${canvas.height} (viewport fallback)`);
                                     } else {
                                         canvas.width = rect.width * dpr;
                                         canvas.height = rect.height * dpr;
-                                        
-                                        if (window.mobileOptimization) {
-                                            window.mobileOptimization.log(`✅ Updated ${canvas.id}: ${canvas.width}x${canvas.height} (from rect)`);
-                                        }
+                                        console.log(`✅ Updated ${canvas.id}: ${canvas.width}x${canvas.height} (from rect)`);
                                     }
                                 });
                             }, 50); // Small delay to let display:block take effect
@@ -767,7 +767,14 @@
                     }
                 });
                 
-                console.log(`🎯 Canvas Manager: ${targetSystem} active (${activeCanvases} contexts)`);
+                const contextCount = window.mobileContextManager ? 
+                    window.mobileContextManager.getActiveContextCount() : activeCanvases;
+                
+                console.log(`🎯 Canvas Manager: ${targetSystem} active (${contextCount} WebGL contexts)`);
+                
+                if (window.mobileContextManager && window.mobileContextManager.isMobile) {
+                    console.log(`📱 Mobile: Only ${targetSystem} system contexts loaded for GPU efficiency`);
+                }
             }
         }
         
@@ -2455,6 +2462,9 @@
         });
     </script>
 
+    <!-- Mobile Context Management -->
+    <script src="./src/mobile/MobileContextManager.js"></script>
+    
     <!-- LLM Parameter Interface -->
     <script src="./src/config/ApiConfig.js"></script>
     <script src="./src/llm/LLMParameterInterface.js"></script>

@@ -133,6 +133,11 @@ export class IntegratedHolographicVisualizer {
             this.showWebGLError();
             return;
         } else {
+            // Register context with mobile manager
+            if (window.mobileContextManager) {
+                window.mobileContextManager.registerContext(this.canvas.id, this.gl);
+            }
+            
             if (window.mobileDebug) {
                 const version = this.gl.getParameter(this.gl.VERSION);
                 window.mobileDebug.log(`✅ WebGL context created for ${this.canvas.id}: ${version} (size: ${this.canvas.width}x${this.canvas.height})`);

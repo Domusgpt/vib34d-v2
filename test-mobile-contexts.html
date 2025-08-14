@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D Mobile Context Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            background: rgba(0, 20, 40, 0.5);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #00ffff, #0088cc);
+            border: none;
+            color: #000;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-family: 'Orbitron', monospace;
+            font-weight: bold;
+            margin: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.3);
+        }
+        
+        .status {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            min-height: 100px;
+            font-family: monospace;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+        
+        .success { color: #00ff00; }
+        .error { color: #ff4444; }
+        .warning { color: #ffaa00; }
+        .info { color: #00ffff; }
+        
+        .system-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .system-btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-family: 'Orbitron', monospace;
+            transition: all 0.3s;
+        }
+        
+        .system-btn.active {
+            background: rgba(0, 255, 255, 0.3);
+            border-color: #00ffff;
+        }
+        
+        .context-info {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #666;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📱 VIB34D Mobile Context Management Test</h1>
+        <p>Test WebGL context loading/unloading on mobile devices</p>
+    </div>
+
+    <div class="test-section">
+        <h3>📋 1. System Detection</h3>
+        <button class="test-button" onclick="detectDevice()">Detect Device Type</button>
+        <button class="test-button" onclick="checkContextLimits()">Check WebGL Limits</button>
+        <div id="deviceOutput" class="status"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🎮 2. System Switching Test</h3>
+        <div class="system-buttons">
+            <button class="system-btn active" data-system="faceted" onclick="switchToSystem('faceted')">🔷 Faceted</button>
+            <button class="system-btn" data-system="quantum" onclick="switchToSystem('quantum')">🌌 Quantum</button>
+            <button class="system-btn" data-system="holographic" onclick="switchToSystem('holographic')">✨ Holographic</button>
+            <button class="system-btn" data-system="polychora" onclick="switchToSystem('polychora')">🔮 Polychora</button>
+        </div>
+        <div class="context-info" id="contextInfo">Context count will appear here...</div>
+        <button class="test-button" onclick="testRapidSwitching()">Test Rapid Switching</button>
+        <div id="switchingOutput" class="status"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🧹 3. Context Management</h3>
+        <button class="test-button" onclick="showActiveContexts()">Show Active Contexts</button>
+        <button class="test-button" onclick="forceCleanup()">Force Cleanup</button>
+        <button class="test-button" onclick="testContextReload()">Test Context Reload</button>
+        <div id="managementOutput" class="status"></div>
+    </div>
+
+    <!-- Load Mobile Context Manager -->
+    <script src="./src/mobile/MobileContextManager.js"></script>
+
+    <script>
+        let currentSystem = 'faceted';
+
+        function log(message, type = 'info', outputId = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            const colorClass = type;
+            console.log(`[${timestamp}] ${message}`);
+            
+            if (outputId) {
+                const output = document.getElementById(outputId);
+                output.innerHTML += `<div class="${colorClass}">[${timestamp}] ${message}</div>`;
+                output.scrollTop = output.scrollHeight;
+            }
+        }
+
+        function clearOutput(outputId) {
+            document.getElementById(outputId).innerHTML = '';
+        }
+
+        function detectDevice() {
+            clearOutput('deviceOutput');
+            
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const userAgent = navigator.userAgent;
+            const pixelRatio = window.devicePixelRatio || 1;
+            const screenSize = `${window.innerWidth}x${window.innerHeight}`;
+            
+            log(`📱 Device Type: ${isMobile ? 'Mobile' : 'Desktop'}`, isMobile ? 'warning' : 'success', 'deviceOutput');
+            log(`📊 Screen: ${screenSize}, DPR: ${pixelRatio}`, 'info', 'deviceOutput');
+            log(`🔍 User Agent: ${userAgent}`, 'info', 'deviceOutput');
+            
+            if (window.mobileContextManager) {
+                const manager = window.mobileContextManager;
+                log(`🎯 Mobile Context Manager: ${manager.isMobile ? 'Active' : 'Inactive'}`, 'info', 'deviceOutput');
+                log(`📊 Max Contexts: ${manager.maxContexts}`, 'info', 'deviceOutput');
+            } else {
+                log('❌ Mobile Context Manager not loaded', 'error', 'deviceOutput');
+            }
+        }
+
+        function checkContextLimits() {
+            log('🔍 Testing WebGL context limits...', 'info', 'deviceOutput');
+            
+            const testContexts = [];
+            let contextCount = 0;
+            
+            try {
+                // Try creating multiple contexts to find the limit
+                for (let i = 0; i < 20; i++) {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 64;
+                    canvas.height = 64;
+                    
+                    const gl = canvas.getContext('webgl') || canvas.getContext('webgl2');
+                    if (gl) {
+                        testContexts.push({ canvas, gl });
+                        contextCount++;
+                    } else {
+                        break;
+                    }
+                }
+                
+                log(`✅ Successfully created ${contextCount} WebGL contexts`, 
+                    contextCount >= 16 ? 'success' : contextCount >= 8 ? 'warning' : 'error', 'deviceOutput');
+                
+                // Cleanup test contexts
+                testContexts.forEach(({ gl }) => {
+                    const ext = gl.getExtension('WEBGL_lose_context');
+                    if (ext) ext.loseContext();
+                });
+                
+            } catch (error) {
+                log(`❌ Context limit test failed: ${error.message}`, 'error', 'deviceOutput');
+            }
+        }
+
+        function switchToSystem(system) {
+            log(`🎯 Switching to ${system} system...`, 'info', 'switchingOutput');
+            
+            // Update UI
+            document.querySelectorAll('.system-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.system === system);
+            });
+            
+            // Use mobile context manager
+            if (window.mobileContextManager) {
+                window.mobileContextManager.switchSystem(system);
+                
+                const contextCount = window.mobileContextManager.getActiveContextCount();
+                log(`📊 Active contexts: ${contextCount}/20`, 'info', 'switchingOutput');
+                
+                // Update context info display
+                document.getElementById('contextInfo').innerHTML = `
+                    <strong>Current System:</strong> ${system}<br>
+                    <strong>Active Contexts:</strong> ${contextCount}<br>
+                    <strong>Mobile Mode:</strong> ${window.mobileContextManager.isMobile ? 'Yes' : 'No'}<br>
+                    <strong>At Limit:</strong> ${window.mobileContextManager.isAtLimit() ? 'Yes' : 'No'}
+                `;
+                
+                if (window.mobileContextManager.isMobile) {
+                    log(`📱 Mobile: Only ${system} contexts should be active`, 'success', 'switchingOutput');
+                }
+            } else {
+                log('❌ Mobile Context Manager not available', 'error', 'switchingOutput');
+            }
+            
+            currentSystem = system;
+        }
+
+        function testRapidSwitching() {
+            log('🔄 Testing rapid system switching...', 'info', 'switchingOutput');
+            
+            const systems = ['faceted', 'quantum', 'holographic', 'polychora'];
+            let switchCount = 0;
+            
+            const rapidSwitch = () => {
+                if (switchCount >= 12) { // 3 cycles through all systems
+                    log('✅ Rapid switching test complete', 'success', 'switchingOutput');
+                    return;
+                }
+                
+                const system = systems[switchCount % systems.length];
+                switchToSystem(system);
+                switchCount++;
+                
+                setTimeout(rapidSwitch, 200); // Switch every 200ms
+            };
+            
+            rapidSwitch();
+        }
+
+        function showActiveContexts() {
+            clearOutput('managementOutput');
+            
+            if (!window.mobileContextManager) {
+                log('❌ Mobile Context Manager not available', 'error', 'managementOutput');
+                return;
+            }
+            
+            const manager = window.mobileContextManager;
+            const activeCount = manager.getActiveContextCount();
+            
+            log(`📊 Active Context Report:`, 'info', 'managementOutput');
+            log(`- Total Active: ${activeCount}`, 'info', 'managementOutput');
+            log(`- Current System: ${manager.currentSystem || 'none'}`, 'info', 'managementOutput');
+            log(`- Mobile Mode: ${manager.isMobile}`, 'info', 'managementOutput');
+            log(`- At Limit: ${manager.isAtLimit()}`, manager.isAtLimit() ? 'warning' : 'success', 'managementOutput');
+            
+            // Show which canvases should have contexts for current system
+            if (manager.currentSystem) {
+                const expectedCanvases = manager.getSystemCanvasIds(manager.currentSystem);
+                log(`📋 Expected canvases for ${manager.currentSystem}:`, 'info', 'managementOutput');
+                expectedCanvases.forEach(canvasId => {
+                    log(`  • ${canvasId}`, 'info', 'managementOutput');
+                });
+            }
+        }
+
+        function forceCleanup() {
+            log('🧹 Force cleaning up all WebGL contexts...', 'warning', 'managementOutput');
+            
+            if (window.mobileContextManager) {
+                window.mobileContextManager.forceCleanup();
+                log('✅ All contexts cleaned up', 'success', 'managementOutput');
+                
+                // Update context info
+                document.getElementById('contextInfo').innerHTML = `
+                    <strong>Current System:</strong> ${currentSystem}<br>
+                    <strong>Active Contexts:</strong> 0<br>
+                    <strong>Status:</strong> All contexts destroyed
+                `;
+            } else {
+                log('❌ Mobile Context Manager not available', 'error', 'managementOutput');
+            }
+        }
+
+        function testContextReload() {
+            log('🔄 Testing context reload after cleanup...', 'info', 'managementOutput');
+            
+            // Force cleanup first
+            forceCleanup();
+            
+            // Wait a moment, then try to switch systems
+            setTimeout(() => {
+                log('🔄 Attempting to reload contexts...', 'info', 'managementOutput');
+                switchToSystem(currentSystem);
+                
+                setTimeout(() => {
+                    const activeCount = window.mobileContextManager ? 
+                        window.mobileContextManager.getActiveContextCount() : 0;
+                    
+                    if (activeCount > 0) {
+                        log('✅ Contexts successfully reloaded', 'success', 'managementOutput');
+                    } else {
+                        log('⚠️ No contexts after reload (normal if no visualizers)', 'warning', 'managementOutput');
+                    }
+                }, 500);
+            }, 1000);
+        }
+
+        // Auto-run device detection on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                detectDevice();
+                switchToSystem('faceted'); // Initialize first system
+            }, 1000);
+        });
+
+        // Listen for window resize to update context info
+        window.addEventListener('resize', () => {
+            if (window.mobileContextManager) {
+                const manager = window.mobileContextManager;
+                document.getElementById('contextInfo').innerHTML = `
+                    <strong>Screen:</strong> ${window.innerWidth}x${window.innerHeight}<br>
+                    <strong>Current System:</strong> ${manager.currentSystem || 'none'}<br>
+                    <strong>Active Contexts:</strong> ${manager.getActiveContextCount()}<br>
+                    <strong>Mobile Mode:</strong> ${manager.isMobile ? 'Yes' : 'No'}
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
