@@ -11,13 +11,42 @@
         if (window.isMobile) {
             document.addEventListener('DOMContentLoaded', function() {
                 const debugDiv = document.createElement('div');
-                debugDiv.innerHTML = '🔥 MOBILE DEBUG ACTIVE - ' + navigator.userAgent;
-                debugDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:red;color:white;padding:10px;z-index:99999;font-size:12px;';
+                debugDiv.innerHTML = '🔥 MOBILE DEBUG ACTIVE';
+                debugDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:red;color:white;padding:5px;z-index:99999;font-size:10px;';
                 document.body.appendChild(debugDiv);
                 
                 setTimeout(function() {
-                    debugDiv.innerHTML += '<br>✅ DOM LOADED - Site should work now';
-                }, 1000);
+                    // Check canvas status
+                    const canvases = document.querySelectorAll('canvas');
+                    const activeCanvases = Array.from(canvases).filter(c => c.style.display !== 'none');
+                    debugDiv.innerHTML += '<br>Canvases: ' + canvases.length + ' (active: ' + activeCanvases.length + ')';
+                    
+                    // Test WebGL
+                    const testCanvas = document.createElement('canvas');
+                    const gl = testCanvas.getContext('webgl');
+                    debugDiv.innerHTML += gl ? '<br>WebGL: OK' : '<br>WebGL: FAIL';
+                    
+                    // Check current system
+                    debugDiv.innerHTML += '<br>System: ' + (window.currentSystem || 'none');
+                    
+                    // Add test button
+                    const testBtn = document.createElement('button');
+                    testBtn.innerHTML = 'TEST SYSTEM SWITCH';
+                    testBtn.style.cssText = 'margin:5px;padding:5px;background:blue;color:white;border:none;';
+                    testBtn.onclick = function() {
+                        try {
+                            if (window.switchSystem) {
+                                window.switchSystem('quantum');
+                                debugDiv.innerHTML += '<br>Button clicked: ' + (window.currentSystem || 'unknown');
+                            } else {
+                                debugDiv.innerHTML += '<br>switchSystem missing!';
+                            }
+                        } catch (e) {
+                            debugDiv.innerHTML += '<br>Button error: ' + e.message;
+                        }
+                    };
+                    debugDiv.appendChild(testBtn);
+                }, 2000);
             });
             
             window.addEventListener('error', function(e) {
