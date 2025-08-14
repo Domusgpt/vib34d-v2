@@ -957,7 +957,7 @@
                 
                 // Set uniforms - FIXED TIME
                 gl.uniform2f(currentProgram.uniforms.resolution, canvas.width, canvas.height);
-                gl.uniform1f(currentProgram.uniforms.time, time * parameters.speed);
+                gl.uniform1f(currentProgram.uniforms.time, time); // Pass raw time
                 
                 renderCount++;
                 gl.uniform1f(currentProgram.uniforms.geometry, parameters.geometry);
