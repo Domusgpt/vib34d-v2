@@ -56,14 +56,15 @@
         canvas {
             position: absolute;
             top: 0; left: 0;
-            width: 100% !important;
-            height: 100% !important;
-            display: none;
-        }
-        
-        canvas.active {
+            width: 100vw !important;
+            height: calc(100vh - 60px) !important;
             display: block;
         }
+        
+        .faceted-canvas { background: rgba(0, 255, 255, 0.1); }
+        .quantum-canvas { background: rgba(255, 0, 255, 0.1); display: none; }
+        .holo-canvas { background: rgba(255, 100, 255, 0.1); display: none; }
+        .polychora-canvas { background: rgba(100, 255, 255, 0.1); display: none; }
         
         .debug-panel {
             position: fixed;
@@ -156,21 +157,19 @@
         
         // System Switching
         function switchToSystem(system) {
-            if (system === currentSystem) return;
-            
             log(`Switching from ${currentSystem} to ${system}`);
             
-            // Hide current system canvases
-            document.querySelectorAll('.' + currentSystem + '-canvas').forEach(canvas => {
-                canvas.classList.remove('active');
+            // Hide ALL canvases first
+            document.querySelectorAll('canvas').forEach(canvas => {
+                canvas.style.display = 'none';
             });
             
-            // Destroy old contexts on mobile
+            // Destroy old contexts
             destroyContexts(currentSystem);
             
-            // Show new system canvases  
+            // Show ONLY new system canvases
             document.querySelectorAll('.' + system + '-canvas').forEach(canvas => {
-                canvas.classList.add('active');
+                canvas.style.display = 'block';
             });
             
             // Update current system
@@ -182,10 +181,12 @@
             });
             
             // Initialize WebGL for new system
-            initializeSystem(system);
+            setTimeout(() => {
+                initializeSystem(system);
+            }, 100);
             
-            const activeCanvases = document.querySelectorAll('canvas.active');
-            log(`Switched to ${system} - ${activeCanvases.length} active canvases`);
+            const activeCanvases = document.querySelectorAll('canvas[style*="block"]');
+            log(`✅ SWITCHED to ${system} - ${activeCanvases.length} visible canvases`);
         }
         
         // WebGL Initialization
@@ -222,21 +223,26 @@
                     
                     const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
                     const colors = {
-                        faceted: 'vec3(0.0, 1.0, 1.0)',
-                        quantum: 'vec3(1.0, 0.0, 1.0)', 
-                        holographic: 'vec3(1.0, 0.5, 1.0)',
-                        polychora: 'vec3(0.5, 1.0, 1.0)'
+                        faceted: [0.0, 1.0, 1.0],
+                        quantum: [1.0, 0.0, 1.0], 
+                        holographic: [1.0, 0.5, 1.0],
+                        polychora: [0.5, 1.0, 1.0]
                     };
+                    
+                    const color = colors[system];
+                    const intensity = 0.3 + index * 0.2;
+                    const alpha = 0.5 + index * 0.1;
                     
                     gl.shaderSource(fragmentShader, `
                         precision mediump float;
                         uniform float time;
                         uniform vec2 resolution;
                         void main() {
-                            vec2 uv = gl_FragCoord.xy / resolution;
-                            float pattern = sin(uv.x * 10.0 + time) * cos(uv.y * 10.0 + time);
-                            vec3 color = ${colors[system]} * (0.5 + 0.5 * pattern);
-                            gl_FragColor = vec4(color * ${0.2 + index * 0.2}, ${0.3 + index * 0.15});
+                            vec2 uv = gl_FragCoord.xy / resolution.xy;
+                            float pattern = sin(uv.x * 15.0 + time * 2.0) * cos(uv.y * 15.0 + time * 1.5);
+                            vec3 color = vec3(${color[0]}, ${color[1]}, ${color[2]});
+                            color *= (0.7 + 0.3 * pattern) * ${intensity};
+                            gl_FragColor = vec4(color, ${alpha});
                         }
                     `);
                     gl.compileShader(fragmentShader);
