@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Debug Console - VIB34D</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #00ff00;
+            font-size: 12px;
+            overflow: hidden;
+        }
+        
+        .debug-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .debug-header {
+            background: #001100;
+            border-bottom: 2px solid #00ff00;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        .debug-title {
+            color: #00ff00;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .close-btn {
+            background: #ff0000;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        .debug-output {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background: #000;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            line-height: 1.4;
+        }
+        
+        .debug-controls {
+            background: #001100;
+            border-top: 2px solid #00ff00;
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+        
+        .debug-btn {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+        
+        .debug-btn:hover {
+            background: rgba(0, 255, 0, 0.3);
+        }
+        
+        .error { color: #ff4444; }
+        .warn { color: #ffaa00; }
+        .info { color: #00aaff; }
+        .success { color: #00ff00; }
+        .timestamp { color: #888; }
+        
+        .test-iframe {
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            position: absolute;
+            top: -1000px;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <div class="debug-header">
+            <div class="debug-title">🐛 VIB34D Mobile Debug Console</div>
+            <button class="close-btn" onclick="closeDebug()">✕ Close</button>
+        </div>
+        
+        <div class="debug-output" id="debugOutput"></div>
+        
+        <div class="debug-controls">
+            <button class="debug-btn" onclick="testMainSite()">🎯 Test Main Site</button>
+            <button class="debug-btn" onclick="testSystemButtons()">🔘 Test System Buttons</button>
+            <button class="debug-btn" onclick="testParameters()">⚙️ Test Parameters</button>
+            <button class="debug-btn" onclick="testWebGL()">📺 Test WebGL</button>
+            <button class="debug-btn" onclick="testJavaScript()">📜 Test JavaScript</button>
+            <button class="debug-btn" onclick="clearDebug()">🗑️ Clear</button>
+            <button class="debug-btn" onclick="exportDebug()">📤 Export Log</button>
+        </div>
+    </div>
+    
+    <iframe id="testFrame" class="test-iframe"></iframe>
+    
+    <script>
+        let debugOutput = document.getElementById('debugOutput');
+        let logCount = 0;
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            debugOutput.appendChild(logEntry);
+            debugOutput.scrollTop = debugOutput.scrollHeight;
+            logCount++;
+        }
+        
+        function clearDebug() {
+            debugOutput.innerHTML = '';
+            logCount = 0;
+            log('🧹 Debug console cleared', 'info');
+        }
+        
+        function closeDebug() {
+            if (parent !== window) {
+                parent.postMessage({ action: 'close-debug' }, '*');
+            } else {
+                window.close();
+            }
+        }
+        
+        function exportDebug() {
+            const logs = debugOutput.innerText;
+            const blob = new Blob([logs], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `vib34d-debug-${Date.now()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            log('📤 Debug log exported', 'success');
+        }
+        
+        function testMainSite() {
+            log('🎯 Testing main site connectivity...', 'info');
+            const testFrame = document.getElementById('testFrame');
+            
+            testFrame.onload = function() {
+                try {
+                    const frameWindow = testFrame.contentWindow;
+                    const frameDoc = testFrame.contentDocument;
+                    
+                    log('✅ Main site loaded successfully', 'success');
+                    log(`📄 Page title: ${frameDoc.title}`, 'info');
+                    log(`🔗 Current URL: ${frameWindow.location.href}`, 'info');
+                    
+                    // Check for JavaScript errors
+                    const scripts = frameDoc.querySelectorAll('script');
+                    log(`📜 Found ${scripts.length} script tags`, 'info');
+                    
+                    // Test global functions
+                    if (frameWindow.switchSystem) {
+                        log('✅ switchSystem function found', 'success');
+                    } else {
+                        log('❌ switchSystem function NOT found', 'error');
+                    }
+                    
+                    if (frameWindow.updateParameter) {
+                        log('✅ updateParameter function found', 'success');
+                    } else {
+                        log('❌ updateParameter function NOT found', 'error');
+                    }
+                    
+                    // Check for canvas elements
+                    const canvases = frameDoc.querySelectorAll('canvas');
+                    log(`📺 Found ${canvases.length} canvas elements`, 'info');
+                    
+                    // Check for system buttons
+                    const systemBtns = frameDoc.querySelectorAll('[onclick*="switchSystem"]');
+                    log(`🔘 Found ${systemBtns.length} system buttons`, 'info');
+                    
+                } catch (error) {
+                    log(`❌ Error accessing iframe: ${error.message}`, 'error');
+                }
+            };
+            
+            testFrame.onerror = function(error) {
+                log(`❌ Failed to load main site: ${error}`, 'error');
+            };
+            
+            testFrame.src = 'index.html';
+        }
+        
+        function testSystemButtons() {
+            log('🔘 Testing system button functionality...', 'info');
+            const testFrame = document.getElementById('testFrame');
+            
+            testFrame.onload = function() {
+                try {
+                    const frameWindow = testFrame.contentWindow;
+                    const frameDoc = testFrame.contentDocument;
+                    
+                    const systemButtons = frameDoc.querySelectorAll('.system-btn, [onclick*="switchSystem"]');
+                    log(`🔘 Found ${systemButtons.length} system buttons`, 'info');
+                    
+                    systemButtons.forEach((btn, index) => {
+                        const text = btn.textContent.trim();
+                        const onclick = btn.getAttribute('onclick');
+                        log(`🔘 Button ${index + 1}: "${text}" -> ${onclick}`, 'info');
+                        
+                        // Test if the onclick function exists
+                        try {
+                            if (onclick) {
+                                const funcName = onclick.match(/switchSystem\(['"]([^'"]+)['"]\)/);
+                                if (funcName) {
+                                    log(`   System: ${funcName[1]}`, 'info');
+                                }
+                            }
+                        } catch (e) {
+                            log(`   ❌ Button onclick error: ${e.message}`, 'error');
+                        }
+                    });
+                    
+                    // Test clicking first button
+                    if (systemButtons.length > 0) {
+                        log('🖱️ Testing first button click...', 'info');
+                        try {
+                            systemButtons[0].click();
+                            log('✅ Button click executed', 'success');
+                        } catch (error) {
+                            log(`❌ Button click failed: ${error.message}`, 'error');
+                        }
+                    }
+                    
+                } catch (error) {
+                    log(`❌ Error testing buttons: ${error.message}`, 'error');
+                }
+            };
+            
+            testFrame.src = 'index.html';
+        }
+        
+        function testParameters() {
+            log('⚙️ Testing parameter system...', 'info');
+            const testFrame = document.getElementById('testFrame');
+            
+            testFrame.onload = function() {
+                try {
+                    const frameWindow = testFrame.contentWindow;
+                    const frameDoc = testFrame.contentDocument;
+                    
+                    // Check for parameter sliders
+                    const sliders = frameDoc.querySelectorAll('input[type="range"]');
+                    log(`⚙️ Found ${sliders.length} parameter sliders`, 'info');
+                    
+                    sliders.forEach((slider, index) => {
+                        const id = slider.id;
+                        const value = slider.value;
+                        const min = slider.min;
+                        const max = slider.max;
+                        log(`⚙️ Slider ${index + 1}: ${id} = ${value} (${min}-${max})`, 'info');
+                    });
+                    
+                    // Test updateParameter function
+                    if (frameWindow.updateParameter) {
+                        log('🧪 Testing parameter update...', 'info');
+                        try {
+                            frameWindow.updateParameter('hue', 180);
+                            log('✅ Parameter update executed', 'success');
+                        } catch (error) {
+                            log(`❌ Parameter update failed: ${error.message}`, 'error');
+                        }
+                    }
+                    
+                } catch (error) {
+                    log(`❌ Error testing parameters: ${error.message}`, 'error');
+                }
+            };
+            
+            testFrame.src = 'index.html';
+        }
+        
+        function testWebGL() {
+            log('📺 Testing WebGL support...', 'info');
+            
+            // Test WebGL context creation
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('webgl2') || canvas.getContext('experimental-webgl');
+            
+            if (gl) {
+                log('✅ WebGL context created successfully', 'success');
+                log(`📺 WebGL version: ${gl.getParameter(gl.VERSION)}`, 'info');
+                log(`📺 Renderer: ${gl.getParameter(gl.RENDERER)}`, 'info');
+                log(`📺 Vendor: ${gl.getParameter(gl.VENDOR)}`, 'info');
+                
+                const maxTextures = gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+                const maxVertexAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
+                log(`📺 Max textures: ${maxTextures}`, 'info');
+                log(`📺 Max vertex attributes: ${maxVertexAttribs}`, 'info');
+                
+            } else {
+                log('❌ WebGL not supported', 'error');
+            }
+            
+            // Test mobile device detection
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            log(`📱 Mobile device: ${isMobile}`, 'info');
+            log(`📱 User agent: ${navigator.userAgent}`, 'info');
+            log(`📱 Screen: ${screen.width}x${screen.height}`, 'info');
+            log(`📱 Viewport: ${window.innerWidth}x${window.innerHeight}`, 'info');
+            log(`📱 Device pixel ratio: ${window.devicePixelRatio}`, 'info');
+        }
+        
+        function testJavaScript() {
+            log('📜 Testing JavaScript environment...', 'info');
+            const testFrame = document.getElementById('testFrame');
+            
+            testFrame.onload = function() {
+                try {
+                    const frameWindow = testFrame.contentWindow;
+                    
+                    // Intercept console errors in the iframe
+                    const originalConsoleError = frameWindow.console.error;
+                    const originalConsoleWarn = frameWindow.console.warn;
+                    
+                    frameWindow.console.error = function(...args) {
+                        log(`❌ JS ERROR: ${args.join(' ')}`, 'error');
+                        originalConsoleError.apply(frameWindow.console, args);
+                    };
+                    
+                    frameWindow.console.warn = function(...args) {
+                        log(`⚠️ JS WARNING: ${args.join(' ')}`, 'warn');
+                        originalConsoleWarn.apply(frameWindow.console, args);
+                    };
+                    
+                    // Intercept window errors
+                    frameWindow.addEventListener('error', function(event) {
+                        log(`❌ UNCAUGHT ERROR: ${event.error?.message || event.message}`, 'error');
+                        log(`   File: ${event.filename}:${event.lineno}:${event.colno}`, 'error');
+                    });
+                    
+                    frameWindow.addEventListener('unhandledrejection', function(event) {
+                        log(`❌ UNHANDLED PROMISE: ${event.reason}`, 'error');
+                    });
+                    
+                    log('✅ JavaScript error monitoring active', 'success');
+                    
+                    // Test key global objects
+                    const globals = ['switchSystem', 'updateParameter', 'moduleReady', 'apiConfig', 'llmInterface', 'mobileContextManager'];
+                    globals.forEach(globalName => {
+                        if (frameWindow[globalName]) {
+                            log(`✅ Global: ${globalName} exists`, 'success');
+                        } else {
+                            log(`❌ Global: ${globalName} missing`, 'error');
+                        }
+                    });
+                    
+                } catch (error) {
+                    log(`❌ Error setting up JS monitoring: ${error.message}`, 'error');
+                }
+            };
+            
+            testFrame.src = 'index.html';
+        }
+        
+        // Initialize debug console
+        log('🚀 VIB34D Mobile Debug Console initialized', 'success');
+        log('📱 Running on: ' + navigator.userAgent, 'info');
+        log('🖥️ Screen: ' + screen.width + 'x' + screen.height + ' (DPR: ' + window.devicePixelRatio + ')', 'info');
+        
+        // Auto-start comprehensive test
+        setTimeout(() => {
+            log('🔄 Starting comprehensive test suite...', 'info');
+            testWebGL();
+            setTimeout(() => testJavaScript(), 1000);
+            setTimeout(() => testMainSite(), 2000);
+        }, 500);
+        
+    </script>
+</body>
+</html>
