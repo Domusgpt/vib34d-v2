@@ -388,6 +388,7 @@
         <div class="action-buttons">
             <button class="action-btn" onclick="openGallery()" title="Gallery">🖼️</button>
             <button class="action-btn" onclick="toggleAudio()" title="Audio">🎵</button>
+            <button class="action-btn" onclick="toggleLLMInterface()" title="AI Parameter Generator">🤖</button>
             <button class="action-btn" onclick="toggleInteractivity()" title="Interactivity Menu (Press I)">I</button>
         </div>
     </div>
@@ -2450,6 +2451,56 @@
                     // Schedule update on next animation frame
                     mouseUpdateRAF = requestAnimationFrame(applyMouseParameters);
                 }
+            }
+        });
+    </script>
+
+    <!-- LLM Parameter Interface -->
+    <script src="./src/config/ApiConfig.js"></script>
+    <script src="./src/llm/LLMParameterInterface.js"></script>
+    <script src="./src/llm/LLMParameterUI.js"></script>
+    
+    <!-- LLM Integration Script -->
+    <script>
+        // Toggle LLM interface function
+        window.toggleLLMInterface = function() {
+            if (!window.llmUI) {
+                console.error('🤖 LLM UI not loaded');
+                return;
+            }
+
+            // Check if API key is configured
+            if (!window.apiConfig.isConfigured) {
+                // Try auto-detection first
+                window.apiConfig.autoDetectApiKey().then(success => {
+                    if (!success) {
+                        // Prompt user for API key
+                        const keyProvided = window.apiConfig.promptForApiKey();
+                        if (keyProvided) {
+                            window.llmUI.show();
+                        } else {
+                            window.apiConfig.showSetupInstructions();
+                        }
+                    } else {
+                        window.llmUI.show();
+                    }
+                });
+            } else {
+                window.llmUI.show();
+            }
+        };
+
+        // Initialize LLM system when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🤖 Initializing LLM Parameter System...');
+            
+            // Auto-detect API key
+            const keyDetected = await window.apiConfig.autoDetectApiKey();
+            
+            if (keyDetected) {
+                console.log('🤖 LLM system ready - API key configured');
+            } else {
+                console.log('🤖 LLM system loaded - click 🤖 button to configure API key');
             }
         });
     </script>

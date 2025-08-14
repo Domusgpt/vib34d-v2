@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D LLM Integration Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .test-section {
+            background: rgba(0, 20, 40, 0.5);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #00ffff, #0088cc);
+            border: none;
+            color: #000;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-family: 'Orbitron', monospace;
+            font-weight: bold;
+            margin: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.3);
+        }
+        
+        .status {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            min-height: 100px;
+            font-family: monospace;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+        
+        .input-field {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 5px;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            padding: 10px;
+            margin: 10px 0;
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        .success { color: #00ff00; }
+        .error { color: #ff4444; }
+        .warning { color: #ffaa00; }
+        .info { color: #00ffff; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 VIB34D LLM Integration Test</h1>
+        <p>Test suite for AI-powered parameter generation</p>
+    </div>
+
+    <div class="test-section">
+        <h3>📋 1. System Status</h3>
+        <button class="test-button" onclick="checkSystemStatus()">Check Status</button>
+        <button class="test-button" onclick="testApiKey()">Test API Key</button>
+        <button class="test-button" onclick="clearApiKey()">Clear API Key</button>
+        <div id="statusOutput" class="status"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔑 2. API Key Configuration</h3>
+        <input type="password" id="apiKeyInput" class="input-field" placeholder="Enter Gemini API Key (optional for testing)">
+        <button class="test-button" onclick="setApiKey()">Set API Key</button>
+        <button class="test-button" onclick="showInstructions()">Show Setup Instructions</button>
+        <div id="apiKeyStatus" class="status"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🎨 3. Parameter Generation Tests</h3>
+        <textarea id="descriptionInput" class="input-field" placeholder="Enter description (e.g., 'bright cyan holographic effect')">bright cyan holographic effect</textarea>
+        <button class="test-button" onclick="testParameterGeneration()">Generate Parameters</button>
+        <button class="test-button" onclick="testBatchGeneration()">Test Batch Generation</button>
+        <div id="generationOutput" class="status"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🎮 4. UI Interface Tests</h3>
+        <button class="test-button" onclick="testUIShow()">Show LLM Interface</button>
+        <button class="test-button" onclick="testAutocomplete()">Test Autocomplete</button>
+        <button class="test-button" onclick="testFullWorkflow()">Test Full Workflow</button>
+        <div id="uiTestOutput" class="status"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 5. Parameter Validation Tests</h3>
+        <button class="test-button" onclick="testParameterValidation()">Test Parameter Validation</button>
+        <button class="test-button" onclick="testRangeClaming()">Test Range Clamping</button>
+        <div id="validationOutput" class="status"></div>
+    </div>
+
+    <!-- Load LLM System -->
+    <script src="./src/config/ApiConfig.js"></script>
+    <script src="./src/llm/LLMParameterInterface.js"></script>
+    <script src="./src/llm/LLMParameterUI.js"></script>
+
+    <!-- Mock updateParameter function for testing -->
+    <script>
+        // Mock parameter system for testing
+        window.currentSystem = 'faceted';
+        window.moduleReady = true;
+        window.lastAppliedParameters = {};
+
+        window.updateParameter = function(param, value) {
+            window.lastAppliedParameters[param] = value;
+            log(`📊 Mock applied: ${param} = ${value}`, 'info');
+        };
+
+        // Logging function
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const colorClass = type;
+            console.log(`[${timestamp}] ${message}`);
+            
+            // Also log to current active output if available
+            const activeOutput = document.querySelector('.status:last-child');
+            if (activeOutput) {
+                activeOutput.innerHTML += `<div class="${colorClass}">[${timestamp}] ${message}</div>`;
+                activeOutput.scrollTop = activeOutput.scrollHeight;
+            }
+        }
+
+        function clearOutput(outputId) {
+            document.getElementById(outputId).innerHTML = '';
+        }
+
+        // Test Functions
+        async function checkSystemStatus() {
+            clearOutput('statusOutput');
+            const output = document.getElementById('statusOutput');
+            
+            output.innerHTML += '<div class="info">🔍 Checking system status...</div>';
+            
+            // Check if classes are loaded
+            const checks = [
+                { name: 'ApiConfig', obj: window.ApiConfig, instance: window.apiConfig },
+                { name: 'LLMParameterInterface', obj: window.LLMParameterInterface, instance: window.llmInterface },
+                { name: 'LLMParameterUI', obj: window.LLMParameterUI, instance: window.llmUI }
+            ];
+
+            checks.forEach(check => {
+                const classExists = typeof check.obj === 'function';
+                const instanceExists = !!check.instance;
+                
+                if (classExists && instanceExists) {
+                    output.innerHTML += `<div class="success">✅ ${check.name}: Class loaded, instance created</div>`;
+                } else if (classExists) {
+                    output.innerHTML += `<div class="warning">⚠️ ${check.name}: Class loaded, no instance</div>`;
+                } else {
+                    output.innerHTML += `<div class="error">❌ ${check.name}: Not loaded</div>`;
+                }
+            });
+
+            // Check API configuration
+            if (window.apiConfig) {
+                const status = window.apiConfig.getApiKeyStatus();
+                output.innerHTML += `<div class="info">🔑 API Key Status: ${JSON.stringify(status, null, 2)}</div>`;
+            }
+        }
+
+        async function testApiKey() {
+            const output = document.getElementById('statusOutput');
+            
+            if (!window.apiConfig) {
+                output.innerHTML += '<div class="error">❌ ApiConfig not loaded</div>';
+                return;
+            }
+
+            output.innerHTML += '<div class="info">🔍 Testing API key detection...</div>';
+            
+            try {
+                const detected = await window.apiConfig.autoDetectApiKey();
+                if (detected) {
+                    output.innerHTML += '<div class="success">✅ API key auto-detected and configured</div>';
+                } else {
+                    output.innerHTML += '<div class="warning">⚠️ No API key auto-detected</div>';
+                }
+            } catch (error) {
+                output.innerHTML += `<div class="error">❌ API key test failed: ${error.message}</div>`;
+            }
+        }
+
+        function clearApiKey() {
+            if (window.apiConfig) {
+                window.apiConfig.clearConfiguration();
+                document.getElementById('statusOutput').innerHTML += '<div class="warning">🔑 API key cleared</div>';
+            }
+        }
+
+        function setApiKey() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const output = document.getElementById('apiKeyStatus');
+            
+            if (!apiKey) {
+                output.innerHTML += '<div class="warning">⚠️ Please enter an API key</div>';
+                return;
+            }
+
+            if (window.apiConfig) {
+                const success = window.apiConfig.setGeminiApiKey(apiKey);
+                if (success) {
+                    output.innerHTML += '<div class="success">✅ API key configured successfully</div>';
+                    document.getElementById('apiKeyInput').value = '';
+                } else {
+                    output.innerHTML += '<div class="error">❌ Failed to configure API key</div>';
+                }
+            }
+        }
+
+        function showInstructions() {
+            if (window.apiConfig) {
+                window.apiConfig.showSetupInstructions();
+            }
+        }
+
+        async function testParameterGeneration() {
+            const description = document.getElementById('descriptionInput').value.trim();
+            const output = document.getElementById('generationOutput');
+            
+            if (!description) {
+                output.innerHTML += '<div class="warning">⚠️ Please enter a description</div>';
+                return;
+            }
+
+            output.innerHTML += `<div class="info">🤖 Generating parameters for: "${description}"</div>`;
+
+            if (!window.llmInterface || !window.llmInterface.isInitialized) {
+                output.innerHTML += '<div class="error">❌ LLM interface not initialized (need API key)</div>';
+                return;
+            }
+
+            try {
+                const parameters = await window.llmInterface.generateParameters(description);
+                output.innerHTML += `<div class="success">✅ Generated parameters: ${JSON.stringify(parameters, null, 2)}</div>`;
+                
+                // Test parameter application
+                const applied = await window.llmInterface.applyParameters(parameters, false);
+                if (applied) {
+                    output.innerHTML += '<div class="success">✅ Parameters applied successfully</div>';
+                } else {
+                    output.innerHTML += '<div class="error">❌ Failed to apply parameters</div>';
+                }
+            } catch (error) {
+                output.innerHTML += `<div class="error">❌ Parameter generation failed: ${error.message}</div>`;
+            }
+        }
+
+        async function testBatchGeneration() {
+            const testDescriptions = [
+                'bright cyan holographic effect',
+                'slow red crystalline hypercube',
+                'chaotic rainbow tetrahedron',
+                'calm blue minimalist design'
+            ];
+
+            const output = document.getElementById('generationOutput');
+            output.innerHTML += '<div class="info">🔄 Testing batch generation...</div>';
+
+            for (const desc of testDescriptions) {
+                try {
+                    const params = await window.llmInterface.generateParameters(desc);
+                    output.innerHTML += `<div class="success">✅ "${desc}": ${Object.keys(params).length} parameters</div>`;
+                } catch (error) {
+                    output.innerHTML += `<div class="error">❌ "${desc}": ${error.message}</div>`;
+                }
+            }
+        }
+
+        function testUIShow() {
+            const output = document.getElementById('uiTestOutput');
+            
+            if (!window.llmUI) {
+                output.innerHTML += '<div class="error">❌ LLM UI not loaded</div>';
+                return;
+            }
+
+            output.innerHTML += '<div class="info">🎮 Showing LLM interface...</div>';
+            window.llmUI.show();
+            output.innerHTML += '<div class="success">✅ Interface displayed (check for overlay)</div>';
+        }
+
+        function testAutocomplete() {
+            const output = document.getElementById('uiTestOutput');
+            
+            if (!window.llmInterface) {
+                output.innerHTML += '<div class="error">❌ LLM interface not loaded</div>';
+                return;
+            }
+
+            const testInput = 'bright';
+            const suggestions = window.llmInterface.generateAutocompleteOptions(testInput);
+            
+            output.innerHTML += `<div class="info">🔍 Autocomplete for "${testInput}":</div>`;
+            suggestions.forEach(suggestion => {
+                output.innerHTML += `<div class="success">  • ${suggestion}</div>`;
+            });
+        }
+
+        function testFullWorkflow() {
+            const output = document.getElementById('uiTestOutput');
+            output.innerHTML += '<div class="info">🎮 Testing full workflow...</div>';
+            
+            // This would test the complete user workflow
+            if (window.toggleLLMInterface) {
+                window.toggleLLMInterface();
+                output.innerHTML += '<div class="success">✅ Full workflow test triggered</div>';
+            } else {
+                output.innerHTML += '<div class="error">❌ toggleLLMInterface function not found</div>';
+            }
+        }
+
+        function testParameterValidation() {
+            const output = document.getElementById('validationOutput');
+            
+            if (!window.llmInterface) {
+                output.innerHTML += '<div class="error">❌ LLM interface not loaded</div>';
+                return;
+            }
+
+            // Test invalid parameters
+            const testParams = {
+                geometry: 15, // Should clamp to 7
+                hue: 500,     // Should clamp to 360
+                chaos: -0.5,  // Should clamp to 0
+                speed: 10,    // Should clamp to 3
+                invalid: 123  // Should be ignored
+            };
+
+            const validated = window.llmInterface.validateAndClampParameters(testParams);
+            
+            output.innerHTML += '<div class="info">🔍 Parameter validation test:</div>';
+            output.innerHTML += `<div class="info">Input: ${JSON.stringify(testParams, null, 2)}</div>`;
+            output.innerHTML += `<div class="success">Validated: ${JSON.stringify(validated, null, 2)}</div>`;
+        }
+
+        function testRangeClaming() {
+            const output = document.getElementById('validationOutput');
+            
+            const extremeParams = {
+                geometry: -1,
+                rot4dXW: 100,
+                gridDensity: 1000,
+                morphFactor: -5,
+                chaos: 2,
+                speed: -1,
+                hue: -360,
+                intensity: 5,
+                saturation: -1
+            };
+
+            const clamped = window.llmInterface.validateAndClampParameters(extremeParams);
+            
+            output.innerHTML += '<div class="info">🔍 Range clamping test:</div>';
+            output.innerHTML += `<div class="warning">Extreme values: ${JSON.stringify(extremeParams, null, 2)}</div>`;
+            output.innerHTML += `<div class="success">Clamped: ${JSON.stringify(clamped, null, 2)}</div>`;
+        }
+
+        // Auto-run basic status check
+        window.addEventListener('load', () => {
+            setTimeout(checkSystemStatus, 1000);
+        });
+    </script>
+</body>
+</html>
