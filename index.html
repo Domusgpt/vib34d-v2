@@ -582,7 +582,34 @@
     </div>
     
     <!-- CRITICAL BUG FIX: Move switchSystem function outside ES6 module for global access -->
+    <!-- EMERGENCY MOBILE DEBUG -->
+    <div id="mobileDebug" style="position:fixed;top:0;left:0;width:100vw;height:200px;background:rgba(0,0,0,0.9);color:#00ff00;font-family:monospace;font-size:10px;padding:5px;z-index:99999;overflow-y:auto;border-bottom:2px solid #ff0000;display:none;">
+        <div style="color:#ff0000;font-weight:bold;">🔥 MOBILE DEBUG - ERRORS WILL SHOW HERE 🔥</div>
+        <div id="errorLog"></div>
+    </div>
+    
     <script>
+        // EMERGENCY ERROR CAPTURE FOR MOBILE
+        window.mobileErrors = [];
+        const errorLog = document.getElementById('errorLog');
+        const mobileDebug = document.getElementById('mobileDebug');
+        
+        function showError(msg) {
+            if (errorLog) {
+                errorLog.innerHTML += '<div style="color:#ff4444;">' + new Date().toLocaleTimeString() + ': ' + msg + '</div>';
+                mobileDebug.style.display = 'block';
+            }
+            console.error('MOBILE ERROR:', msg);
+        }
+        
+        window.addEventListener('error', function(e) {
+            showError('JS ERROR: ' + e.message + ' at ' + e.filename + ':' + e.lineno);
+        });
+        
+        window.addEventListener('unhandledrejection', function(e) {
+            showError('PROMISE ERROR: ' + e.reason);
+        });
+        
         // CRITICAL FIX: Parse URL parameters FIRST, before any ES6 module loading
         function parseURLParameters() {
             const urlParams = new URLSearchParams(window.location.search);
