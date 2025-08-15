@@ -388,6 +388,7 @@
         <div class="action-buttons">
             <button class="action-btn" onclick="openGallery()" title="Gallery">🖼️</button>
             <button class="action-btn" onclick="toggleAudio()" title="Audio">🎵</button>
+            <button class="action-btn" onclick="showLLMInterface()" title="AI Parameters">🤖</button>
             <button class="action-btn" onclick="toggleInteractivity()" title="Interactivity Menu (Press I)">I</button>
         </div>
     </div>
@@ -1804,9 +1805,66 @@
             console.log(`🎵 Audio: ${audioEnabled ? 'ON' : 'OFF'}`);
         }
         
+        window.showLLMInterface = async function() {
+            console.log('🤖 Opening AI parameter interface');
+            try {
+                // Import LLM modules dynamically
+                const { LLMParameterInterface } = await import('./src/llm/LLMParameterInterface.js');
+                const { LLMParameterUI } = await import('./src/llm/LLMParameterUI.js');
+                
+                // Initialize LLM system if not already done
+                if (!window.llmInterface) {
+                    window.llmInterface = new LLMParameterInterface();
+                    window.llmUI = new LLMParameterUI(window.llmInterface);
+                    
+                    // Set parameter callback to update VIB34D
+                    window.llmInterface.setParameterCallback((parameters) => {
+                        console.log('🤖 Applying AI-generated parameters:', parameters);
+                        
+                        // Apply each parameter with a small delay for smooth visual effect
+                        Object.entries(parameters).forEach(([param, value], index) => {
+                            setTimeout(() => {
+                                // Call the appropriate update function based on current system
+                                if (window.currentSystem === 'faceted' && window.engine) {
+                                    window.engine.updateParameter(param, value);
+                                } else if (window.currentSystem === 'quantum' && window.quantumEngine) {
+                                    window.quantumEngine.updateParameter(param, value);
+                                } else if (window.currentSystem === 'holographic' && window.holographicSystem) {
+                                    window.holographicSystem.updateParameter(param, value);
+                                } else if (window.currentSystem === 'polychora' && window.polychoraSystem) {
+                                    window.polychoraSystem.updateParameter(param, value);
+                                }
+                                
+                                // Also update UI sliders
+                                updateUIParameter(param, value);
+                            }, index * 50);
+                        });
+                    });
+                }
+                
+                // Show the LLM interface
+                window.llmUI.show();
+                
+            } catch (error) {
+                console.error('❌ Error loading LLM interface:', error);
+                alert('Error loading AI parameter interface. Please check console for details.');
+            }
+        }
+        
         window.toggleInteractivity = async function() {
             console.log(`🎛️ Universal Interactivity System currently disabled - requires repair before use`);
             console.log(`🔧 This system needs to be fixed before it can work with the existing visualization engines`);
+        }
+        
+        // Helper function to update UI sliders when LLM sets parameters
+        function updateUIParameter(param, value) {
+            const slider = document.getElementById(param);
+            if (slider) {
+                slider.value = value;
+                // Trigger change event to update display value
+                const event = new Event('input', { bubbles: true });
+                slider.dispatchEvent(event);
+            }
         }
         
         function showInteractivityOverlay() {
