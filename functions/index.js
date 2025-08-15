@@ -19,13 +19,8 @@ exports.generateVIB34DParameters = functions.https.onRequest((req, res) => {
         return res.status(400).json({ error: 'Description is required' });
       }
 
-      // Get Gemini API key from environment variables
-      const apiKey = functions.config().gemini?.api_key;
-      
-      if (!apiKey) {
-        console.error('Gemini API key not configured');
-        return res.status(500).json({ error: 'API configuration error' });
-      }
+      // Real Gemini API key
+      const apiKey = "AIzaSyBxB1BxPMmUSaY8pMvy47zbeVNMgfwTltQ";
 
       // System prompt for VIB34D parameter generation
       const systemPrompt = `You are a synesthetic AI that translates human experience into 4-dimensional holographic mathematics.
@@ -121,6 +116,7 @@ Return only JSON with the parameter names above.`;
     }
   });
 });
+
 
 /**
  * Validate and clamp parameters to valid ranges
