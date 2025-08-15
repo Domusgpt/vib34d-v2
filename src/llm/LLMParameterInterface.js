@@ -5,7 +5,11 @@
 
 export class LLMParameterInterface {
     constructor() {
-        // Check localStorage for API key, fallback to simulation
+        // Try Firebase Function first, fallback to direct API
+        this.useFirebase = true;
+        this.firebaseUrl = 'https://us-central1-vib34d-llm.cloudfunctions.net/generateVIB34DParameters';
+        
+        // Fallback to direct API if Firebase not available
         this.apiKey = localStorage.getItem('vib34d-gemini-api-key') || null;
         this.baseApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
         this.parameterCallback = null;
@@ -72,7 +76,19 @@ Return only JSON with the parameter names above.`;
      * Generate parameters from natural language description
      */
     async generateParameters(description) {
-        // Check if we have a valid API key
+        // Try Firebase Function first
+        if (this.useFirebase) {
+            try {
+                console.log('🔥 Trying Firebase Function first...');
+                return await this.generateViaFirebase(description);
+            } catch (error) {
+                console.warn('🔥 Firebase Function failed, falling back to direct API:', error.message);
+                this.useFirebase = false; // Disable for this session
+            }
+        }
+        
+        // Fallback to direct API
+        console.log('🔍 Using direct API approach...');
         console.log('🔍 Checking API key:', this.apiKey ? `${this.apiKey.substring(0, 10)}...` : 'NOT SET');
         const hasValidKey = this.apiKey && this.apiKey.startsWith('AIza') && this.apiKey.length > 30;
         console.log('🔍 API key valid:', hasValidKey);
@@ -145,6 +161,41 @@ Return only JSON with the parameter names above.`;
         }
     }
     
+    /**
+     * Generate parameters via Firebase Function
+     */
+    async generateViaFirebase(description) {
+        const response = await fetch(this.firebaseUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                description: description.trim()
+            })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `Firebase Function error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success || !data.parameters) {
+            throw new Error('Invalid response from Firebase Function');
+        }
+        
+        const parameters = data.parameters;
+        
+        console.log('🔥 Generated parameters via Firebase:', parameters);
+        
+        if (this.parameterCallback) {
+            this.parameterCallback(parameters);
+        }
+        
+        return parameters;
+    }
     
     /**
      * Validate and clamp parameters to valid ranges
