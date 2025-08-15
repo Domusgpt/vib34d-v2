@@ -7,7 +7,7 @@ export class LLMParameterInterface {
     constructor() {
         // Check localStorage for API key, fallback to simulation
         this.apiKey = localStorage.getItem('vib34d-gemini-api-key') || null;
-        this.apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+        this.baseApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
         this.parameterCallback = null;
         
         // Comprehensive system prompt with emotional/visual understanding
@@ -73,16 +73,21 @@ Return only JSON with the parameter names above.`;
      */
     async generateParameters(description) {
         // Check if we have a valid API key
+        console.log('🔍 Checking API key:', this.apiKey ? `${this.apiKey.substring(0, 10)}...` : 'NOT SET');
         const hasValidKey = this.apiKey && this.apiKey.startsWith('AIza') && this.apiKey.length > 30;
+        console.log('🔍 API key valid:', hasValidKey);
         
         if (hasValidKey) {
             // Try real API first
             try {
-                const response = await fetch(this.apiUrl, {
+                // Try both authentication methods to see which works
+                const apiUrl = `${this.baseApiUrl}?key=${this.apiKey}`;
+                console.log('🤖 Making API request to:', apiUrl);
+                
+                const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'x-goog-api-key': this.apiKey
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         contents: [{
@@ -99,8 +104,12 @@ Return only JSON with the parameter names above.`;
                     })
                 });
                 
+                console.log('🤖 API response status:', response.status);
+                console.log('🤖 API response ok:', response.ok);
+                
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('🤖 API response data:', data);
                     const generatedText = data.candidates[0].content.parts[0].text;
                     
                     // Extract JSON from response
@@ -117,9 +126,14 @@ Return only JSON with the parameter names above.`;
                         
                         return validated;
                     }
+                } else {
+                    const errorText = await response.text();
+                    console.error('🤖 API request failed:', response.status, errorText);
+                    throw new Error(`API request failed: ${response.status} - ${errorText}`);
                 }
             } catch (error) {
-                console.warn('API request failed, falling back to intelligent simulation:', error);
+                console.error('🤖 API request error:', error);
+                throw error;
             }
         }
         
