@@ -123,8 +123,12 @@ Return only JSON with the parameter names above.`;
             }
         }
         
-        // No API key or API failed - just fail properly
-        throw new Error('LLM API failed. Please check your API key or network connection.');
+        // No API key or API failed - just fail properly  
+        if (!this.apiKey) {
+            throw new Error('No API key set. Please enter your Gemini API key to use AI generation.');
+        } else {
+            throw new Error('API request failed. Please check your API key or network connection.');
+        }
     }
     
     

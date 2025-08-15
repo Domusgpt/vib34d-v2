@@ -525,10 +525,10 @@ export class LLMParameterUI {
         } catch (error) {
             console.error('Generation error:', error);
             
-            if (error.message.includes('API key not set')) {
+            if (error.message.includes('API key') || error.message.includes('LLM API failed')) {
                 // Show API key input
                 this.overlay.querySelector('.llm-api-key-section').style.display = 'block';
-                this.showStatus('Please enter your Gemini API key', 'error');
+                this.showStatus('Please enter your Gemini API key to use AI generation', 'error');
             } else {
                 this.showStatus(`Error: ${error.message}`, 'error');
             }
