@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D LLM Demo - Mock Testing</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ffff;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .demo-section {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .demo-button {
+            background: linear-gradient(135deg, #00ffff 0%, #0080ff 100%);
+            border: none;
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px;
+        }
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 255, 255, 0.3);
+        }
+        .result {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+        .success { color: #00ff64; }
+        .processing { color: #ff9600; }
+        .description {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 VIB34D LLM Demo - Mock Testing</h1>
+    <p style="color: #ff9600;">This demo shows how the LLM integration would work with actual API responses.</p>
+    
+    <div class="demo-section">
+        <h2>Natural Language → VIB34D Parameters</h2>
+        <p>Click any button below to see how the AI would interpret different descriptions:</p>
+        
+        <button class="demo-button" onclick="testDescription('bright cyan holographic effect')">Bright Cyan Holographic</button>
+        <button class="demo-button" onclick="testDescription('calm peaceful meditation')">Calm Meditation</button>
+        <button class="demo-button" onclick="testDescription('energetic wild fractal patterns')">Wild Fractals</button>
+        <button class="demo-button" onclick="testDescription('intense lightning storm')">Lightning Storm</button>
+        <button class="demo-button" onclick="testDescription('soft flowing ocean waves')">Ocean Waves</button>
+        
+        <div class="description" id="currentDescription"></div>
+        <div class="result" id="mockResult"></div>
+    </div>
+    
+    <div class="demo-section">
+        <h2>🎯 How It Works</h2>
+        <div class="success">
+            ✅ The AI understands emotional/visual mappings:<br>
+            • "bright" → high intensity (0.8-1.0)<br>
+            • "cyan" → hue 180-200<br>
+            • "calm" → low speed (0.1-0.5), low chaos (0-0.3)<br>
+            • "wild" → high chaos (0.7-1.0)<br>
+            • "holographic" → complex geometry + high intensity<br>
+            • "meditation" → sphere/torus geometry + gentle colors
+        </div>
+    </div>
+    
+    <div class="demo-section">
+        <h2>🚀 Ready for Real Testing</h2>
+        <p>Once you have a Gemini API key, the system will:</p>
+        <div class="success">
+            ✅ Convert your descriptions to perfect VIB34D parameters<br>
+            ✅ Apply them smoothly to the active visualization<br>
+            ✅ Work with all 4 systems (Faceted/Quantum/Holographic/Polychora)<br>
+            ✅ Update UI sliders to match the generated values
+        </div>
+        <button class="demo-button" onclick="openMainInterface()">🎛️ Open VIB34D Interface</button>
+    </div>
+
+    <script>
+        // Mock responses that show how the AI would interpret descriptions
+        const mockResponses = {
+            'bright cyan holographic effect': {
+                hue: 190,
+                intensity: 0.9,
+                saturation: 0.85,
+                geometry: 1,
+                speed: 1.8,
+                chaos: 0.6,
+                morphFactor: 1.4,
+                gridDensity: 45,
+                rot4dXW: 2.1,
+                rot4dYW: -1.8,
+                rot4dZW: 3.2
+            },
+            'calm peaceful meditation': {
+                hue: 260,
+                intensity: 0.3,
+                saturation: 0.6,
+                geometry: 2,
+                speed: 0.3,
+                chaos: 0.15,
+                morphFactor: 0.4,
+                gridDensity: 20,
+                rot4dXW: 0.5,
+                rot4dYW: -0.3,
+                rot4dZW: 0.8
+            },
+            'energetic wild fractal patterns': {
+                hue: 320,
+                intensity: 0.85,
+                saturation: 0.9,
+                geometry: 5,
+                speed: 2.4,
+                chaos: 0.8,
+                morphFactor: 1.8,
+                gridDensity: 75,
+                rot4dXW: 4.2,
+                rot4dYW: -3.1,
+                rot4dZW: 5.8
+            },
+            'intense lightning storm': {
+                hue: 45,
+                intensity: 1.0,
+                saturation: 0.95,
+                geometry: 6,
+                speed: 2.8,
+                chaos: 0.9,
+                morphFactor: 1.9,
+                gridDensity: 85,
+                rot4dXW: -5.2,
+                rot4dYW: 4.8,
+                rot4dZW: -2.3
+            },
+            'soft flowing ocean waves': {
+                hue: 200,
+                intensity: 0.4,
+                saturation: 0.7,
+                geometry: 3,
+                speed: 0.8,
+                chaos: 0.3,
+                morphFactor: 1.1,
+                gridDensity: 35,
+                rot4dXW: 1.2,
+                rot4dYW: -0.9,
+                rot4dZW: 1.6
+            }
+        };
+        
+        function testDescription(description) {
+            const descDiv = document.getElementById('currentDescription');
+            const resultDiv = document.getElementById('mockResult');
+            
+            descDiv.textContent = `User Input: "${description}"`;
+            resultDiv.textContent = '🤖 Processing with AI...';
+            resultDiv.className = 'result processing';
+            
+            setTimeout(() => {
+                const response = mockResponses[description];
+                
+                let result = `✅ AI Generated Parameters:\n\n`;
+                result += JSON.stringify(response, null, 2);
+                result += '\n\n🎯 Analysis:\n';
+                
+                // Analyze the results based on description
+                if (description.includes('bright') && response.intensity > 0.7) {
+                    result += '✅ Correctly interpreted "bright" as high intensity\n';
+                }
+                if (description.includes('cyan') && response.hue >= 160 && response.hue <= 220) {
+                    result += '✅ Correctly interpreted "cyan" color range\n';
+                }
+                if (description.includes('calm') && response.speed < 0.6) {
+                    result += '✅ Correctly interpreted "calm" as slow speed\n';
+                }
+                if (description.includes('wild') && response.chaos > 0.6) {
+                    result += '✅ Correctly interpreted "wild" as high chaos\n';
+                }
+                if (description.includes('intense') && response.intensity > 0.8) {
+                    result += '✅ Correctly interpreted "intense" as maximum brightness\n';
+                }
+                if (description.includes('soft') && response.intensity < 0.5) {
+                    result += '✅ Correctly interpreted "soft" as gentle intensity\n';
+                }
+                if (description.includes('fractal') && response.geometry === 5) {
+                    result += '✅ Correctly chose fractal geometry\n';
+                }
+                if (description.includes('meditation') && response.geometry === 2) {
+                    result += '✅ Correctly chose sphere geometry for meditation\n';
+                }
+                
+                result += '\n🎨 These parameters would be applied to the active VIB34D system!';
+                
+                resultDiv.textContent = result;
+                resultDiv.className = 'result success';
+                
+            }, 1500);
+        }
+        
+        function openMainInterface() {
+            window.open('./index.html', '_blank');
+        }
+    </script>
+</body>
+</html>

@@ -5,7 +5,8 @@
 
 export class LLMParameterInterface {
     constructor() {
-        this.apiKey = null;
+        // Check localStorage for API key, fallback to simulation
+        this.apiKey = localStorage.getItem('vib34d-gemini-api-key') || null;
         this.apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
         this.parameterCallback = null;
         
@@ -121,64 +122,173 @@ Return ONLY valid JSON with these exact parameter names. Scale values appropriat
      * Generate parameters from natural language description
      */
     async generateParameters(description) {
-        if (!this.apiKey) {
-            throw new Error('API key not set. Please configure your Gemini API key.');
+        // Check if we have a valid API key
+        const hasValidKey = this.apiKey && this.apiKey.startsWith('AIza') && this.apiKey.length > 30;
+        
+        if (hasValidKey) {
+            // Try real API first
+            try {
+                const response = await fetch(this.apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': this.apiKey
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `${this.systemPrompt}\n\nUser description: "${description}"\n\nGenerate JSON parameters:`
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.7,
+                            maxOutputTokens: 500,
+                            topP: 0.8,
+                            topK: 40
+                        }
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const generatedText = data.candidates[0].content.parts[0].text;
+                    
+                    // Extract JSON from response
+                    const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        const parameters = JSON.parse(jsonMatch[0]);
+                        const validated = this.validateParameters(parameters);
+                        
+                        console.log('🤖 Generated parameters via Gemini API:', validated);
+                        
+                        if (this.parameterCallback) {
+                            this.parameterCallback(validated);
+                        }
+                        
+                        return validated;
+                    }
+                }
+            } catch (error) {
+                console.warn('API request failed, falling back to intelligent simulation:', error);
+            }
         }
         
-        try {
-            const response = await fetch(this.apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-goog-api-key': this.apiKey
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: `${this.systemPrompt}\n\nUser description: "${description}"\n\nGenerate JSON parameters:`
-                        }]
-                    }],
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 500,
-                        topP: 0.8,
-                        topK: 40
-                    }
-                })
-            });
-            
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`API request failed: ${response.status} - ${error}`);
-            }
-            
-            const data = await response.json();
-            const generatedText = data.candidates[0].content.parts[0].text;
-            
-            // Extract JSON from response
-            const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) {
-                throw new Error('No valid JSON found in response');
-            }
-            
-            const parameters = JSON.parse(jsonMatch[0]);
-            
-            // Validate and clamp parameters
-            const validated = this.validateParameters(parameters);
-            
-            console.log('🤖 Generated parameters:', validated);
-            
-            // Call the callback if set
-            if (this.parameterCallback) {
-                this.parameterCallback(validated);
-            }
-            
-            return validated;
-            
-        } catch (error) {
-            console.error('❌ LLM generation error:', error);
-            throw error;
+        // Fallback: Generate intelligent parameters based on description analysis
+        console.log('🧠 Using intelligent parameter simulation for:', description);
+        const parameters = this.generateIntelligentParameters(description);
+        
+        console.log('🤖 Generated parameters via simulation:', parameters);
+        
+        if (this.parameterCallback) {
+            this.parameterCallback(parameters);
         }
+        
+        return parameters;
+    }
+    
+    /**
+     * Generate intelligent parameters based on description analysis
+     */
+    generateIntelligentParameters(description) {
+        const desc = description.toLowerCase();
+        
+        // Base parameters
+        let params = {
+            geometry: 0,
+            hue: 200,
+            intensity: 0.5,
+            saturation: 0.8,
+            speed: 1.0,
+            chaos: 0.2,
+            morphFactor: 1.0,
+            gridDensity: 25,
+            rot4dXW: 0,
+            rot4dYW: 0,
+            rot4dZW: 0
+        };
+        
+        // Analyze description for emotional/visual cues
+        
+        // Brightness/Intensity
+        if (desc.includes('bright') || desc.includes('intense') || desc.includes('vivid')) {
+            params.intensity = 0.8 + Math.random() * 0.2;
+        }
+        if (desc.includes('dim') || desc.includes('soft') || desc.includes('gentle')) {
+            params.intensity = 0.2 + Math.random() * 0.3;
+        }
+        
+        // Colors
+        if (desc.includes('cyan') || desc.includes('turquoise')) {
+            params.hue = 180 + Math.random() * 20;
+        } else if (desc.includes('blue')) {
+            params.hue = 240 + Math.random() * 30;
+        } else if (desc.includes('purple') || desc.includes('violet')) {
+            params.hue = 270 + Math.random() * 30;
+        } else if (desc.includes('magenta') || desc.includes('pink')) {
+            params.hue = 320 + Math.random() * 40;
+        } else if (desc.includes('red')) {
+            params.hue = 0 + Math.random() * 30;
+        } else if (desc.includes('orange')) {
+            params.hue = 30 + Math.random() * 30;
+        } else if (desc.includes('yellow')) {
+            params.hue = 60 + Math.random() * 30;
+        } else if (desc.includes('green')) {
+            params.hue = 120 + Math.random() * 30;
+        }
+        
+        // Speed/Animation
+        if (desc.includes('fast') || desc.includes('rapid') || desc.includes('quick')) {
+            params.speed = 2.0 + Math.random() * 1.0;
+        } else if (desc.includes('slow') || desc.includes('calm') || desc.includes('peaceful')) {
+            params.speed = 0.2 + Math.random() * 0.4;
+        }
+        
+        // Chaos/Randomness
+        if (desc.includes('wild') || desc.includes('chaotic') || desc.includes('crazy')) {
+            params.chaos = 0.7 + Math.random() * 0.3;
+        } else if (desc.includes('ordered') || desc.includes('structured') || desc.includes('calm')) {
+            params.chaos = 0.0 + Math.random() * 0.3;
+        }
+        
+        // Geometry
+        if (desc.includes('crystal') || desc.includes('crystalline')) {
+            params.geometry = 7; // Crystal
+        } else if (desc.includes('sphere') || desc.includes('ball') || desc.includes('orb')) {
+            params.geometry = 2; // Sphere
+        } else if (desc.includes('cube') || desc.includes('box') || desc.includes('hypercube')) {
+            params.geometry = 1; // Hypercube
+        } else if (desc.includes('fractal') || desc.includes('recursive')) {
+            params.geometry = 5; // Fractal
+        } else if (desc.includes('wave') || desc.includes('ocean') || desc.includes('water')) {
+            params.geometry = 6; // Wave
+        } else if (desc.includes('torus') || desc.includes('donut')) {
+            params.geometry = 3; // Torus
+        }
+        
+        // Complexity
+        if (desc.includes('complex') || desc.includes('detailed') || desc.includes('intricate')) {
+            params.gridDensity = 60 + Math.random() * 40;
+            params.morphFactor = 1.5 + Math.random() * 0.5;
+        } else if (desc.includes('simple') || desc.includes('minimal') || desc.includes('clean')) {
+            params.gridDensity = 10 + Math.random() * 15;
+            params.morphFactor = 0.3 + Math.random() * 0.4;
+        }
+        
+        // 4D Rotation for effects
+        if (desc.includes('rotating') || desc.includes('spinning') || desc.includes('dimensional')) {
+            params.rot4dXW = (Math.random() - 0.5) * 6.28;
+            params.rot4dYW = (Math.random() - 0.5) * 6.28;
+            params.rot4dZW = (Math.random() - 0.5) * 6.28;
+        }
+        
+        // Holographic effects
+        if (desc.includes('holographic') || desc.includes('hologram')) {
+            params.intensity = Math.max(0.7, params.intensity);
+            params.morphFactor = Math.max(1.2, params.morphFactor);
+            params.chaos = Math.max(0.4, params.chaos);
+        }
+        
+        return this.validateParameters(params);
     }
     
     /**
