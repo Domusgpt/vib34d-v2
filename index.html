@@ -471,10 +471,10 @@
             }
         };
         
-        // Geometry types
+        // Geometry types - EXACT MATCH from original Parameters.js
         const geometryTypes = [
-            'Tetrahedron', 'Hypercube', 'Octahedron', 'Icosahedron',
-            'Dodecahedron', 'Crystal', 'Wave', 'Fractal'
+            'TETRAHEDRON LATTICE', 'HYPERCUBE LATTICE', 'SPHERE LATTICE', 'TORUS LATTICE',
+            'KLEIN BOTTLE LATTICE', 'FRACTAL LATTICE', 'WAVE LATTICE', 'CRYSTAL LATTICE'
         ];
         
         // Initialize visualizers for 5 canvases
@@ -941,9 +941,37 @@
             console.log(`🎴 Opening viewer for ${type} trading card: ${viewerUrl}`);
         }
         
-        function showLLMInterface() {
-            console.log('Opening LLM parameter interface');
-            alert('🤖 AI parameter interface coming soon!');
+        async function showLLMInterface() {
+            console.log('🤖 Opening LLM parameter interface');
+            try {
+                // Import LLM modules
+                const { LLMParameterInterface } = await import('./src/llm/LLMParameterInterface.js');
+                const { LLMParameterUI } = await import('./src/llm/LLMParameterUI.js');
+                
+                // Initialize LLM system if not already done
+                if (!window.llmInterface) {
+                    window.llmInterface = new LLMParameterInterface();
+                    window.llmUI = new LLMParameterUI(window.llmInterface);
+                    
+                    // Set parameter callback to update VIB34D
+                    window.llmInterface.setParameterCallback((parameters) => {
+                        console.log('🤖 Applying AI-generated parameters:', parameters);
+                        // Apply each parameter with a small delay for smooth visual effect
+                        Object.entries(parameters).forEach(([param, value], index) => {
+                            setTimeout(() => {
+                                updateParameter(param, value);
+                            }, index * 50);
+                        });
+                    });
+                }
+                
+                // Show the LLM interface
+                window.llmUI.show();
+                
+            } catch (error) {
+                console.error('❌ Error loading LLM interface:', error);
+                alert('Error loading AI parameter interface. Please check console for details.');
+            }
         }
         
         // Render loop - EXACT COPY from original working system
