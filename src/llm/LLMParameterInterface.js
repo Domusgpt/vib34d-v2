@@ -192,29 +192,31 @@ Return ONLY valid JSON with these exact parameter names. Scale values appropriat
     generateIntelligentParameters(description) {
         const desc = description.toLowerCase();
         
-        // Base parameters
+        // Base parameters - start with more dramatic defaults for better contrast
         let params = {
-            geometry: 0,
-            hue: 200,
-            intensity: 0.5,
-            saturation: 0.8,
-            speed: 1.0,
-            chaos: 0.2,
-            morphFactor: 1.0,
-            gridDensity: 25,
-            rot4dXW: 0,
-            rot4dYW: 0,
-            rot4dZW: 0
+            geometry: Math.floor(Math.random() * 8), // Random geometry for variety
+            hue: 180 + Math.random() * 180, // Start in blue-magenta range
+            intensity: 0.3 + Math.random() * 0.4, // Medium intensity
+            saturation: 0.6 + Math.random() * 0.4, // Good saturation
+            speed: 0.8 + Math.random() * 0.4, // Moderate speed
+            chaos: 0.1 + Math.random() * 0.3, // Low-medium chaos
+            morphFactor: 0.8 + Math.random() * 0.4, // Medium morph
+            gridDensity: 20 + Math.random() * 30, // Variable density
+            rot4dXW: (Math.random() - 0.5) * 2, // Small rotation
+            rot4dYW: (Math.random() - 0.5) * 2,
+            rot4dZW: (Math.random() - 0.5) * 2
         };
         
         // Analyze description for emotional/visual cues
         
-        // Brightness/Intensity
+        // Brightness/Intensity - make more dramatic
         if (desc.includes('bright') || desc.includes('intense') || desc.includes('vivid')) {
-            params.intensity = 0.8 + Math.random() * 0.2;
+            params.intensity = 0.85 + Math.random() * 0.15; // Very bright
+            params.saturation = 0.9 + Math.random() * 0.1; // Very saturated
         }
         if (desc.includes('dim') || desc.includes('soft') || desc.includes('gentle')) {
-            params.intensity = 0.2 + Math.random() * 0.3;
+            params.intensity = 0.1 + Math.random() * 0.25; // Very dim
+            params.saturation = 0.4 + Math.random() * 0.3; // Muted
         }
         
         // Colors
@@ -236,18 +238,18 @@ Return ONLY valid JSON with these exact parameter names. Scale values appropriat
             params.hue = 120 + Math.random() * 30;
         }
         
-        // Speed/Animation
-        if (desc.includes('fast') || desc.includes('rapid') || desc.includes('quick')) {
-            params.speed = 2.0 + Math.random() * 1.0;
-        } else if (desc.includes('slow') || desc.includes('calm') || desc.includes('peaceful')) {
-            params.speed = 0.2 + Math.random() * 0.4;
+        // Speed/Animation - make more extreme
+        if (desc.includes('fast') || desc.includes('rapid') || desc.includes('quick') || desc.includes('energetic')) {
+            params.speed = 2.2 + Math.random() * 0.8; // Very fast: 2.2-3.0
+        } else if (desc.includes('slow') || desc.includes('calm') || desc.includes('peaceful') || desc.includes('meditation')) {
+            params.speed = 0.1 + Math.random() * 0.3; // Very slow: 0.1-0.4
         }
         
-        // Chaos/Randomness
-        if (desc.includes('wild') || desc.includes('chaotic') || desc.includes('crazy')) {
-            params.chaos = 0.7 + Math.random() * 0.3;
-        } else if (desc.includes('ordered') || desc.includes('structured') || desc.includes('calm')) {
-            params.chaos = 0.0 + Math.random() * 0.3;
+        // Chaos/Randomness - make more extreme
+        if (desc.includes('wild') || desc.includes('chaotic') || desc.includes('crazy') || desc.includes('storm') || desc.includes('lightning')) {
+            params.chaos = 0.75 + Math.random() * 0.25; // Very chaotic: 0.75-1.0
+        } else if (desc.includes('ordered') || desc.includes('structured') || desc.includes('calm') || desc.includes('peaceful')) {
+            params.chaos = 0.0 + Math.random() * 0.2; // Very ordered: 0.0-0.2
         }
         
         // Geometry
@@ -265,27 +267,43 @@ Return ONLY valid JSON with these exact parameter names. Scale values appropriat
             params.geometry = 3; // Torus
         }
         
-        // Complexity
-        if (desc.includes('complex') || desc.includes('detailed') || desc.includes('intricate')) {
-            params.gridDensity = 60 + Math.random() * 40;
-            params.morphFactor = 1.5 + Math.random() * 0.5;
+        // Complexity - make more extreme
+        if (desc.includes('complex') || desc.includes('detailed') || desc.includes('intricate') || desc.includes('fractal')) {
+            params.gridDensity = 70 + Math.random() * 30; // Very dense: 70-100
+            params.morphFactor = 1.6 + Math.random() * 0.4; // High morph: 1.6-2.0
         } else if (desc.includes('simple') || desc.includes('minimal') || desc.includes('clean')) {
-            params.gridDensity = 10 + Math.random() * 15;
-            params.morphFactor = 0.3 + Math.random() * 0.4;
+            params.gridDensity = 5 + Math.random() * 15; // Very sparse: 5-20
+            params.morphFactor = 0.1 + Math.random() * 0.4; // Low morph: 0.1-0.5
         }
         
-        // 4D Rotation for effects
-        if (desc.includes('rotating') || desc.includes('spinning') || desc.includes('dimensional')) {
-            params.rot4dXW = (Math.random() - 0.5) * 6.28;
-            params.rot4dYW = (Math.random() - 0.5) * 6.28;
-            params.rot4dZW = (Math.random() - 0.5) * 6.28;
+        // 4D Rotation for effects - make more dramatic
+        if (desc.includes('rotating') || desc.includes('spinning') || desc.includes('dimensional') || desc.includes('hypercube')) {
+            params.rot4dXW = (Math.random() - 0.5) * 8; // Wider rotation range
+            params.rot4dYW = (Math.random() - 0.5) * 8;
+            params.rot4dZW = (Math.random() - 0.5) * 8;
         }
         
-        // Holographic effects
+        // Holographic effects - make more intense
         if (desc.includes('holographic') || desc.includes('hologram')) {
-            params.intensity = Math.max(0.7, params.intensity);
-            params.morphFactor = Math.max(1.2, params.morphFactor);
-            params.chaos = Math.max(0.4, params.chaos);
+            params.intensity = 0.8 + Math.random() * 0.2; // Very bright: 0.8-1.0
+            params.morphFactor = 1.4 + Math.random() * 0.6; // High morph: 1.4-2.0
+            params.chaos = 0.5 + Math.random() * 0.3; // Medium-high chaos: 0.5-0.8
+            params.saturation = 0.85 + Math.random() * 0.15; // Very saturated: 0.85-1.0
+        }
+        
+        // Add more specific effect combinations for dramatic differences
+        if (desc.includes('storm') || desc.includes('lightning')) {
+            params.speed = 2.5 + Math.random() * 0.5; // Very fast
+            params.chaos = 0.8 + Math.random() * 0.2; // Very chaotic  
+            params.intensity = 0.9 + Math.random() * 0.1; // Very bright
+            params.morphFactor = 1.7 + Math.random() * 0.3; // High transformation
+        }
+        
+        if (desc.includes('ocean') || desc.includes('wave') || desc.includes('flowing')) {
+            params.geometry = 6; // Wave geometry
+            params.speed = 0.6 + Math.random() * 0.8; // Moderate-fast flowing
+            params.morphFactor = 1.2 + Math.random() * 0.5; // Fluid morphing
+            params.chaos = 0.3 + Math.random() * 0.3; // Organic variation
         }
         
         return this.validateParameters(params);
