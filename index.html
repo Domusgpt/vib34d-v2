@@ -1824,19 +1824,13 @@
                         // Apply each parameter with a small delay for smooth visual effect
                         Object.entries(parameters).forEach(([param, value], index) => {
                             setTimeout(() => {
-                                // Call the appropriate update function based on current system
-                                if (window.currentSystem === 'faceted' && window.engine) {
-                                    window.engine.updateParameter(param, value);
-                                } else if (window.currentSystem === 'quantum' && window.quantumEngine) {
-                                    window.quantumEngine.updateParameter(param, value);
-                                } else if (window.currentSystem === 'holographic' && window.holographicSystem) {
-                                    window.holographicSystem.updateParameter(param, value);
-                                } else if (window.currentSystem === 'polychora' && window.polychoraSystem) {
-                                    window.polychoraSystem.updateParameter(param, value);
+                                // Use the existing updateParameter function that handles all systems
+                                if (window.updateParameter) {
+                                    console.log(`🤖 Applying ${param} = ${value} to ${window.currentSystem} system`);
+                                    window.updateParameter(param, value);
+                                } else {
+                                    console.error('❌ window.updateParameter not available');
                                 }
-                                
-                                // Also update UI sliders
-                                updateUIParameter(param, value);
                             }, index * 50);
                         });
                     });
