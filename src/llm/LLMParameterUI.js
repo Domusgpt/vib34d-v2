@@ -458,15 +458,30 @@ export class LLMParameterUI {
             const apiKeyInput = this.overlay.querySelector('.llm-api-key-input');
             const apiKey = apiKeyInput.value.trim();
             
-            if (apiKey) {
+            if (!apiKey) {
+                this.showStatus('Please enter an API key', 'error');
+                return;
+            }
+            
+            if (!apiKey.startsWith('AIza') || apiKey.length < 30) {
+                this.showStatus('Invalid API key format. Should start with "AIza" and be longer than 30 characters.', 'error');
+                return;
+            }
+            
+            try {
                 this.llmInterface.setApiKey(apiKey);
                 this.overlay.querySelector('.llm-api-key-section').style.display = 'none';
-                this.showStatus('API key saved successfully!', 'success');
+                this.showStatus('API key saved successfully! You can now generate parameters.', 'success');
                 
-                // Retry generation if there was a pending request
-                if (this.input.value.trim()) {
-                    setTimeout(() => this.generateFromInput(), 1000);
-                }
+                // Clear the input to prevent accidental retries
+                apiKeyInput.value = '';
+                
+                // DON'T auto-retry - let user manually trigger generation
+                console.log('✅ API key set. Ready for manual generation.');
+                
+            } catch (error) {
+                this.showStatus('Failed to save API key', 'error');
+                console.error('API key save error:', error);
             }
         });
     }
@@ -525,12 +540,16 @@ export class LLMParameterUI {
         } catch (error) {
             console.error('Generation error:', error);
             
-            if (error.message.includes('API key') || error.message.includes('LLM API failed')) {
+            if (error.message.includes('No API key set')) {
                 // Show API key input
                 this.overlay.querySelector('.llm-api-key-section').style.display = 'block';
                 this.showStatus('Please enter your Gemini API key to use AI generation', 'error');
+            } else if (error.message.includes('API request failed')) {
+                this.showStatus('API request failed. Please check your API key is valid and try again.', 'error');
+                // Also show API key input in case they need to fix it
+                this.overlay.querySelector('.llm-api-key-section').style.display = 'block';
             } else {
-                this.showStatus(`Error: ${error.message}`, 'error');
+                this.showStatus(`Generation failed: ${error.message}`, 'error');
             }
         } finally {
             this.isProcessing = false;
