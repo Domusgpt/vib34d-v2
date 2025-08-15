@@ -7,7 +7,7 @@ export class LLMParameterInterface {
     constructor() {
         // Try Firebase Function first, fallback to direct API
         this.useFirebase = true;
-        this.firebaseUrl = 'https://us-central1-vib34d-llm.cloudfunctions.net/generateVIB34DParameters';
+        this.firebaseUrl = 'https://us-central1-vib34d-llm-engine.cloudfunctions.net/generateVIB34DParameters';
         
         // Fallback to direct API if Firebase not available
         this.apiKey = localStorage.getItem('vib34d-gemini-api-key') || null;

@@ -1,11 +1,11 @@
-const functions = require('firebase-functions');
+const { onRequest } = require('firebase-functions/v2/https');
 const cors = require('cors')({ origin: true });
 
 /**
  * VIB34D LLM Parameter Generation Function
  * Handles Gemini API calls server-side so users don't need API keys
  */
-exports.generateVIB34DParameters = functions.https.onRequest((req, res) => {
+exports.generateVIB34DParameters = onRequest((req, res) => {
   return cors(req, res, async () => {
     // Only allow POST requests
     if (req.method !== 'POST') {
