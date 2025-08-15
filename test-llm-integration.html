@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D LLM Integration Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ffff;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .test-button {
+            background: linear-gradient(135deg, #00ffff 0%, #0080ff 100%);
+            border: none;
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px;
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 255, 255, 0.3);
+        }
+        .result {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+        .success { color: #00ff64; }
+        .error { color: #ff0064; }
+        .warning { color: #ff9600; }
+    </style>
+</head>
+<body>
+    <h1>🤖 VIB34D LLM Integration Test Suite</h1>
+    
+    <div class="test-section">
+        <h2>Step 1: Get Gemini API Key</h2>
+        <p>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #00ffff;">Google AI Studio</a></p>
+        <p>1. Sign in with Google account</p>
+        <p>2. Click "Create API Key"</p>
+        <p>3. Copy the generated key</p>
+        <input type="password" id="apiKeyInput" placeholder="Paste your Gemini API key here" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid #00ffff; color: #fff; border-radius: 5px;">
+        <button class="test-button" onclick="setApiKey()">Set API Key</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Step 2: Test Parameter Generation</h2>
+        <p>Enter natural language descriptions to generate VIB34D parameters:</p>
+        <input type="text" id="descriptionInput" placeholder="e.g., bright cyan holographic effect" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid #00ffff; color: #fff; border-radius: 5px;">
+        <br><br>
+        <button class="test-button" onclick="testGeneration('bright cyan holographic effect')">Test: Bright Cyan Holographic</button>
+        <button class="test-button" onclick="testGeneration('calm peaceful meditation')">Test: Calm Meditation</button>
+        <button class="test-button" onclick="testGeneration('energetic wild fractal patterns')">Test: Wild Fractals</button>
+        <button class="test-button" onclick="testGeneration('intense lightning storm')">Test: Lightning Storm</button>
+        <button class="test-button" onclick="testCustom()">Test Custom Description</button>
+        <div id="testResults" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Step 3: Expected Results</h2>
+        <div class="success">
+            ✅ For "bright cyan holographic effect" expect:
+            - hue: 180-200 (cyan range)
+            - intensity: 0.8-1.0 (bright)
+            - saturation: 0.8-1.0 (vivid)
+            - geometry: 1-2 (hypercube/sphere for holographic)
+            - chaos: 0.4-0.7 (moderate for holographic effect)
+        </div>
+        <div class="success">
+            ✅ For "calm peaceful meditation" expect:
+            - speed: 0.1-0.5 (slow)
+            - chaos: 0.0-0.3 (ordered)
+            - intensity: 0.2-0.5 (gentle)
+            - geometry: 2-3 (sphere/torus for peaceful)
+            - hue: 240-280 (purple/blue for calm)
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Step 4: Integration Test</h2>
+        <button class="test-button" onclick="openMainInterface()">🚀 Open VIB34D Main Interface</button>
+        <p>Click the 🤖 button in the main interface to test the full integration!</p>
+    </div>
+
+    <script type="module">
+        let llmInterface = null;
+        
+        // Import LLM modules
+        async function initializeLLM() {
+            try {
+                const { LLMParameterInterface } = await import('./src/llm/LLMParameterInterface.js');
+                llmInterface = new LLMParameterInterface();
+                console.log('✅ LLM Interface loaded');
+                return true;
+            } catch (error) {
+                console.error('❌ Failed to load LLM Interface:', error);
+                return false;
+            }
+        }
+        
+        window.setApiKey = async function() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            if (!apiKey) {
+                showResult('Please enter an API key', 'error');
+                return;
+            }
+            
+            if (!llmInterface) {
+                const loaded = await initializeLLM();
+                if (!loaded) {
+                    showResult('Failed to load LLM interface', 'error');
+                    return;
+                }
+            }
+            
+            llmInterface.setApiKey(apiKey);
+            showResult('✅ API key set successfully!', 'success');
+        }
+        
+        window.testGeneration = async function(description) {
+            if (!llmInterface) {
+                showResult('Please set API key first', 'warning');
+                return;
+            }
+            
+            showResult('🤖 Generating parameters...', 'warning');
+            
+            try {
+                const parameters = await llmInterface.generateParameters(description);
+                
+                let result = `✅ Generated parameters for "${description}":\n\n`;
+                result += JSON.stringify(parameters, null, 2);
+                result += '\n\n🎯 Analysis:\n';
+                
+                // Analyze the results
+                if (description.includes('bright') && parameters.intensity > 0.7) {
+                    result += '✅ Correctly interpreted "bright" as high intensity\n';
+                }
+                if (description.includes('cyan') && parameters.hue >= 160 && parameters.hue <= 220) {
+                    result += '✅ Correctly interpreted "cyan" color range\n';
+                }
+                if (description.includes('calm') && parameters.speed < 0.6) {
+                    result += '✅ Correctly interpreted "calm" as slow speed\n';
+                }
+                if (description.includes('wild') && parameters.chaos > 0.6) {
+                    result += '✅ Correctly interpreted "wild" as high chaos\n';
+                }
+                
+                showResult(result, 'success');
+                
+            } catch (error) {
+                showResult(`❌ Generation failed: ${error.message}`, 'error');
+            }
+        }
+        
+        window.testCustom = async function() {
+            const description = document.getElementById('descriptionInput').value.trim();
+            if (!description) {
+                showResult('Please enter a description', 'warning');
+                return;
+            }
+            await testGeneration(description);
+        }
+        
+        window.openMainInterface = function() {
+            window.open('./index.html', '_blank');
+        }
+        
+        function showResult(message, type) {
+            const results = document.getElementById('testResults');
+            results.textContent = message;
+            results.className = `result ${type}`;
+        }
+        
+        // Initialize on load
+        initializeLLM();
+    </script>
+</body>
+</html>
