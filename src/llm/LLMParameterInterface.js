@@ -11,78 +11,28 @@ export class LLMParameterInterface {
         this.parameterCallback = null;
         
         // Comprehensive system prompt with emotional/visual understanding
-        this.systemPrompt = `You are a parameter generator for the VIB34D holographic visualization engine.
-        
-Your task is to convert natural language descriptions into JSON parameters that control visual effects.
+        this.systemPrompt = `You are a synesthetic AI that translates human experience into 4-dimensional holographic mathematics.
 
-PARAMETER UNDERSTANDING AND EMOTIONAL MAPPINGS:
+You control a VIB34D system with these parameters:
+- geometry (0-7): Tetrahedron, Hypercube, Sphere, Torus, Klein Bottle, Fractal, Wave, Crystal
+- hue (0-360), intensity (0-1), saturation (0-1)
+- speed (0.1-3), chaos (0-1), morphFactor (0-2), gridDensity (5-100)
+- rot4dXW, rot4dYW, rot4dZW (-6.28 to 6.28)
 
-1. geometry (0-7): Visual structure and feeling
-   - 0 (Tetrahedron): Sharp, crystalline, focused energy
-   - 1 (Hypercube): Complex, multidimensional, mind-expanding
-   - 2 (Sphere): Soft, harmonious, peaceful
-   - 3 (Torus): Flowing, cyclical, meditative
-   - 4 (Klein Bottle): Paradoxical, surreal, mysterious
-   - 5 (Fractal): Intricate, infinite, mathematical beauty
-   - 6 (Wave): Fluid, dynamic, oceanic
-   - 7 (Crystal): Structured, precise, gem-like
+When given a description, use your understanding of:
+- Visual aesthetics and emotional resonance
+- Color theory and psychological associations
+- Movement, rhythm, and temporal dynamics
+- Mathematical beauty and complexity
+- Human perception and synesthesia
 
-2. hue (0-360): Color emotion
-   - 0-60: Red (passionate, energetic, warm)
-   - 60-120: Yellow/Green (natural, growth, balance)
-   - 120-240: Blue/Cyan (calm, technological, cool)
-   - 240-300: Purple/Magenta (mystical, creative, ethereal)
-   - 300-360: Pink/Red (romantic, soft, dreamlike)
+Create a holographic experience that captures the essence of what they're describing.
 
-3. intensity (0-1): Visual brightness and energy level
-   - 0-0.3: Subtle, ambient, relaxing
-   - 0.3-0.7: Balanced, moderate, focused
-   - 0.7-1.0: Intense, vibrant, energetic
+Think beyond literal interpretation. If someone says "the sound of silence," you might create subtle, barely-there patterns with minimal chaos and low intensity. If they say "cosmic loneliness," you might use vast empty spaces with occasional fractal details.
 
-4. saturation (0-1): Color richness
-   - 0-0.3: Muted, pastel, gentle
-   - 0.3-0.7: Natural, balanced
-   - 0.7-1.0: Vivid, rich, bold
+Your goal is to create something that makes them say "YES, that's exactly what I meant, even though I couldn't have described it mathematically."
 
-5. speed (0.1-3): Animation tempo and mood
-   - 0.1-0.5: Slow, meditative, contemplative
-   - 0.5-1.5: Normal, rhythmic, balanced
-   - 1.5-3.0: Fast, energetic, dynamic
-
-6. chaos (0-1): Randomness and unpredictability
-   - 0-0.3: Ordered, predictable, calm
-   - 0.3-0.7: Organic, natural variation
-   - 0.7-1.0: Wild, unpredictable, exciting
-
-7. morphFactor (0-2): Shape transformation intensity
-   - 0-0.5: Stable, minimal morphing
-   - 0.5-1.5: Fluid transformations
-   - 1.5-2.0: Dramatic shape-shifting
-
-8. gridDensity (5-100): Detail and complexity
-   - 5-20: Minimal, clean, spacious
-   - 20-50: Balanced detail
-   - 50-100: Dense, intricate, complex
-
-9. rot4dXW, rot4dYW, rot4dZW (-6.28 to 6.28): 4D rotation angles
-   - Use for "spinning", "rotating", "dimensional" effects
-   - Small values (±1) for subtle rotation
-   - Large values (±6) for dramatic dimensional shifts
-
-INTERPRETATION GUIDELINES:
-- "bright" → high intensity (0.8-1.0)
-- "dark/dim" → low intensity (0.1-0.3)
-- "colorful/rainbow" → high saturation (0.8-1.0), varying hue
-- "monochrome/subtle" → low saturation (0.1-0.3)
-- "calm/peaceful" → low speed (0.1-0.5), low chaos (0-0.3)
-- "energetic/wild" → high speed (1.5-3), high chaos (0.7-1)
-- "holographic" → high intensity, medium-high saturation, cyan/magenta hues
-- "crystalline" → geometry 7, low chaos, high intensity
-- "organic/natural" → geometry 2-3, medium chaos (0.4-0.6)
-- "technological/cyber" → geometry 1, cyan hues (180-200)
-- "mystical/magical" → geometry 4-5, purple hues (240-280)
-
-Return ONLY valid JSON with these exact parameter names. Scale values appropriately to their ranges.`;
+Return only JSON with the parameter names above.`;
     }
     
     /**
@@ -173,141 +123,10 @@ Return ONLY valid JSON with these exact parameter names. Scale values appropriat
             }
         }
         
-        // Fallback: Generate intelligent parameters based on description analysis
-        console.log('🧠 Using intelligent parameter simulation for:', description);
-        const parameters = this.generateIntelligentParameters(description);
-        
-        console.log('🤖 Generated parameters via simulation:', parameters);
-        
-        if (this.parameterCallback) {
-            this.parameterCallback(parameters);
-        }
-        
-        return parameters;
+        // No API key or API failed - just fail properly
+        throw new Error('LLM API failed. Please check your API key or network connection.');
     }
     
-    /**
-     * Generate intelligent parameters based on description analysis
-     */
-    generateIntelligentParameters(description) {
-        const desc = description.toLowerCase();
-        
-        // Base parameters - start with more dramatic defaults for better contrast
-        let params = {
-            geometry: Math.floor(Math.random() * 8), // Random geometry for variety
-            hue: 180 + Math.random() * 180, // Start in blue-magenta range
-            intensity: 0.3 + Math.random() * 0.4, // Medium intensity
-            saturation: 0.6 + Math.random() * 0.4, // Good saturation
-            speed: 0.8 + Math.random() * 0.4, // Moderate speed
-            chaos: 0.1 + Math.random() * 0.3, // Low-medium chaos
-            morphFactor: 0.8 + Math.random() * 0.4, // Medium morph
-            gridDensity: 20 + Math.random() * 30, // Variable density
-            rot4dXW: (Math.random() - 0.5) * 2, // Small rotation
-            rot4dYW: (Math.random() - 0.5) * 2,
-            rot4dZW: (Math.random() - 0.5) * 2
-        };
-        
-        // Analyze description for emotional/visual cues
-        
-        // Brightness/Intensity - make more dramatic
-        if (desc.includes('bright') || desc.includes('intense') || desc.includes('vivid')) {
-            params.intensity = 0.85 + Math.random() * 0.15; // Very bright
-            params.saturation = 0.9 + Math.random() * 0.1; // Very saturated
-        }
-        if (desc.includes('dim') || desc.includes('soft') || desc.includes('gentle')) {
-            params.intensity = 0.1 + Math.random() * 0.25; // Very dim
-            params.saturation = 0.4 + Math.random() * 0.3; // Muted
-        }
-        
-        // Colors
-        if (desc.includes('cyan') || desc.includes('turquoise')) {
-            params.hue = 180 + Math.random() * 20;
-        } else if (desc.includes('blue')) {
-            params.hue = 240 + Math.random() * 30;
-        } else if (desc.includes('purple') || desc.includes('violet')) {
-            params.hue = 270 + Math.random() * 30;
-        } else if (desc.includes('magenta') || desc.includes('pink')) {
-            params.hue = 320 + Math.random() * 40;
-        } else if (desc.includes('red')) {
-            params.hue = 0 + Math.random() * 30;
-        } else if (desc.includes('orange')) {
-            params.hue = 30 + Math.random() * 30;
-        } else if (desc.includes('yellow')) {
-            params.hue = 60 + Math.random() * 30;
-        } else if (desc.includes('green')) {
-            params.hue = 120 + Math.random() * 30;
-        }
-        
-        // Speed/Animation - make more extreme
-        if (desc.includes('fast') || desc.includes('rapid') || desc.includes('quick') || desc.includes('energetic')) {
-            params.speed = 2.2 + Math.random() * 0.8; // Very fast: 2.2-3.0
-        } else if (desc.includes('slow') || desc.includes('calm') || desc.includes('peaceful') || desc.includes('meditation')) {
-            params.speed = 0.1 + Math.random() * 0.3; // Very slow: 0.1-0.4
-        }
-        
-        // Chaos/Randomness - make more extreme
-        if (desc.includes('wild') || desc.includes('chaotic') || desc.includes('crazy') || desc.includes('storm') || desc.includes('lightning')) {
-            params.chaos = 0.75 + Math.random() * 0.25; // Very chaotic: 0.75-1.0
-        } else if (desc.includes('ordered') || desc.includes('structured') || desc.includes('calm') || desc.includes('peaceful')) {
-            params.chaos = 0.0 + Math.random() * 0.2; // Very ordered: 0.0-0.2
-        }
-        
-        // Geometry
-        if (desc.includes('crystal') || desc.includes('crystalline')) {
-            params.geometry = 7; // Crystal
-        } else if (desc.includes('sphere') || desc.includes('ball') || desc.includes('orb')) {
-            params.geometry = 2; // Sphere
-        } else if (desc.includes('cube') || desc.includes('box') || desc.includes('hypercube')) {
-            params.geometry = 1; // Hypercube
-        } else if (desc.includes('fractal') || desc.includes('recursive')) {
-            params.geometry = 5; // Fractal
-        } else if (desc.includes('wave') || desc.includes('ocean') || desc.includes('water')) {
-            params.geometry = 6; // Wave
-        } else if (desc.includes('torus') || desc.includes('donut')) {
-            params.geometry = 3; // Torus
-        }
-        
-        // Complexity - make more extreme
-        if (desc.includes('complex') || desc.includes('detailed') || desc.includes('intricate') || desc.includes('fractal')) {
-            params.gridDensity = 70 + Math.random() * 30; // Very dense: 70-100
-            params.morphFactor = 1.6 + Math.random() * 0.4; // High morph: 1.6-2.0
-        } else if (desc.includes('simple') || desc.includes('minimal') || desc.includes('clean')) {
-            params.gridDensity = 5 + Math.random() * 15; // Very sparse: 5-20
-            params.morphFactor = 0.1 + Math.random() * 0.4; // Low morph: 0.1-0.5
-        }
-        
-        // 4D Rotation for effects - make more dramatic
-        if (desc.includes('rotating') || desc.includes('spinning') || desc.includes('dimensional') || desc.includes('hypercube')) {
-            params.rot4dXW = (Math.random() - 0.5) * 8; // Wider rotation range
-            params.rot4dYW = (Math.random() - 0.5) * 8;
-            params.rot4dZW = (Math.random() - 0.5) * 8;
-        }
-        
-        // Holographic effects - make more intense
-        if (desc.includes('holographic') || desc.includes('hologram')) {
-            params.intensity = 0.8 + Math.random() * 0.2; // Very bright: 0.8-1.0
-            params.morphFactor = 1.4 + Math.random() * 0.6; // High morph: 1.4-2.0
-            params.chaos = 0.5 + Math.random() * 0.3; // Medium-high chaos: 0.5-0.8
-            params.saturation = 0.85 + Math.random() * 0.15; // Very saturated: 0.85-1.0
-        }
-        
-        // Add more specific effect combinations for dramatic differences
-        if (desc.includes('storm') || desc.includes('lightning')) {
-            params.speed = 2.5 + Math.random() * 0.5; // Very fast
-            params.chaos = 0.8 + Math.random() * 0.2; // Very chaotic  
-            params.intensity = 0.9 + Math.random() * 0.1; // Very bright
-            params.morphFactor = 1.7 + Math.random() * 0.3; // High transformation
-        }
-        
-        if (desc.includes('ocean') || desc.includes('wave') || desc.includes('flowing')) {
-            params.geometry = 6; // Wave geometry
-            params.speed = 0.6 + Math.random() * 0.8; // Moderate-fast flowing
-            params.morphFactor = 1.2 + Math.random() * 0.5; // Fluid morphing
-            params.chaos = 0.3 + Math.random() * 0.3; // Organic variation
-        }
-        
-        return this.validateParameters(params);
-    }
     
     /**
      * Validate and clamp parameters to valid ranges
