@@ -52,10 +52,12 @@
         <h2>Step 1: Get Gemini API Key</h2>
         <p>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #00ffff;">Google AI Studio</a></p>
         <p>1. Sign in with Google account</p>
-        <p>2. Click "Create API Key"</p>
-        <p>3. Copy the generated key</p>
-        <input type="password" id="apiKeyInput" placeholder="Paste your Gemini API key here" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid #00ffff; color: #fff; border-radius: 5px;">
+        <p>2. Click "Create API Key" (blue button)</p>
+        <p>3. Copy the generated key (starts with "AIza...")</p>
+        <p class="warning">⚠️ Make sure to copy the FULL key including "AIza" prefix!</p>
+        <input type="password" id="apiKeyInput" placeholder="Paste your Gemini API key here (starts with AIza...)" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid #00ffff; color: #fff; border-radius: 5px;">
         <button class="test-button" onclick="setApiKey()">Set API Key</button>
+        <div id="keyStatus" class="result" style="display: none;"></div>
     </div>
     
     <div class="test-section">
@@ -116,20 +118,31 @@
         window.setApiKey = async function() {
             const apiKey = document.getElementById('apiKeyInput').value.trim();
             if (!apiKey) {
-                showResult('Please enter an API key', 'error');
+                showKeyStatus('Please enter an API key', 'error');
+                return;
+            }
+            
+            // Validate API key format
+            if (!apiKey.startsWith('AIza')) {
+                showKeyStatus('⚠️ API key should start with "AIza". Please check your key.', 'warning');
+                return;
+            }
+            
+            if (apiKey.length < 30) {
+                showKeyStatus('⚠️ API key seems too short. Please copy the full key.', 'warning');
                 return;
             }
             
             if (!llmInterface) {
                 const loaded = await initializeLLM();
                 if (!loaded) {
-                    showResult('Failed to load LLM interface', 'error');
+                    showKeyStatus('Failed to load LLM interface', 'error');
                     return;
                 }
             }
             
             llmInterface.setApiKey(apiKey);
-            showResult('✅ API key set successfully!', 'success');
+            showKeyStatus('✅ API key set successfully!', 'success');
         }
         
         window.testGeneration = async function(description) {
@@ -185,6 +198,13 @@
             const results = document.getElementById('testResults');
             results.textContent = message;
             results.className = `result ${type}`;
+        }
+        
+        function showKeyStatus(message, type) {
+            const status = document.getElementById('keyStatus');
+            status.textContent = message;
+            status.className = `result ${type}`;
+            status.style.display = 'block';
         }
         
         // Initialize on load
